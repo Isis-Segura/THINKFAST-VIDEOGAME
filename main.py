@@ -2,11 +2,11 @@ import pygame, sys
 pygame.init()
 
 #Tamano de la pantalla
-size = (800, 600)
+size = (900,700)
 #crear ventana
 screen = pygame.display.set_mode(size)
 #titulo
-pygame.display.set_caption("Video Game")
+pygame.display.set_caption("Think Fast")
 
 
 #bucle de ejecucion

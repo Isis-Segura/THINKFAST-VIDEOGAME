@@ -6,7 +6,7 @@ size = (900,700)
 #crear ventana
 screen = pygame.display.set_mode(size)
 #titulo
-pygame.display.set_caption("Think Fast")
+pygame.display.set_caption("Think Fast!!")
 
 
 #bucle de ejecucion

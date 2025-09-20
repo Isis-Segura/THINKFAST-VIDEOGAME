@@ -3,7 +3,9 @@ import pygame
 class Characterg:
     def __init__(self, x, y, speed=2):
         self.speed = speed
+         #Velocidad y posición
 
+        #Animaciones por frames
         self.animations = {
             "down": [
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down1.png").convert_alpha(),
@@ -31,11 +33,12 @@ class Characterg:
             ]
         }
 
+        #Escalas de los frames al mismo tamaño
         for direction, frames in self.animations.items():
             self.animations[direction] = [
                 pygame.transform.scale(img, (90, 100)) for img in frames
             ]
-
+        #Imagen inicial y rectángulo
         self.direction = "down"
         self.frame_index = 0
         self.image = self.animations[self.direction][self.frame_index]
@@ -44,14 +47,15 @@ class Characterg:
         self.x_float = float(x)
         self.y_float = float(y)
 
+        #Velocidad de animación
         self.frame_timer = 0
         self.frame_speed = 0.018
 
-    # Aquí está la función 'move' unificada
+    #Movimiento y cambio de direccción
     def move(self, keys, screen_width, screen_height):
         moving = False
         
-        # Lógica de movimiento
+        #Lógica de movimiento
         if keys[pygame.K_w]:
             self.y_float -= self.speed
             self.direction = "up"
@@ -70,7 +74,7 @@ class Characterg:
             self.direction = "right"
             moving = True
 
-        # Actualiza el rectángulo con la posición flotante
+        #Actualiza el rectángulo con la posición flotante
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
 

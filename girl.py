@@ -84,7 +84,7 @@ class Characterg:
             self.image = self.animations[self.direction][0]
 
         # Lógica de los márgenes
-        margin = 190
+        margin = 200
         margin2 = 75
 
         if self.rect.left < margin2:

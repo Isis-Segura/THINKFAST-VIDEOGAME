@@ -8,35 +8,35 @@ class Characterb:
         #Animaciones por frames
         self.animations = {
             "down": [
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_down1.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_down2.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_down3.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_down4.png").convert_alpha()
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_down1.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_down2.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_down3.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_down4.png").convert_alpha()
             ],
             "up": [
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_up1.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_up2.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_up3.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_up4.png").convert_alpha()
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_up1.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_up2.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_up3.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_up4.png").convert_alpha()
             ],
             "left": [
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_left1.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_left2.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_left3.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_left4.png").convert_alpha()
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_left1.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_left2.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_left3.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_left4.png").convert_alpha()
             ],
             "right": [
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_right1.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_right2.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_right3.png").convert_alpha(),
-                pygame.image.load("Materials/Pictures/Characters/girl/chica_right4.png").convert_alpha()
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_right1.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_right2.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_right3.png").convert_alpha(),
+                pygame.image.load("Materials/Pictures/Characters/boy/chico_right4.png").convert_alpha()
             ]
         }
 
         #Escalas de los frames al mismo tamaño
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (90, 100)) for img in frames
+                pygame.transform.scale(img, (70, 100)) for img in frames
             ]
         #Imagen inicial y rectángulo
         self.direction = "down"
@@ -84,7 +84,7 @@ class Characterb:
             self.image = self.animations[self.direction][0]
 
         # Lógica de los márgenes
-        margin = 190
+        margin = 200
         margin2 = 75
 
         if self.rect.left < margin2:

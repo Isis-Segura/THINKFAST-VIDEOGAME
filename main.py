@@ -1,6 +1,6 @@
 import pygame, sys
 # Importa la librería de juegos Pygame y el módulo sys para salir del programa
-from girl import Characterg
+from boy import Characterb
 
 
 pygame.init()
@@ -29,7 +29,7 @@ def Background(image):
     screen.blit(size, (0, 0))
     #Dibuja (blit) la imagen en la esquina superior izquierda
 
-player = Characterg(450, 570, 0.4)
+player = Characterb(450, 570, 0.4)
 # Crea una instancia del personaje
 
 pygame.mixer.music.load('Materials/Music/prinsipal.wav')

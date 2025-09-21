@@ -3,9 +3,7 @@ import pygame
 class Characterb:
     def __init__(self, x, y, speed=2):
         self.speed = speed
-         #Velocidad y posición
-
-        #Animaciones por frames
+        
         self.animations = {
             "down": [
                 pygame.image.load("Materials/Pictures/Characters/boy/chico_down1.png").convert_alpha(),
@@ -33,12 +31,12 @@ class Characterb:
             ]
         }
 
-        #Escalas de los frames al mismo tamaño
+
         for direction, frames in self.animations.items():
             self.animations[direction] = [
                 pygame.transform.scale(img, (70, 100)) for img in frames
             ]
-        #Imagen inicial y rectángulo
+
         self.direction = "down"
         self.frame_index = 0
         self.image = self.animations[self.direction][self.frame_index]
@@ -47,15 +45,16 @@ class Characterb:
         self.x_float = float(x)
         self.y_float = float(y)
 
-        #Velocidad de animación
+
         self.frame_timer = 0
         self.frame_speed = 0.018
 
-    #Movimiento y cambio de direccción
-    def move(self, keys, screen_width, screen_height):
+    def move(self, keys, screen_width, screen_height, npc_rect):
         moving = False
         
-        #Lógica de movimiento
+        previous_x = self.x_float
+        previous_y = self.y_float
+        
         if keys[pygame.K_w]:
             self.y_float -= self.speed
             self.direction = "up"
@@ -74,16 +73,16 @@ class Characterb:
             self.direction = "right"
             moving = True
 
-        #Actualiza el rectángulo con la posición flotante
+
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
+        
+        if self.rect.colliderect(npc_rect):
+            self.x_float = previous_x
+            self.y_float = previous_y
+            self.rect.x = int(self.x_float)
+            self.rect.y = int(self.y_float)
 
-        if moving:
-            self.update_animation()
-        else:
-            self.image = self.animations[self.direction][0]
-
-        # Lógica de los márgenes
         margin = 200
         margin2 = 75
 
@@ -99,6 +98,11 @@ class Characterb:
         if self.rect.bottom > screen_height:
             self.rect.bottom = screen_height
             self.y_float = float(self.rect.y)
+
+        if moving:
+            self.update_animation()
+        else:
+            self.image = self.animations[self.direction][0]
 
     def update_animation(self):
         self.frame_timer += self.frame_speed

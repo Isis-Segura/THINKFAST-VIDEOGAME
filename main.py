@@ -5,6 +5,8 @@ from dialogo import DialogBox
 from velotex import TypewriterText
 from Interfazpreguntas import InventoryWindow
 from timer import Timer 
+from corazones import LifeManager
+
 
 
 # Importan de las distintos archivos la información
@@ -21,6 +23,8 @@ player = Characterb(450, 570, 0.4)
 Guardia = Characternpc(300, 260, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
 background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.jpg')
 timer = Timer(120) 
+life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
+
 pygame.mixer.music.load('Materials/Music/prinsipal.wav')
 pygame.mixer.music.play(-1)
 
@@ -60,6 +64,11 @@ while True:
             elif state == "inventory" and (event.key == pygame.K_ESCAPE or event.key == pygame.K_r):
                 # Cerrar inventario
                 state = "game"
+
+            if event.key == pygame.K_l:  # Presiona "L" para perder una vida
+                    life_manager.lose_life()
+             
+
                 
     keys = pygame.key.get_pressed()
 
@@ -79,6 +88,9 @@ while True:
     player.draw(screen)
     Guardia.draw(screen)
     timer.draw(screen, font)
+    life_manager.draw(screen)
+
+
 
     # Dibuja diálogo con efecto máquina de escribir
     if dialogo_active and typewriter:
@@ -91,5 +103,15 @@ while True:
     # Dibuja el inventario
     if state == "inventory":
         inventory_window.draw(screen)
+
+        if timer.finished:
+            print("Se acabo el tiempo")
+            life_manager.lose_life()
+            state = "game"
+
+            if life_manager.is_dead():
+                print("Game Over")
+                pygame.quit()
+                sys.exit()
 
     pygame.display.update()

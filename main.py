@@ -4,6 +4,9 @@ from Guardian import Characternpc
 from dialogo import DialogBox
 from velotex import TypewriterText
 from Interfazpreguntas import InventoryWindow
+from timer import Timer 
+
+
 # Importan de las distintos archivos la información
 
 pygame.init()
@@ -17,7 +20,7 @@ font = pygame.font.SysFont(None, 32)
 player = Characterb(450, 570, 0.4)
 Guardia = Characternpc(300, 260, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
 background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.jpg')
-
+timer = Timer(120) 
 pygame.mixer.music.load('Materials/Music/prinsipal.wav')
 pygame.mixer.music.play(-1)
 
@@ -52,6 +55,7 @@ while True:
                     state = "inventory"
                     dialogo_active = False
                     typewriter = None
+                    timer.start()
             
             elif state == "inventory" and (event.key == pygame.K_ESCAPE or event.key == pygame.K_r):
                 # Cerrar inventario
@@ -74,6 +78,7 @@ while True:
     Background(background_image)
     player.draw(screen)
     Guardia.draw(screen)
+    timer.draw(screen, font)
 
     # Dibuja diálogo con efecto máquina de escribir
     if dialogo_active and typewriter:

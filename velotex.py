@@ -25,4 +25,3 @@ class TypewriterText:
 
     def finished(self):
         return self.current == self.full_text
-

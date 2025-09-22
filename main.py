@@ -14,7 +14,7 @@ from corazones import LifeManager
 pygame.init()
 size = (900, 700)
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Think Fast!!")
+pygame.display.set_caption("Think Fast!")
 clock = pygame.time.Clock()
 
 # ------------------- VARIABLES -------------------

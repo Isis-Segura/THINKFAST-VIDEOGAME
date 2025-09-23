@@ -1,15 +1,17 @@
 import pygame, sys
-from boy import Characterb
-from Guardian import Characternpc
-from dialogo import DialogBox
-from velotex import TypewriterText
-from Interfazpreguntas import InventoryWindow
+from Personajes.boy import Characterb
+from Personajes.Guardian import Characternpc
+from Interacciones.dialogo import DialogBox
+from Interacciones.Controldeobjetos.velotex import TypewriterText
+from Interacciones.Interfazpreguntas import InventoryWindow
+from Interacciones.Controldeobjetos.timer import Timer 
+from Interacciones.Controldeobjetos.corazones import LifeManager
 
 
 pygame.init()
 size = (900, 700)
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Think Fast!!")
+pygame.display.set_caption("Think Fast!")
 clock = pygame.time.Clock()
 
 # ------------------- VARIABLES -------------------
@@ -17,6 +19,8 @@ font = pygame.font.SysFont(None, 32)
 player = Characterb(450, 570, 0.4)
 Guardia = Characternpc(300, 260, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
 background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.jpg')
+timer = Timer(120) 
+life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
 
 pygame.mixer.music.load('Materials/Music/prinsipal.wav')
 pygame.mixer.music.play(-1)
@@ -99,6 +103,10 @@ while True:
     Background(background_image)
     player.draw(screen)
     Guardia.draw(screen)
+    timer.draw(screen, font)
+    life_manager.draw(screen)
+
+
 
     # Mostrar diálogo
     if dialogo_active and typewriter:
@@ -111,5 +119,15 @@ while True:
     # Mostrar preguntas
     if state == "inventory" and inventory_window:
         inventory_window.draw(screen)
+
+        if timer.finished:
+            print("Se acabo el tiempo")
+            life_manager.lose_life()
+            state = "game"
+
+            if life_manager.is_dead():
+                print("Game Over")
+                pygame.quit()
+                sys.exit()
 
     pygame.display.update()

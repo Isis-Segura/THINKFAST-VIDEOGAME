@@ -1,11 +1,11 @@
 import pygame, sys
-from boy import Characterb
-from Guardian import Characternpc
-from dialogo import DialogBox
-from velotex import TypewriterText
-from interfaz_preguntas import InventoryWindow
-from timer import Timer 
-from corazones import LifeManager
+from Personajes.boy import Characterb
+from Personajes.Guardian import Characternpc
+from Interacciones.dialogo import DialogBox
+from Interacciones.Controldeobjetos.velotex import TypewriterText
+from Interacciones.Interfazpreguntas import InventoryWindow
+from Interacciones.Controldeobjetos.timer import Timer 
+from Interacciones.Controldeobjetos.corazones import LifeManager
 
 
 

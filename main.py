@@ -53,7 +53,7 @@ while True:
                     dialogo_active = False
                     typewriter = None
             
-            elif state == "inventory" and (event.key == pygame.K_ESCAPE or event.key == pygame.K_r):
+            elif state == "inventory" and (event.key == pygame.K_ESCAPE or event.key == pygame.KSCAN_DELETE):
                 # Cerrar inventario
                 state = "game"
                 

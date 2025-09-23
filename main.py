@@ -7,7 +7,7 @@ from Interfazpreguntas import InventoryWindow
 from timer import Timer 
 from corazones import LifeManager
 
-
+#22e
 
 # Importan de las distintos archivos la información
 

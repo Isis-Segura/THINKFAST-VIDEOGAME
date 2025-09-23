@@ -3,7 +3,7 @@ from boy import Characterb
 from Guardian import Characternpc
 from dialogo import DialogBox
 from velotex import TypewriterText
-from Interfazpreguntas import InventoryWindow
+from interfaz_preguntas import InventoryWindow
 from timer import Timer 
 from corazones import LifeManager
 

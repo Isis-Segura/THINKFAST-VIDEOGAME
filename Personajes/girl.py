@@ -61,22 +61,22 @@ class Characterg:
         moving = False
         
         #Lógica de movimiento
-        if keys[pygame.K_w]:
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.y_float -= self.speed
             self.direction = "up"
             moving = True
-        elif keys[pygame.K_s]:
+        elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
             self.y_float += self.speed
 
             self.direction = "down"
             moving = True
 
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
 
             self.x_float -= self.speed
             self.direction = "left"
             moving = True
-        elif keys[pygame.K_d]:
+        elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.x_float += self.speed
             self.direction = "right"
             moving = True

@@ -7,9 +7,7 @@ from Interacciones.Interfazpreguntas import InventoryWindow
 from Interacciones.Controldeobjetos.timer import Timer 
 from Interacciones.Controldeobjetos.corazones import LifeManager
 
-
-
-# Importan de las distintos archivos la información
+# Importan de los distintos archivos la información
 
 pygame.init()
 size = (900, 700)
@@ -25,7 +23,8 @@ background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.jpg'
 timer = Timer(120) 
 life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
 
-pygame.mixer.music.load('Materials/Music/prinsipal.wav')
+# Carga la música principal del juego al inicio
+pygame.mixer.music.load('Materials/Music/Level1.wav')
 pygame.mixer.music.play(-1)
 
 speed = 4
@@ -42,7 +41,7 @@ inventory_window = InventoryWindow(size)
 def Background(image):
     size_img = pygame.transform.scale(image, (900, 700))
     screen.blit(size_img, (0, 0))
- 
+    
 # ------------------- BUCLE PRINCIPAL -------------------
 while True:
     #------------------- EVENTOS -------------------
@@ -66,10 +65,34 @@ while True:
                 state = "game"
 
             if event.key == pygame.K_l:  # Presiona "L" para perder una vida
-                    life_manager.lose_life()
-             
+                life_manager.lose_life()
+                if life_manager.is_dead():
+                    pygame.mixer.music.stop() # Detiene la música principal
+                    state = "game_over" # Cambia el estado del juego
+            
+            if state == "game_over":
+                if event.key == pygame.K_r:
+                    # Reiniciar
+                    player = Characterb(450, 570, 0.4)
+                    Guardia = Characternpc(300, 260, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
+                    timer = Timer(120)
+                    life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
+                    dialogo_active = False
+                    typewriter = None
+                    state = "game"
+                    
+                    # Vuelve a cargar y reproducir la música de fondo del juego
+                    pygame.mixer.music.load('Materials/Music/Level1.wav')
+                    pygame.mixer.music.play(-1)
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
-                
+    # Lógica para cambiar la música a 'Game Over'
+    if state == "game_over" and not pygame.mixer.music.get_busy():
+        pygame.mixer.music.load('Materials/Music/GameOver.wav')
+        pygame.mixer.music.play(-1)
+            
     keys = pygame.key.get_pressed()
 
     #------------------- MOVIMIENTO -------------------
@@ -84,13 +107,13 @@ while True:
                 typewriter = TypewriterText(dialogo_text, font, (255,255,255), speed=25)
 
     # ------------------- DIBUJO -------------------
-    Background(background_image)
-    player.draw(screen)
-    Guardia.draw(screen)
-    timer.draw(screen, font)
-    life_manager.draw(screen)
-
-
+    # Dibuja la pantalla según el estado del juego
+    if state == "game" or state == "dialog" or state == "inventory":
+        Background(background_image)
+        player.draw(screen)
+        Guardia.draw(screen)
+        timer.draw(screen, font)
+        life_manager.draw(screen)
 
     # Dibuja diálogo con efecto máquina de escribir
     if dialogo_active and typewriter:
@@ -103,15 +126,22 @@ while True:
     # Dibuja el inventario
     if state == "inventory":
         inventory_window.draw(screen)
-
+            
         if timer.finished:
-            print("Se acabo el tiempo")
             life_manager.lose_life()
-            state = "game"
-
+            timer.reset()
             if life_manager.is_dead():
-                print("Game Over")
-                pygame.quit()
-                sys.exit()
+                pygame.mixer.music.stop() # Detiene la música principal
+                state = "game_over"
+            else:
+                state = "game"
+
+    elif state == "game_over":
+        screen.fill((0, 0, 0))  # Fondo negro
+        game_over_text = font.render("GAME OVER", True, (255, 0, 0))
+        retry_text = font.render("Presiona R para reiniciar o ESC para salir", True, (255, 255, 255))
+
+        screen.blit(game_over_text, game_over_text.get_rect(center=(size[0] // 2, size[1] // 2 - 40)))
+        screen.blit(retry_text, retry_text.get_rect(center=(size[0] // 2, size[1] // 2 + 20)))
 
     pygame.display.update()

@@ -4,7 +4,7 @@ from Guardian import Characternpc
 from dialogo import DialogBox
 from velotex import TypewriterText
 from Interfazpreguntas import InventoryWindow
-# Importan de las distintos archivos la información
+
 
 pygame.init()
 size = (900, 700)
@@ -22,69 +22,94 @@ pygame.mixer.music.load('Materials/Music/prinsipal.wav')
 pygame.mixer.music.play(-1)
 
 speed = 4
-state = "game"  # Estado del juego: "game" para el juego normal, "dialog" para el diálogo, o "inventory" para el inventario
+state = "game"  # Puede ser "game", "dialog", "inventory"
 dialogo_text = "¡Alto! Tienes que responder estas preguntas!!."
 typewriter = None
 dialogo_active = False
 player_can_move = True
+inventory_window = None  # Inicializa como None
 
-inventory_window = InventoryWindow(size)
-# Crea una instancia de la ventana de inventario
+# ------------------- PREGUNTAS -------------------
+questions = [
+    {
+        "image": "Materials/Pictures/imagen1.jpg",
+        "question": "¿Cómo se llama nuestro país?",
+        "choices": ["España", "México", "Roma", "Berlín"],
+        "correct_answer": 1
+    },
+    {
+        "image": "Materials/Pictures/imagen1.jpg",
+        "question": "¿Cuánto es 2 + 2?",
+        "choices": ["3", "4", "5", "6"],
+        "correct_answer": 1
+    },
+    {
+        "image": "Materials/Pictures/imagen1.jpg",
+        "question": "¿Cuál es el animal más grande del mundo?",
+        "choices": ["Ballena azul", "Elefante", "Tiburón blanco", "Jirafa"],
+        "correct_answer": 0
+    },
+    {
+        "image": "Materials/Pictures/imagen1.jpg",
+        "question": "¿Cuál es el océano más grande?",
+        "choices": ["Atlántico", "Índico", "Pacífico", "Ártico"],
+        "correct_answer": 2
+    }
+]
 
 # ------------------- FUNCIONES -------------------
 def Background(image):
     size_img = pygame.transform.scale(image, (900, 700))
     screen.blit(size_img, (0, 0))
- 
-# ------------------- BUCLE PRINCIPAL -------------------
+
+# ------------------- BUCLE PRINCIPAL --------------
 while True:
-    #------------------- EVENTOS -------------------
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        # Control del diálogo
+        # Diálogo
         if event.type == pygame.KEYDOWN:
             if state == "dialog" and event.key == pygame.K_SPACE:
-                if typewriter.finished():
-                    # Cerrar el diálogo
+                if typewriter and typewriter.finished():
                     state = "inventory"
                     dialogo_active = False
                     typewriter = None
-            
-            elif state == "inventory" and (event.key == pygame.K_ESCAPE or event.key == pygame.K_r):
-                # Cerrar inventario
-                state = "game"
-                
+                    inventory_window = InventoryWindow(size, questions)
+
+        # Evento para responder preguntas
+        if state == "inventory" and inventory_window:
+            inventory_window.handle_event(event)
+
     keys = pygame.key.get_pressed()
 
-    #------------------- MOVIMIENTO -------------------
+    # Movimiento del jugador
     if state == "game":
         player.move(keys, size[0], size[1], Guardia.rect)
-        
-        # Activa el diálogo si el jugador está lo suficientemente cerca del guardia y presiona ESPACIO
-        if player.rect.colliderect(Guardia.rect.inflate(20,20)) and keys[pygame.K_SPACE]:
+
+        # Iniciar diálogo con espacio cerca del guardia
+        if player.rect.colliderect(Guardia.rect.inflate(20, 20)) and keys[pygame.K_SPACE]:
             if not dialogo_active:
                 state = "dialog"
                 dialogo_active = True
-                typewriter = TypewriterText(dialogo_text, font, (255,255,255), speed=25)
+                typewriter = TypewriterText(dialogo_text, font, (255, 255, 255), speed=25)
 
     # ------------------- DIBUJO -------------------
     Background(background_image)
     player.draw(screen)
     Guardia.draw(screen)
 
-    # Dibuja diálogo con efecto máquina de escribir
+    # Mostrar diálogo
     if dialogo_active and typewriter:
         typewriter.update()
         box_rect = pygame.Rect(50, 550, 800, 100)
         pygame.draw.rect(screen, (0, 0, 0), box_rect)
         pygame.draw.rect(screen, (255, 255, 255), box_rect, 3)
         typewriter.draw(screen, (box_rect.x + 20, box_rect.y + 30))
-    
-    # Dibuja el inventario
-    if state == "inventory":
+
+    # Mostrar preguntas
+    if state == "inventory" and inventory_window:
         inventory_window.draw(screen)
 
     pygame.display.update()

@@ -8,7 +8,7 @@ from timer import Timer
 from corazones import LifeManager
 
 #Hola mundo 
-
+#djew
 
 # Importan de las distintos archivos la información
 

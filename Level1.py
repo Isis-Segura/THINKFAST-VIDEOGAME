@@ -34,32 +34,33 @@ player_can_move = True
 inventory_window = None  # Inicializa como None
 
 # ------------------- PREGUNTAS -------------------
-questions = [
-    {
-        "image": "Materials/Pictures/imagen1.jpg",
-        "question": "¿Cómo se llama nuestro país?",
-        "choices": ["España", "México", "Roma", "Berlín"],
-        "correct_answer": 1
-    },
-    {
-        "image": "Materials/Pictures/imagen1.jpg",
-        "question": "¿Cuánto es 2 + 2?",
-        "choices": ["3", "4", "5", "6"],
-        "correct_answer": 1
-    },
-    {
-        "image": "Materials/Pictures/imagen1.jpg",
-        "question": "¿Cuál es el animal más grande del mundo?",
-        "choices": ["Ballena azul", "Elefante", "Tiburón blanco", "Jirafa"],
-        "correct_answer": 0
-    },
-    {
-        "image": "Materials/Pictures/imagen1.jpg",
-        "question": "¿Cuál es el océano más grande?",
-        "choices": ["Atlántico", "Índico", "Pacífico", "Ártico"],
-        "correct_answer": 2
-    }
-]
+questions = [ 
+        {
+            "image": "Materials/Pictures/imagen1.jpg",
+            "question": "¿Cómo se llama nuestro país?",
+            "choices": ["España", "México", "Roma", "Berlín"],
+            "correct_answer": 1
+        },
+        {
+            "image": "Materials/Pictures/imagen2.jpg",
+            "question": "Si tienes 5 manzanas y te comes 2, ¿cuántas manzanas te quedan?",
+            "choices": ["5", "4", "3", "10"],
+            "correct_answer": 1
+        },
+        {
+            "image": "Materials/Pictures/imagen3.jpg",
+            "question": "¿En qué estación del año las hojas de los árboles cambian de color y caen?",
+            "choices": ["primavera", "verano", "otoño", "invierno"],
+            "correct_answer": 2
+        },
+        {
+            "image": "Materials/Pictures/imagen4.jpg",
+            "question": "que se celebra el 1 de noviembre?",
+            "choices": ["DIA DE MUERTOS", "NAVIDAD", "10 DE MAYO", "AÑO NUEVO"],
+            "correct_answer": 0
+        }
+    ]
+
 
 # ------------------- FUNCIONES -------------------
 def Background(image):

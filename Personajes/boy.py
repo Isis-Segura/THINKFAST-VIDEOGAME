@@ -35,7 +35,7 @@ class Characterb:
 
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (70, 100)) for img in frames
+                pygame.transform.scale(img, (49, 80)) for img in frames
             ]
 
         self.direction = "down"
@@ -48,7 +48,7 @@ class Characterb:
 
 
         self.frame_timer = 0
-        self.frame_speed = 0.018
+        self.frame_speed = 0.1
 
     def move(self, keys, screen_width, screen_height, npc_rect):
         moving = False
@@ -84,8 +84,8 @@ class Characterb:
             self.rect.x = int(self.x_float)
             self.rect.y = int(self.y_float)
 
-        margin = 200
-        margin2 = 75
+        margin = 245
+        margin2 = 210
 
         if self.rect.left < margin2:
             self.rect.left = margin2

@@ -112,5 +112,9 @@ class Characterb:
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
             self.image = self.animations[self.direction][self.frame_index]
 
+
+    
+
+
     def draw(self, surface):
         surface.blit(self.image, self.rect)

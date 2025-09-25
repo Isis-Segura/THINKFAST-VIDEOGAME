@@ -1,5 +1,5 @@
 import pygame, sys
-import Level1
+import Level1F
 
 pygame.init()
 
@@ -32,6 +32,10 @@ background = pygame.image.load("Materials/Pictures/Assets/background.png").conve
 imageb = pygame.transform.scale(background, (size))
 clock = pygame.time.Clock()
 
+#Musica
+pygame.mixer.music.load('Materials/Music/Menu.wav')
+pygame.mixer.music.play(-1)
+
 # Estados del juego
 MENU = 0
 SELECT_DIFFICULTY = 1
@@ -42,7 +46,9 @@ GAME_LEVEL_1 = 4
 game_state = MENU
 state_history = [MENU]
 is_advanced = False
+selected_character = "boy"  # Variable para guardar la elección del personaje
 
+# Funciones de botones
 def create_menu_buttons():
     play_text = font_medium.render("PLAY", True, black)
     play_button_rect = pygame.Rect(0, 0, 200, 60)
@@ -96,6 +102,7 @@ def create_level_buttons():
     level3_button_rect.center = (size[0] // 2, size[1] // 2 + 160)
     return level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect
 
+# Funciones de dibujo (con las correcciones aplicadas)
 def draw_menu(titulob, play_text, play_button_rect, quit_text, quit_button_rect, imageb):
     screen.blit(imageb, [0, 0])
     screen.blit(titulob, [80, -50])
@@ -122,8 +129,7 @@ def draw_character_selection(select_text, select_text_rect, char1_text, char1_bu
     pygame.draw.rect(screen, blue, char1_button_rect, border_radius=10)
     screen.blit(char1_text, char1_text.get_rect(center=char1_button_rect.center))
     pygame.draw.rect(screen, rosa, char2_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
-    screen.blit(char2_text, char2_text.get_rect(center=char2_button_rect.center)) 
+    screen.blit(char2_text, char2_text.get_rect(center=char2_button_rect.center))
     pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
     screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
 
@@ -136,21 +142,15 @@ def draw_level_selection(level_text, level_text_rect, level1_text, level1_button
     level3_display_text = font_medium.render(f"Nivel 3 ({'Avanzado' if is_advanced else 'Principiante'})", True, white)
     
     pygame.draw.rect(screen, green, level1_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
     screen.blit(level1_display_text, level1_display_text.get_rect(center=level1_button_rect.center))
-    
     pygame.draw.rect(screen, green, level2_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
     screen.blit(level2_display_text, level2_display_text.get_rect(center=level2_button_rect.center))
-    
     pygame.draw.rect(screen, green, level3_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
     screen.blit(level3_display_text, level3_display_text.get_rect(center=level3_button_rect.center))
-    
     pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
     screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
 
-
+# Creación de elementos del menú
 play_text, play_button_rect, quit_text, quit_button_rect = create_menu_buttons()
 difficulty_text, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect = create_difficulty_buttons()
 select_text, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect = create_character_buttons()
@@ -158,6 +158,7 @@ level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level
 back_text = font_small.render("Regresar", True, white)
 back_button_rect = pygame.Rect(50, 600, 150, 50)
 
+# Bucle principal del juego que gestiona los estados
 running = True
 while running:
     for event in pygame.event.get():
@@ -186,15 +187,18 @@ while running:
                         state_history.append(game_state)
                 elif game_state == SELECT_CHARACTER:
                     if char1_button_rect.collidepoint(event.pos):
+                        selected_character = "boy"  # Guarda la elección del personaje
                         game_state = SELECT_LEVEL
                         state_history.append(game_state)
                     if char2_button_rect.collidepoint(event.pos):
+                        selected_character = "girl"  # Guarda la elección del personaje
                         game_state = SELECT_LEVEL
                         state_history.append(game_state)
                 elif game_state == SELECT_LEVEL:
                     if level1_button_rect.collidepoint(event.pos):
                         game_state = GAME_LEVEL_1
-                        Level1.run_game()
+                        # Pasa el personaje seleccionado al juego
+                        Level1F.run_game(selected_character) 
                     if level2_button_rect.collidepoint(event.pos):
                         print("Nivel 2 seleccionado. Lógica aún no implementada.")
                     if level3_button_rect.collidepoint(event.pos):

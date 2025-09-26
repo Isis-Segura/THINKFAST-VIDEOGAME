@@ -2,165 +2,176 @@ import pygame, sys
 from Personajes.boy import Characterb
 from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpc
-from Interacciones.dialogo import DialogBox
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
 from Interacciones.Controldeobjetos.corazones import LifeManager
-from Memorama import QuizCards
+from Interacciones.Memorama import QuizCards
 
-# Inicialización de Pygame
-pygame.init()
-size = (900, 700)
-screen = pygame.display.get_surface() or pygame.display.set_mode(size)
-font = pygame.font.SysFont(None, 32)
-clock = pygame.time.Clock()
-
-def Background(image):
-    size_img = pygame.transform.scale(image, (900, 700))
-    screen.blit(size_img, (0, 0))
-
-def run_game(character_choice):
-    if character_choice == "boy":
-        player = Characterb(350, 470, 2)
-    elif character_choice == "girl":
-        player = Characterg(350, 470, 2)
-    
-    Guardia = Characternpc(450, 290, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
-    background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.png')
-    timer = Timer(120)
-    life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
-
-    pygame.mixer.music.load('Materials/Music/Level1.wav')
-    pygame.mixer.music.play(-1)
-
-    state = "game"
-    dialogo_text = "¡Alto! Tienes que responder estas preguntas!!."
-    typewriter = None
-    dialogo_active = False
-    quiz_game = None
-    post_quiz_dialogs = []
-    current_dialog_index = 0
-    guard_interacted = False
-
-    questions = [
-        { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cómo se llama nuestro país?", "choices": ["España", "México", "Roma", "Berlín"], "correct_answer": 1 },
-        { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuánto es 2 + 2?", "choices": ["3", "4", "5", "6"], "correct_answer": 1 },
-        { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuál es el animal más grande del mundo?", "choices": ["Ballena azul", "Elefante", "Tiburón blanco", "Jirafa"], "correct_answer": 0 },
-        { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuál es el océano más grande?", "choices": ["Atlántico", "Índico", "Pacífico", "Ártico"], "correct_answer": 2 }
-    ]
-
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            
-            # **CORRECCIÓN**
-            # Los eventos del teclado se manejan dentro de su propio bloque `if`
-            if event.type == pygame.KEYDOWN:
-                if state == "dialog" and event.key == pygame.K_SPACE:
-                    if typewriter and typewriter.finished():
-                        state = "quiz_cards"
-                        dialogo_active = False
-                        typewriter = None
-                        quiz_game = QuizCards(size, questions)
-                
-                elif state == "quiz_complete_dialog" and event.key == pygame.K_SPACE:
-                    if typewriter and typewriter.finished():
-                        current_dialog_index += 1
-                        if current_dialog_index < len(post_quiz_dialogs):
-                            dialogo_active = True
-                            typewriter = TypewriterText(post_quiz_dialogs[current_dialog_index], font, (255,255,255), speed=25)
-                        else:
-                            state = "game"
-                            dialogo_active = False
-                            typewriter = None
-                            Guardia.rect.x -= 130
-                            player.rect.x = 450
-                            player.rect.y = 570
-                
-                # Manejo de la pérdida de vida
-                if event.key == pygame.K_l:
-                    life_manager.lose_life()
-                    if life_manager.is_dead():
-                        pygame.mixer.music.stop() 
-                        state = "game_over" 
-                
-                # Reinicio y salida del juego
-                if state == "game_over":
-                    if event.key == pygame.K_r:
-                        return
-                    elif event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
-            
-            # **CORRECCIÓN**
-            # Los eventos del ratón (MOUSEBUTTONDOWN) se manejan por separado
-            if state == "quiz_cards" and quiz_game:
-                quiz_game.handle_event(event)
+class Level1:
+    def __init__(self, screen, size, font, character_choice):
+        self.screen = screen
+        self.size = size
+        self.font = font
+        self.character_choice = character_choice
         
-        # Lógica para reproducir la música de Game Over
-        if state == "game_over" and not pygame.mixer.music.get_busy():
-            pygame.mixer.music.load('Materials/Music/GameOver.wav')
+        # Inicialización de recursos específicos del nivel
+        if self.character_choice == "boy":
+            self.player = Characterb(350, 470, 2)
+        else:
+            self.player = Characterg(350, 470, 2)
+        
+        self.Guardia = Characternpc(450, 290, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
+        self.background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.png')
+        self.timer = Timer(120)
+        self.life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
+        
+        try:
+            # Música de fondo del nivel
+            pygame.mixer.music.load('Materials/Music/Level1.wav')
             pygame.mixer.music.play(-1)
-                
-        keys = pygame.key.get_pressed()
+            # Sonido de derrota (cargado como Sound, no como music)
+            self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
+            # Música del Game Over
+            self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
+        except pygame.error as e:
+            print(f"No se pudo cargar la música: {e}")
 
-        if state == "game":
-            player.move(keys, size[0], size[1], Guardia.rect)
-            if player.rect.colliderect(Guardia.rect.inflate(20,20)) and keys[pygame.K_SPACE] and not guard_interacted:
-                state = "dialog"
-                dialogo_active = True
-                typewriter = TypewriterText(dialogo_text, font, (255,255,255), speed=25)
-                guard_interacted = True
+        self.state = "game"
+        self.dialogo_text = "¡Alto! Tienes que responder estas preguntas!!"
+        self.typewriter = None
+        self.dialogo_active = False
+        self.quiz_game = None
+        self.post_quiz_dialogs = []
+        self.current_dialog_index = 0
+        self.guard_interacted = False
+        self.game_over_music_played = False
+        
+        self.questions = [
+            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cómo se llama nuestro país?", "choices": ["España", "México", "Roma", "Berlín"], "correct_answer": 1 },
+            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuánto es 2 + 2?", "choices": ["3", "4", "5", "6"], "correct_answer": 1 },
+            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuál es el animal más grande del mundo?", "choices": ["Ballena azul", "Elefante", "Tiburón blanco", "Jirafa"], "correct_answer": 0 },
+            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuál es el océano más grande?", "choices": ["Atlántico", "Índico", "Pacífico", "Ártico"], "correct_answer": 2 }
+        ]
 
-        if state == "game" or state == "dialog" or state == "quiz_complete_dialog":
-            Background(background_image)
-            player.draw(screen)
-            Guardia.draw(screen)
-            timer.draw(screen, font)
-            life_manager.draw(screen)
+    def handle_events(self, event):
+        """Maneja los eventos del nivel."""
+        if self.state in ["game_over", "loss_sound_state"]:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    # Detiene toda la música y sonidos antes de reiniciar
+                    pygame.mixer.stop()
+                    self.__init__(self.screen, self.size, self.font, self.character_choice)
+                    return "restart"
+                elif event.key == pygame.K_ESCAPE:
+                    # Detiene toda la música y sonidos antes de ir al menú
+                    pygame.mixer.stop()
+                    return "menu"
+        
+        if self.state == "dialog" and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if self.typewriter and self.typewriter.finished():
+                self.state = "quiz_cards"
+                self.dialogo_active = False
+                self.typewriter = None
+                self.quiz_game = QuizCards(self.size, self.questions)
+        
+        elif self.state == "quiz_complete_dialog" and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            if self.typewriter and self.typewriter.finished():
+                self.current_dialog_index += 1
+                if self.current_dialog_index < len(self.post_quiz_dialogs):
+                    self.dialogo_active = True
+                    self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font, (255,255,255), speed=25)
+                else:
+                    self.state = "game"
+                    self.dialogo_active = False
+                    self.typewriter = None
+                    self.Guardia.rect.x -= 130
+                    self.player.rect.x = 450
+                    self.player.rect.y = 570
+        
+        if self.state == "quiz_cards" and self.quiz_game:
+            result = self.quiz_game.handle_event(event)
+            if result == "incorrect":
+                self.life_manager.lose_life()
+                if self.life_manager.is_dead():
+                    self.state = "loss_sound_state"
+                    pygame.mixer.music.stop()
+                    self.loss_sound.play()
+        
+        return None
 
-            if dialogo_active and typewriter:
-                typewriter.update()
-                box_rect = pygame.Rect(50, 550, 800, 100)
-                pygame.draw.rect(screen, (0, 0, 0), box_rect)
-                pygame.draw.rect(screen, (255, 255, 255), box_rect, 3)
-                typewriter.draw(screen, (box_rect.x + 20, box_rect.y + 30))
-
-        elif state == "quiz_cards":
-            Background(background_image)
-            player.draw(screen)
-            Guardia.draw(screen)
-            timer.draw(screen, font)
-            life_manager.draw(screen)
-            
-            if not quiz_game.finished:
-                quiz_game.update()
-                quiz_game.draw(screen)
+    def update(self):
+        """Actualiza la lógica del nivel."""
+        if self.state == "game":
+            keys = pygame.key.get_pressed()
+            self.player.move(keys, self.size[0], self.size[1], self.Guardia.rect)
+            if self.player.rect.colliderect(self.Guardia.rect.inflate(20,20)) and keys[pygame.K_SPACE] and not self.guard_interacted:
+                self.state = "dialog"
+                self.dialogo_active = True
+                self.typewriter = TypewriterText(self.dialogo_text, self.font, (255,255,255), speed=25)
+                self.guard_interacted = True
+        
+        elif self.state == "quiz_cards":
+            if not self.quiz_game.finished:
+                self.quiz_game.update()
             else:
-                print("Quiz terminado. ¡Volviendo al juego!")
-                state = "quiz_complete_dialog"
-                dialogo_active = True
-                score = quiz_game.correct_answers
-                total = len(quiz_game.questions)
-                post_quiz_dialogs = [
+                self.state = "quiz_complete_dialog"
+                self.dialogo_active = True
+                score = self.quiz_game.correct_answers
+                total = len(self.quiz_game.questions)
+                
+                if score == total:
+                    dialog_text = "¡Muy bien hecho! Has demostrado tener una buena calidad de estudio."
+                elif score >= 3:
+                    dialog_text = "Puedes mejorar. Sigue practicando."
+                else:
+                    dialog_text = "Te falta estudio. ¡Practica para la proxima vez!"
+                
+                self.post_quiz_dialogs = [
                     f"Has respondido correctamente {score} de {total} preguntas.",
-                    "¡Muy bien hecho!\nHas demostrado tener una calidad de estudio bastante buena.",
+                    dialog_text,
                     "Ahora puedes pasar. ¡Buena suerte en tu camino!"
                 ]
-                current_dialog_index = 0
-                typewriter = TypewriterText(post_quiz_dialogs[current_dialog_index], font, (255,255,255), speed=25)
-                quiz_game = None
-                timer.reset()
+                self.current_dialog_index = 0
+                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font, (255,255,255), speed=25)
+                self.quiz_game = None
+                self.timer.reset()
+        
+        # Espera a que el sonido de derrota termine
+        elif self.state == "loss_sound_state":
+            # Si ningún sonido se está reproduciendo
+            if not pygame.mixer.get_busy():
+                self.state = "game_over"
+                if not self.game_over_music_played:
+                    self.game_over_music.play(-1)
+                    self.game_over_music_played = True
 
-        elif state == "game_over":
-            screen.fill((0, 0, 0))
-            game_over_text = font.render("GAME OVER", True, (255, 0, 0))
-            retry_text = font.render("Presiona R para reiniciar o ESC para salir", True, (255, 255, 255))
-            screen.blit(game_over_text, game_over_text.get_rect(center=(size[0] // 2, size[1] // 2 - 40)))
-            screen.blit(retry_text, retry_text.get_rect(center=(size[0] // 2, size[1] // 2 + 20)))
+        # Actualizar el texto del cuadro de diálogo solo si está activo
+        if self.dialogo_active and self.typewriter:
+            self.typewriter.update()
 
-        pygame.display.update()
-        clock.tick(1000)
+        return self.state
+
+    def draw(self):
+        """Dibuja los elementos en la pantalla."""
+        if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_cards", "loss_sound_state"]:
+            self.screen.blit(self.background_image, (0, 0))
+            self.player.draw(self.screen)
+            self.Guardia.draw(self.screen)
+            self.timer.draw(self.screen, self.font)
+            self.life_manager.draw(self.screen)
+
+            if self.dialogo_active:
+                box_rect = pygame.Rect(50, 550, 800, 100)
+                pygame.draw.rect(self.screen, (0, 0, 0), box_rect)
+                pygame.draw.rect(self.screen, (255, 255, 255), box_rect, 3)
+                self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 30))
+
+            if self.state == "quiz_cards":
+                self.quiz_game.draw(self.screen)
+
+        elif self.state == "game_over":
+            self.screen.fill((0, 0, 0))
+            game_over_text = self.font.render("GAME OVER", True, (255, 0, 0))
+            retry_text = self.font.render("Presiona R para reiniciar o ESC para ir al menú", True, (255, 255, 255))
+            self.screen.blit(game_over_text, game_over_text.get_rect(center=(self.size[0] // 2, self.size[1] // 2 - 40)))
+            self.screen.blit(retry_text, retry_text.get_rect(center=(self.size[0] // 2, self.size[1] // 2 + 20)))

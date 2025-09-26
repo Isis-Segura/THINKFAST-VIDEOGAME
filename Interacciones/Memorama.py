@@ -1,10 +1,12 @@
 import pygame
 import math
+import random # Agregamos random para barajar las preguntas
 
 class QuizCards:
     def __init__(self, size, questions):
         self.size = size
-        self.questions = questions
+        self.questions = list(questions) # Usamos una copia para no modificar el original
+        random.shuffle(self.questions) # Barajamos las preguntas al crear el objeto
         self.current_question = 0
         self.answered = False
         self.finished = False
@@ -14,14 +16,12 @@ class QuizCards:
         
         self.font = pygame.font.Font(None, 36)
         
-        # Colores
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
         self.gray = (150, 150, 150)
         self.red = (255, 0, 0)
         self.green = (0, 255, 0)
         
-        # Atributos para el efecto de volteo y temporizador
         self.flipping = False
         self.flip_angle = 0
         self.flip_speed = 10 
@@ -29,10 +29,9 @@ class QuizCards:
         self.answered_time = 0
         self.selected_answer_index = -1
         
-        # Nuevo estado para mostrar las respuestas al inicio
         self.show_answers = True
         self.preview_timer = pygame.time.get_ticks()
-        self.preview_time_limit = 2000 # 2 segundos para mostrar las respuestas
+        self.preview_time_limit = 2000
 
     def handle_event(self, event):
         if self.finished or self.flipping or self.answered or self.show_answers:
@@ -54,17 +53,14 @@ class QuizCards:
         return None
 
     def update(self):
-        # Temporizador para ocultar las respuestas al inicio de la pregunta
         if self.show_answers and pygame.time.get_ticks() - self.preview_timer > self.preview_time_limit:
             self.show_answers = False
 
-        # Temporizador para iniciar el volteo después de responder
         if self.answered and not self.flipping:
             if pygame.time.get_ticks() - self.answered_time > self.wait_time_after_answer:
                 self.flipping = True
                 self.flip_angle = 0
         
-        # Lógica de animación de volteo
         if self.flipping:
             self.flip_angle += self.flip_speed
             if self.flip_angle >= 180:
@@ -81,7 +77,6 @@ class QuizCards:
     def draw(self, screen):
         quiz_rect = pygame.Rect(self.size[0] // 2 - 300, self.size[1] // 2 - 250, 600, 500)
         
-        # Dibujar el fondo del quiz
         pygame.draw.rect(screen, self.gray, quiz_rect)
         pygame.draw.rect(screen, self.black, quiz_rect, 5)
 
@@ -90,7 +85,6 @@ class QuizCards:
             
         current_q = self.questions[self.current_question]
         
-        # Dibujar la imagen de la pregunta
         image_path = current_q["image"]
         try:
             image = pygame.image.load(image_path).convert_alpha()
@@ -100,7 +94,6 @@ class QuizCards:
         except pygame.error as e:
             print(f"No se pudo cargar la imagen: {e}")
         
-        # Dibujar el texto de la pregunta
         question_text = self.font.render(current_q["question"], True, self.black)
         question_rect_temp = question_text.get_rect(center=(quiz_rect.centerx, quiz_rect.top + 250))
         screen.blit(question_text, question_rect_temp)
@@ -111,9 +104,7 @@ class QuizCards:
             choice_rect = pygame.Rect(quiz_rect.left + 50, y_pos, 500, 40)
             self.answer_rects.append(choice_rect)
             
-            # Lógica de dibujo de las tarjetas de respuesta
             if self.flipping and i == self.selected_answer_index:
-                # Voltear la tarjeta seleccionada
                 cos_val = math.cos(math.radians(self.flip_angle))
                 width = 500 * abs(cos_val)
                 height = 40
@@ -137,21 +128,18 @@ class QuizCards:
                 screen.blit(scaled_card, scaled_rect)
             
             elif self.show_answers or self.answered:
-                # Mostrar respuestas si es la fase de "vista previa" o si ya se respondió
                 pygame.draw.rect(screen, self.white, choice_rect)
                 pygame.draw.rect(screen, self.black, choice_rect, 2)
                 choice_text = self.font.render(choice, True, self.black)
                 screen.blit(choice_text, (choice_rect.x + 10, choice_rect.y + 5))
             
             else:
-                # Respuestas ocultas
                 pygame.draw.rect(screen, self.white, choice_rect)
                 pygame.draw.rect(screen, self.black, choice_rect, 2)
                 dot_surface = self.font.render("?", True, self.black)
                 dot_rect = dot_surface.get_rect(center=choice_rect.center)
                 screen.blit(dot_surface, dot_rect)
         
-        # Mostrar el resultado
         if self.answered:
             color = self.green if self.selected_answer_index == self.questions[self.current_question]["correct_answer"] else self.red
             result_text = "¡Correcto!" if color == self.green else "Incorrecto."

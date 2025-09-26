@@ -1,5 +1,5 @@
 import pygame, sys
-import Level1F
+import Levels.Level1F as Level1F
 
 pygame.init()
 

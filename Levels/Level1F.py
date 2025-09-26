@@ -1,11 +1,12 @@
 import pygame, sys
+import random
 from Personajes.boy import Characterb
 from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpc
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
 from Interacciones.Controldeobjetos.corazones import LifeManager
-from Interacciones.Memorama import QuizCards
+from Interacciones.Memorama import QuizCards # Asegúrate de que este import sea correcto
 
 class Level1:
     def __init__(self, screen, size, font, character_choice):
@@ -26,13 +27,14 @@ class Level1:
         self.life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
         
         try:
-            # Música de fondo del nivel
             pygame.mixer.music.load('Materials/Music/Level1.wav')
             pygame.mixer.music.play(-1)
-            # Sonido de derrota (cargado como Sound, no como music)
             self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
-            # Música del Game Over
             self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
+            
+            # Nuevos audios para las respuestas
+            self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
+            self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
         except pygame.error as e:
             print(f"No se pudo cargar la música: {e}")
 
@@ -46,6 +48,7 @@ class Level1:
         self.guard_interacted = False
         self.game_over_music_played = False
         
+        # Las preguntas para el memorama. No las barajamos aquí, el QuizCards se encarga de eso.
         self.questions = [
             { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cómo se llama nuestro país?", "choices": ["España", "México", "Roma", "Berlín"], "correct_answer": 1 },
             { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuánto es 2 + 2?", "choices": ["3", "4", "5", "6"], "correct_answer": 1 },
@@ -58,12 +61,10 @@ class Level1:
         if self.state in ["game_over", "loss_sound_state"]:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    # Detiene toda la música y sonidos antes de reiniciar
                     pygame.mixer.stop()
                     self.__init__(self.screen, self.size, self.font, self.character_choice)
                     return "restart"
                 elif event.key == pygame.K_ESCAPE:
-                    # Detiene toda la música y sonidos antes de ir al menú
                     pygame.mixer.stop()
                     return "menu"
         
@@ -90,7 +91,10 @@ class Level1:
         
         if self.state == "quiz_cards" and self.quiz_game:
             result = self.quiz_game.handle_event(event)
-            if result == "incorrect":
+            if result == "correct":
+                self.correct_sound.play()
+            elif result == "incorrect":
+                self.incorrect_sound.play()
                 self.life_manager.lose_life()
                 if self.life_manager.is_dead():
                     self.state = "loss_sound_state"
@@ -117,7 +121,7 @@ class Level1:
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
                 score = self.quiz_game.correct_answers
-                total = len(self.quiz_game.questions)
+                total = len(self.questions) # Usa la lista original de preguntas para el total
                 
                 if score == total:
                     dialog_text = "¡Muy bien hecho! Has demostrado tener una buena calidad de estudio."
@@ -136,16 +140,13 @@ class Level1:
                 self.quiz_game = None
                 self.timer.reset()
         
-        # Espera a que el sonido de derrota termine
         elif self.state == "loss_sound_state":
-            # Si ningún sonido se está reproduciendo
             if not pygame.mixer.get_busy():
                 self.state = "game_over"
                 if not self.game_over_music_played:
                     self.game_over_music.play(-1)
                     self.game_over_music_played = True
 
-        # Actualizar el texto del cuadro de diálogo solo si está activo
         if self.dialogo_active and self.typewriter:
             self.typewriter.update()
 

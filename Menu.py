@@ -1,5 +1,5 @@
 import pygame, sys
-import Level1
+import Levels.Level1F as Level1F
 
 pygame.init()
 
@@ -17,6 +17,7 @@ rosa = (255, 0, 127)
 size = (900, 700)
 sizetitulo = (750, 350)
 screen = pygame.display.set_mode(size)
+font = pygame.font.SysFont(None, 32)
 pygame.display.set_caption("Think Fast!")
 
 # Fuentes
@@ -25,12 +26,15 @@ font_medium = pygame.font.Font(None, 60)
 font_small = pygame.font.Font(None, 40)
 
 # Carga de recursos del menú
-titulo = pygame.image.load("Materials/Pictures/Assets/titulo.png").convert()
-titulo.set_colorkey([0, 0, 0])
-titulob = pygame.transform.scale(titulo, (sizetitulo))
+titulo = pygame.image.load("Materials/Pictures/Assets/titulo.png").convert_alpha()
+titulob = pygame.transform.scale(titulo, sizetitulo)
 background = pygame.image.load("Materials/Pictures/Assets/background.png").convert()
-imageb = pygame.transform.scale(background, (size))
+imageb = pygame.transform.scale(background, size)
 clock = pygame.time.Clock()
+
+# Música
+pygame.mixer.music.load('Materials/Music/Menu.wav')
+pygame.mixer.music.play(-1)
 
 # Estados del juego
 MENU = 0
@@ -42,7 +46,10 @@ GAME_LEVEL_1 = 4
 game_state = MENU
 state_history = [MENU]
 is_advanced = False
+selected_character = "boy"
+level_instance = None  # Variable para la instancia del nivel activo
 
+# Funciones de botones
 def create_menu_buttons():
     play_text = font_medium.render("PLAY", True, black)
     play_button_rect = pygame.Rect(0, 0, 200, 60)
@@ -122,12 +129,11 @@ def draw_character_selection(select_text, select_text_rect, char1_text, char1_bu
     pygame.draw.rect(screen, blue, char1_button_rect, border_radius=10)
     screen.blit(char1_text, char1_text.get_rect(center=char1_button_rect.center))
     pygame.draw.rect(screen, rosa, char2_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
-    screen.blit(char2_text, char2_text.get_rect(center=char2_button_rect.center)) 
+    screen.blit(char2_text, char2_text.get_rect(center=char2_button_rect.center))
     pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
     screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
 
-def draw_level_selection(level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect, imageb, is_advanced):
+def draw_level_selection(level_text, level_text_rect, level1_button_rect, level2_button_rect, level3_button_rect, back_text, back_button_rect, imageb, is_advanced):
     screen.blit(imageb, [0, 0])
     screen.blit(level_text, level_text_rect)
     
@@ -136,21 +142,15 @@ def draw_level_selection(level_text, level_text_rect, level1_text, level1_button
     level3_display_text = font_medium.render(f"Nivel 3 ({'Avanzado' if is_advanced else 'Principiante'})", True, white)
     
     pygame.draw.rect(screen, green, level1_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
     screen.blit(level1_display_text, level1_display_text.get_rect(center=level1_button_rect.center))
-    
     pygame.draw.rect(screen, green, level2_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
     screen.blit(level2_display_text, level2_display_text.get_rect(center=level2_button_rect.center))
-    
     pygame.draw.rect(screen, green, level3_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
     screen.blit(level3_display_text, level3_display_text.get_rect(center=level3_button_rect.center))
-    
     pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
     screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
 
-
+# Creación de elementos del menú
 play_text, play_button_rect, quit_text, quit_button_rect = create_menu_buttons()
 difficulty_text, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect = create_difficulty_buttons()
 select_text, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect = create_character_buttons()
@@ -158,12 +158,25 @@ level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level
 back_text = font_small.render("Regresar", True, white)
 back_button_rect = pygame.Rect(50, 600, 150, 50)
 
+# Bucle principal del juego
 running = True
 while running:
+    # Manejo de eventos del juego y el menú
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        
+        if game_state == GAME_LEVEL_1 and level_instance:
+            returned_state = level_instance.handle_events(event)
+            if returned_state == "menu":
+                game_state = MENU
+                level_instance = None
+                pygame.mixer.music.load('Materials/Music/Menu.wav')
+                pygame.mixer.music.play(-1)
+            elif returned_state == "restart":
+                # La lógica de reinicio ya está en el __init__ de Level1F
+                pass
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 if back_button_rect.collidepoint(event.pos) and game_state != MENU:
                     if len(state_history) > 1:
@@ -186,20 +199,19 @@ while running:
                         state_history.append(game_state)
                 elif game_state == SELECT_CHARACTER:
                     if char1_button_rect.collidepoint(event.pos):
+                        selected_character = "boy"
                         game_state = SELECT_LEVEL
                         state_history.append(game_state)
                     if char2_button_rect.collidepoint(event.pos):
+                        selected_character = "girl"
                         game_state = SELECT_LEVEL
                         state_history.append(game_state)
                 elif game_state == SELECT_LEVEL:
                     if level1_button_rect.collidepoint(event.pos):
                         game_state = GAME_LEVEL_1
-                        Level1.run_game()
-                    if level2_button_rect.collidepoint(event.pos):
-                        print("Nivel 2 seleccionado. Lógica aún no implementada.")
-                    if level3_button_rect.collidepoint(event.pos):
-                        print("Nivel 3 seleccionado. Lógica aún no implementada.")
-
+                        level_instance = Level1F.Level1(screen, size, font, selected_character)
+    
+    # Lógica de actualización y dibujo
     if game_state == MENU:
         draw_menu(titulob, play_text, play_button_rect, quit_text, quit_button_rect, imageb)
     elif game_state == SELECT_DIFFICULTY:
@@ -207,11 +219,21 @@ while running:
     elif game_state == SELECT_CHARACTER:
         draw_character_selection(select_text, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect, back_text, back_button_rect, imageb)
     elif game_state == SELECT_LEVEL:
-        draw_level_selection(level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect, imageb, is_advanced)
+        draw_level_selection(level_text, level_text_rect, level1_button_rect, level2_button_rect, level3_button_rect, back_text, back_button_rect, imageb, is_advanced)
+    elif game_state == GAME_LEVEL_1 and level_instance:
+        level_state = level_instance.update()
+        if level_state == "quit":
+            running = False
+        elif level_state == "menu":
+            game_state = MENU
+            level_instance = None
+            pygame.mixer.music.load('Materials/Music/Menu.wav')
+            pygame.mixer.music.play(-1)
+        else:
+            level_instance.draw()
 
-    if game_state != GAME_LEVEL_1:
-        pygame.display.flip()
-        clock.tick(60)
+    pygame.display.flip()
+    clock.tick(60)
     
 pygame.quit()
 sys.exit()

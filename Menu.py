@@ -32,6 +32,23 @@ background = pygame.image.load("Materials/Pictures/Assets/background.png").conve
 imageb = pygame.transform.scale(background, (size))
 clock = pygame.time.Clock()
 
+# ================================
+# Carga de imágenes para los botones
+# ================================
+button_play_img = pygame.image.load("Materials/Pictures/Assets/botonplay.png").convert_alpha()
+button_quit_img = pygame.image.load("Materials/Pictures/Assets/botonSmall.png").convert_alpha()
+button_difficulty_img = pygame.image.load("Materials/Pictures/Assets/botonGrandeT.png").convert_alpha()
+button_character_img = pygame.image.load("Materials/Pictures/Assets/botonSmall.png").convert_alpha()
+button_level_img = pygame.image.load("Materials/Pictures/Assets/botonSmall.png").convert_alpha()
+button_back_img = pygame.image.load("Materials/Pictures/Assets/botonSmall.png").convert_alpha()
+
+# Función genérica para dibujar botones con imagen y texto
+def draw_image_button(image, rect, text, font, text_color):
+    img_scaled = pygame.transform.scale(image, (rect.width, rect.height))
+    screen.blit(img_scaled, rect.topleft)
+    text_surf = font.render(text, True, text_color)
+    screen.blit(text_surf, text_surf.get_rect(center=rect.center))
+
 # Estados del juego
 MENU = 0
 SELECT_DIFFICULTY = 1
@@ -43,16 +60,11 @@ game_state = MENU
 state_history = [MENU]
 is_advanced = False
 
-def create_menu_buttons():
-    play_text = font_medium.render("PLAY", True, black)
-    play_button_rect = pygame.Rect(0, 0, 200, 60)
-    play_button_rect.center = (size[0] // 2, size[1] // 2)
-
-    quit_text = font_medium.render("QUIT", True, black)
-    quit_button_rect = pygame.Rect(0, 0, 200, 60)
-    quit_button_rect.center = (size[0] // 2, size[1] // 2 + 80)
-    return play_text, play_button_rect, quit_text, quit_button_rect
-
+def draw_menu(titulob, play_button_rect, quit_button_rect, imageb):
+    screen.blit(imageb, [7, 7])
+    screen.blit(titulob, [80, -30])
+    draw_image_button(button_play_img, play_button_rect, "", font_medium, black)
+    draw_image_button(button_quit_img, quit_button_rect, "", font_medium, black)
 def create_difficulty_buttons():
     difficulty_text = font_large.render("Selecciona la dificultad", True, white)
     difficulty_text_rect = difficulty_text.get_rect(center=(size[0] // 2, size[1] // 2 - 150))
@@ -96,122 +108,92 @@ def create_level_buttons():
     level3_button_rect.center = (size[0] // 2, size[1] // 2 + 160)
     return level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect
 
-def draw_menu(titulob, play_text, play_button_rect, quit_text, quit_button_rect, imageb):
-    screen.blit(imageb, [0, 0])
-    screen.blit(titulob, [80, -50])
-    pygame.draw.rect(screen, light_gray, play_button_rect, border_radius=10)
-    pygame.draw.rect(screen, dark_gray, play_button_rect, 4, border_radius=10)
-    screen.blit(play_text, play_text.get_rect(center=play_button_rect.center))
-    pygame.draw.rect(screen, light_gray, quit_button_rect, border_radius=10)
-    pygame.draw.rect(screen, dark_gray, quit_button_rect, 4, border_radius=10)
-    screen.blit(quit_text, quit_text.get_rect(center=quit_button_rect.center))
 
 def draw_difficulty_selection(difficulty_text, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect, back_text, back_button_rect, imageb):
     screen.blit(imageb, [0, 0])
     screen.blit(difficulty_text, difficulty_text_rect)
-    pygame.draw.rect(screen, blue, beginner_button_rect, border_radius=10)
-    screen.blit(beginner_text, beginner_text.get_rect(center=beginner_button_rect.center))
-    pygame.draw.rect(screen, rosa, advanced_button_rect, border_radius=10)
-    screen.blit(advanced_text, advanced_text.get_rect(center=advanced_button_rect.center))
-    pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
-    screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
+    draw_image_button(button_difficulty_img, beginner_button_rect, "Principiante", font_medium, white)
+    draw_image_button(button_difficulty_img, advanced_button_rect, "Avanzado", font_medium, white)
+    draw_image_button(button_back_img, back_button_rect, "Regresar", font_small, white)
 
 def draw_character_selection(select_text, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect, back_text, back_button_rect, imageb):
     screen.blit(imageb, [0, 0])
     screen.blit(select_text, select_text_rect)
-    pygame.draw.rect(screen, blue, char1_button_rect, border_radius=10)
-    screen.blit(char1_text, char1_text.get_rect(center=char1_button_rect.center))
-    pygame.draw.rect(screen, rosa, char2_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
-    screen.blit(char2_text, char2_text.get_rect(center=char2_button_rect.center)) 
-    pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
-    screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
+    draw_image_button(button_character_img, char1_button_rect, "Niño", font_medium, white)
+    draw_image_button(button_character_img, char2_button_rect, "Niña", font_medium, white)
+    draw_image_button(button_back_img, back_button_rect, "Regresar", font_small, white)
 
 def draw_level_selection(level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect, imageb, is_advanced):
     screen.blit(imageb, [0, 0])
     screen.blit(level_text, level_text_rect)
-    
-    level1_display_text = font_medium.render(f"Nivel 1 ({'Avanzado' if is_advanced else 'Principiante'})", True, white)
-    level2_display_text = font_medium.render(f"Nivel 2 ({'Avanzado' if is_advanced else 'Principiante'})", True, white)
-    level3_display_text = font_medium.render(f"Nivel 3 ({'Avanzado' if is_advanced else 'Principiante'})", True, white)
-    
-    pygame.draw.rect(screen, green, level1_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
-    screen.blit(level1_display_text, level1_display_text.get_rect(center=level1_button_rect.center))
-    
-    pygame.draw.rect(screen, green, level2_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
-    screen.blit(level2_display_text, level2_display_text.get_rect(center=level2_button_rect.center))
-    
-    pygame.draw.rect(screen, green, level3_button_rect, border_radius=10)
-    # CORRECCIÓN AQUÍ
-    screen.blit(level3_display_text, level3_display_text.get_rect(center=level3_button_rect.center))
-    
-    pygame.draw.rect(screen, dark_gray, back_button_rect, border_radius=10)
-    screen.blit(back_text, back_text.get_rect(center=back_button_rect.center))
 
+    draw_image_button(button_level_img, level1_button_rect, f"Nivel 1 ({'Avanzado' if is_advanced else 'Principiante'})", font_medium, white)
+    draw_image_button(button_level_img, level2_button_rect, f"Nivel 2 ({'Avanzado' if is_advanced else 'Principiante'})", font_medium, white)
+    draw_image_button(button_level_img, level3_button_rect, f"Nivel 3 ({'Avanzado' if is_advanced else 'Principiante'})", font_medium, white)
 
-play_text, play_button_rect, quit_text, quit_button_rect = create_menu_buttons()
-difficulty_text, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect = create_difficulty_buttons()
-select_text, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect = create_character_buttons()
-level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect = create_level_buttons()
-back_text = font_small.render("Regresar", True, white)
+    draw_image_button(button_back_img, back_button_rect, "Regresar", font_small, white)
+
+# Menú principal centrado y grande
+play_button_rect = pygame.Rect(0, 0, 900, 500)  # ancho 900, alto 500
+play_button_rect.center = (size[0] // 2, size[1] // 2)  # centro horizontal y vertical
+
+quit_button_rect = pygame.Rect(0, 0, 900, 500)
+quit_button_rect.center = (size[0] // 2, size[1] // 2 + 550)  # ajusta 550 para separar abajo
+
+# Selección de dificultad
+beginner_button_rect = pygame.Rect(0, 0, 350, 80)
+beginner_button_rect.center = (size[0] // 2, size[1] // 2)
+
+advanced_button_rect = pygame.Rect(0, 0, 350, 80)
+advanced_button_rect.center = (size[0] // 2, size[1] // 2 + 120)
+# Selección de personaje
+select_text = font_large.render("Selecciona tu personaje", True, white)
+select_text_rect = select_text.get_rect(center=(size[0] // 2, size[1] // 2 - 150))
+
+char1_button_rect = pygame.Rect(0, 0, 250, 60)
+char1_button_rect.center = (size[0] // 2 - 150, size[1] // 2)
+
+char2_button_rect = pygame.Rect(0, 0, 250, 60)
+char2_button_rect.center = (size[0] // 2 + 150, size[1] // 2)
+
+# Selección de nivel
+level_text = font_large.render("Selecciona el nivel", True, white)
+level_text_rect = level_text.get_rect(center=(size[0] // 2, size[1] // 2 - 150))
+
+level1_button_rect = pygame.Rect(0, 0, 250, 60)
+level1_button_rect.center = (size[0] // 2, size[1] // 2)
+
+level2_button_rect = pygame.Rect(0, 0, 250, 60)
+level2_button_rect.center = (size[0] // 2, size[1] // 2 + 80)
+
+level3_button_rect = pygame.Rect(0, 0, 250, 60)
+level3_button_rect.center = (size[0] // 2, size[1] // 2 + 160)
+
+# Botón de regresar
 back_button_rect = pygame.Rect(50, 600, 150, 50)
 
-running = True
-while running:
+while True:
+    screen.fill((0, 0, 0))
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if back_button_rect.collidepoint(event.pos) and game_state != MENU:
-                    if len(state_history) > 1:
-                        state_history.pop()
-                        game_state = state_history[-1]
-                elif game_state == MENU:
-                    if play_button_rect.collidepoint(event.pos):
-                        game_state = SELECT_DIFFICULTY
-                        state_history.append(game_state)
-                    if quit_button_rect.collidepoint(event.pos):
-                        running = False
-                elif game_state == SELECT_DIFFICULTY:
-                    if beginner_button_rect.collidepoint(event.pos):
-                        is_advanced = False
-                        game_state = SELECT_CHARACTER
-                        state_history.append(game_state)
-                    if advanced_button_rect.collidepoint(event.pos):
-                        is_advanced = True
-                        game_state = SELECT_CHARACTER
-                        state_history.append(game_state)
-                elif game_state == SELECT_CHARACTER:
-                    if char1_button_rect.collidepoint(event.pos):
-                        game_state = SELECT_LEVEL
-                        state_history.append(game_state)
-                    if char2_button_rect.collidepoint(event.pos):
-                        game_state = SELECT_LEVEL
-                        state_history.append(game_state)
-                elif game_state == SELECT_LEVEL:
-                    if level1_button_rect.collidepoint(event.pos):
-                        game_state = GAME_LEVEL_1
-                        Level1.run_game()
-                    if level2_button_rect.collidepoint(event.pos):
-                        print("Nivel 2 seleccionado. Lógica aún no implementada.")
-                    if level3_button_rect.collidepoint(event.pos):
-                        print("Nivel 3 seleccionado. Lógica aún no implementada.")
+            pygame.quit()
+            sys.exit()
 
     if game_state == MENU:
-        draw_menu(titulob, play_text, play_button_rect, quit_text, quit_button_rect, imageb)
+        draw_menu(titulob, play_button_rect, quit_button_rect, imageb)
     elif game_state == SELECT_DIFFICULTY:
-        draw_difficulty_selection(difficulty_text, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect, back_text, back_button_rect, imageb)
+        draw_difficulty_selection(difficulty_text, difficulty_text_rect, beginner_text, beginner_button_rect,
+                                  advanced_text, advanced_button_rect, back_text, back_button_rect, imageb)
     elif game_state == SELECT_CHARACTER:
-        draw_character_selection(select_text, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect, back_text, back_button_rect, imageb)
+        draw_character_selection(select_text, select_text_rect, char1_text, char1_button_rect, char2_text,
+                                 char2_button_rect, back_text, back_button_rect, imageb)
     elif game_state == SELECT_LEVEL:
-        draw_level_selection(level_text, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect, imageb, is_advanced)
+        draw_level_selection(level_text, level_text_rect, level1_text, level1_button_rect, level2_text,
+                             level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect, imageb, is_advanced)
 
-    if game_state != GAME_LEVEL_1:
-        pygame.display.flip()
-        clock.tick(60)
-    
+    pygame.display.flip()
+    clock.tick(60)
+  
 pygame.quit()
 sys.exit()

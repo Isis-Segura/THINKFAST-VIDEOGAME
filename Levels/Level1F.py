@@ -16,12 +16,13 @@ class Level1:
         self.character_choice = character_choice
         
         if self.character_choice == "boy":
-            self.player = Characterb(350, 470, 2)
+            self.player = Characterb(450, 750, 2)
         else:
             self.player = Characterg(350, 470, 2)
         
-        self.Guardia = Characternpc(450, 290, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
-        self.background_image = pygame.image.load('Materials/Pictures/Assets/Fund_level1.png')
+        self.Guardia = Characternpc(450, 350, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
+        self.background_image = pygame.image.load('Materials/Pictures/Assets/fondo_CloseDoor.jpg')
+        self.background_image = pygame.transform.scale(self.background_image, self.size)
         self.timer = Timer(120)
         self.life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
         

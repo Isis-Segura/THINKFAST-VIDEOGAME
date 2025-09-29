@@ -35,7 +35,7 @@ class Characterb:
 
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (49, 80)) for img in frames
+                pygame.transform.scale(img, (40, 70)) for img in frames
             ]
 
         self.direction = "down"

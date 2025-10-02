@@ -17,6 +17,7 @@ rosa = (255, 0, 127)
 size = (900, 700)
 sizetitulo = (750, 350)
 screen = pygame.display.set_mode(size)
+<<<<<<< HEAD
 font = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 14)
 pygame.display.set_caption("Think Fast!")
 
@@ -34,6 +35,23 @@ background = pygame.image.load("Materials/Pictures/Assets/background.png").conve
 imageb = pygame.transform.scale(background, size)
 clock = pygame.time.Clock()
 
+=======
+font = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 50)
+pygame.display.set_caption("Think Fast!")
+
+# Fuentes
+font_large = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
+font_medium = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
+font_small = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
+
+# Carga de recursos del menú
+titulo = pygame.image.load("Materials/Pictures/Assets/titulo.png").convert_alpha()
+titulob = pygame.transform.scale(titulo, sizetitulo)
+background = pygame.image.load("Materials/Pictures/Assets/background.png").convert()
+imageb = pygame.transform.scale(background, size)
+clock = pygame.time.Clock()
+
+>>>>>>> 00bc3d1c0570bffeb25f16e83fdefb19bdc841c3
 # Música
 pygame.mixer.music.load('Materials/Music/Menu.wav')
 pygame.mixer.music.play(-1)

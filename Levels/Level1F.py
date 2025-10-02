@@ -188,9 +188,15 @@ class Level1:
         ]
         self.win_zone = pygame.Rect(420, 280, 65, 65)
         # Fuentes 
+<<<<<<< HEAD
         self.font_dialog = self.font if isinstance(self.font, pygame.font.Font) else pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 10)
         self.font_question = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 11)
         self.font_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
+=======
+        self.font_dialog = self.font if isinstance(self.font, pygame.font.Font) else pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
+        self.font_question = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 20)
+        self.font_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 20)
+>>>>>>> 00bc3d1c0570bffeb25f16e83fdefb19bdc841c3
         self.font_timer = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 20)
 
     # -------------------------------------------------------------------------

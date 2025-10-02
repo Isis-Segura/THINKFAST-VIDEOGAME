@@ -188,15 +188,9 @@ class Level1:
         ]
         self.win_zone = pygame.Rect(420, 280, 65, 65)
         # Fuentes 
-<<<<<<< HEAD
         self.font_dialog = self.font if isinstance(self.font, pygame.font.Font) else pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 10)
         self.font_question = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 11)
         self.font_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
-=======
-        self.font_dialog = self.font if isinstance(self.font, pygame.font.Font) else pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
-        self.font_question = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 20)
-        self.font_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 20)
->>>>>>> 00bc3d1c0570bffeb25f16e83fdefb19bdc841c3
         self.font_timer = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 20)
 
     # -------------------------------------------------------------------------
@@ -417,7 +411,7 @@ class Level1:
             self.screen.blit(self.background_image, (0, 0))
 
             # sombra de personaje
-            shadow_offset = 6
+            shadow_offset = 5
             # jugador
             try:
                 px = self.player.rect.x-5
@@ -431,11 +425,11 @@ class Level1:
                 pass
             # guardia
             try:
-                gx = self.Guardia.rect.x
+                gx = self.Guardia.rect.x+25
                 gy = self.Guardia.rect.y
-                gw = self.Guardia.rect.width+10
-                gh = self.Guardia.rect.height
-                pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, self.player.rect.width, 8))
+                gw = self.Guardia.rect.width-50
+                gh = self.Guardia.rect.height-2
+                pygame.draw.ellipse(shadow_surface, (0, 0, 0, 100), (0, 0, self.Guardia.rect.width, 8))
                 self.screen.blit(shadow_surface, (gx + shadow_offset, gy + gh - 10))
             except Exception:
                 pass

@@ -35,7 +35,7 @@ class Characterb:
 
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (70, 100)) for img in frames
+                pygame.transform.scale(img, (40, 70)) for img in frames
             ]
 
         self.direction = "down"
@@ -48,14 +48,17 @@ class Characterb:
 
 
         self.frame_timer = 0
-        self.frame_speed = 0.018
+        self.frame_speed = 0.1
 
-    def move(self, keys, screen_width, screen_height, npc_rect):
+    # --- MÉTODO MOVE CORREGIDO ---
+    # Se añade '=None' al argumento para hacerlo opcional y la comprobación 'if npc_rect is not None:'
+    def move(self, keys, screen_width, screen_height, npc_rect=None):
         moving = False
         
         previous_x = self.x_float
         previous_y = self.y_float
         
+        # Lógica de movimiento (X e Y se mueven simultáneamente)
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.y_float -= self.speed
             self.direction = "up"
@@ -78,14 +81,18 @@ class Characterb:
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
         
-        if self.rect.colliderect(npc_rect):
-            self.x_float = previous_x
-            self.y_float = previous_y
-            self.rect.x = int(self.x_float)
-            self.rect.y = int(self.y_float)
+        # --- CORRECCIÓN CLAVE: Solo comprueba la colisión si npc_rect no es None ---
+        if npc_rect is not None:
+            if self.rect.colliderect(npc_rect):
+                # Si colisiona, revierte la posición a la anterior
+                self.x_float = previous_x
+                self.y_float = previous_y
+                self.rect.x = int(self.x_float)
+                self.rect.y = int(self.y_float)
 
-        margin = 200
-        margin2 = 75
+        # Lógica de límites de pantalla
+        margin = 245
+        margin2 = 210
 
         if self.rect.left < margin2:
             self.rect.left = margin2
@@ -100,6 +107,7 @@ class Characterb:
             self.rect.bottom = screen_height
             self.y_float = float(self.rect.y)
 
+        # Lógica de animación
         if moving:
             self.update_animation()
         else:
@@ -111,9 +119,6 @@ class Characterb:
             self.frame_timer = 0
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
             self.image = self.animations[self.direction][self.frame_index]
-
-
-    
 
 
     def draw(self, surface):

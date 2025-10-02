@@ -1,5 +1,7 @@
 import pygame
 
+from Interacciones.Controldeobjetos.velotex import TypewriterText
+
 class DialogBox:
     def __init__(self, width=800, height=100, font=None):
         self.width = width
@@ -12,7 +14,7 @@ class DialogBox:
 
     def start_dialogo(self, text):
         self.text = text
-        self.typewriter = typewritertext (text, self.font, speed=self.speed)
+        self.typewriter = TypewriterText (text, self.font, speed=self.speed)
         self.active = True
 
     def update(self):

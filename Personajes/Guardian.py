@@ -4,7 +4,7 @@ class Characternpc:
     def __init__(self, x, y, image_path):
         # Cargar y escalar la imagen del guardia
         self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (110, 160))
+        self.image = pygame.transform.scale(self.image, (40, 90))
 
         # Rectángulo principal del guardia
         self.rect = self.image.get_rect(center=(x, y))

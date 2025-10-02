@@ -4,17 +4,17 @@ class Characternpc:
     def __init__(self, x, y, image_path):
         # Cargar y escalar la imagen del guardia
         self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (40, 90))
+        self.image = pygame.transform.scale(self.image, (100, 150)) # Asumiendo 100x150 como tamaño final
 
-        # Rectángulo principal del guardia
+        # Rectángulo principal del guardia (usado solo para dibujar, la colisión es 'guardia_collision_rect' en Level1)
+        # Nota: 'center=(x, y)' posicionará el centro del sprite en 470, 330.
         self.rect = self.image.get_rect(center=(x, y))
 
     def player_facing_guard(self, player_rect):
-        """
-        Devuelve True si el jugador está justo frente al guardia,
-        pegado a cualquiera de sus cuatro lados (arriba, abajo, izquierda o derecha).
-        """
-        offset = 10  # margen para permitir un pequeño desajuste
+        # ... (La lógica de esta función no se usa en la colisión de movimiento,
+        # pero es funcional para la interacción con la tecla ESPACIO) ...
+        # ... (código mantenido) ...
+        offset = 10  
 
         # Jugador abajo del guardia (mirando hacia arriba)
         cond1 = (
@@ -43,7 +43,5 @@ class Characternpc:
         return cond1 or cond2 or cond3 or cond4
 
     def draw(self, surface):
-        """
-        Dibuja al guardia en la pantalla.
-        """
+        """Dibuja al guardia en la pantalla."""
         surface.blit(self.image, self.rect)

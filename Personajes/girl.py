@@ -49,16 +49,19 @@ class Characterg:
 
         self.frame_timer = 0
         self.frame_speed = 0.1
+        
+        # --- NUEVO AJUSTE: Altura de la valla (cuánto sube el borde inferior) ---
+        # Puedes cambiar este valor (por ejemplo, 0, 10, 20, 30...)
+        self.fence_offset = 80
 
-    # --- MÉTODO MOVE CORREGIDO ---
-    # Se añade '=None' al argumento para hacerlo opcional y la comprobación 'if npc_rect is not None:'
+
     def move(self, keys, screen_width, screen_height, npc_rect=None):
         moving = False
         
         previous_x = self.x_float
         previous_y = self.y_float
         
-        # Lógica de movimiento (X e Y se mueven simultáneamente)
+        # Lógica de movimiento (se mantiene igual)
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.y_float -= self.speed
             self.direction = "up"
@@ -81,7 +84,7 @@ class Characterg:
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
         
-        # --- CORRECCIÓN CLAVE: Solo comprueba la colisión si npc_rect no es None ---
+        # Lógica de Colisión con NPC (se mantiene simple)
         if npc_rect is not None:
             if self.rect.colliderect(npc_rect):
                 # Si colisiona, revierte la posición a la anterior
@@ -91,8 +94,12 @@ class Characterg:
                 self.rect.y = int(self.y_float)
 
         # Lógica de límites de pantalla
-        margin = 245
-        margin2 = 210
+        margin = 340 # Límite superior
+        margin2 = 100 # Límites laterales
+        
+        # --- COLISIÓN INFERIOR AJUSTADA ---
+        # Definimos el límite de la valla (la pantalla menos el offset de la valla)
+        bottom_fence_limit = screen_height - self.fence_offset 
 
         if self.rect.left < margin2:
             self.rect.left = margin2
@@ -103,8 +110,12 @@ class Characterg:
         if self.rect.top < margin:
             self.rect.top = margin
             self.y_float = float(self.rect.y)
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
+            
+        # CLAVE: En lugar de screen_height, usamos el límite ajustado.
+        # Si el pie del personaje (self.rect.bottom) es mayor que el límite de la valla:
+        if self.rect.bottom > bottom_fence_limit:
+            # Lo forzamos a detenerse en ese límite.
+            self.rect.bottom = bottom_fence_limit
             self.y_float = float(self.rect.y)
 
         # Lógica de animación

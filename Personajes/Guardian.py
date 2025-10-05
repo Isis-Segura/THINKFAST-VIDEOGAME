@@ -6,14 +6,10 @@ class Characternpc:
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, (100, 150)) # Asumiendo 100x150 como tamaño final
 
-        # Rectángulo principal del guardia (usado solo para dibujar, la colisión es 'guardia_collision_rect' en Level1)
-        # Nota: 'center=(x, y)' posicionará el centro del sprite en 470, 330.
+        # Rectángulo principal del guardia 
         self.rect = self.image.get_rect(center=(x, y))
 
     def player_facing_guard(self, player_rect):
-        # ... (La lógica de esta función no se usa en la colisión de movimiento,
-        # pero es funcional para la interacción con la tecla ESPACIO) ...
-        # ... (código mantenido) ...
         offset = 10  
 
         # Jugador abajo del guardia (mirando hacia arriba)

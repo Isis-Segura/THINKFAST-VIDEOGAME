@@ -1,88 +1,89 @@
 import pygame
 
 class TypewriterText:
+    """
+    Simula el efecto de escritura de máquina de escribir para texto,
+    incluyendo soporte para múltiples líneas usando el carácter '\\n'.
+    """
     def __init__(self, text, font, color, speed=25):
-        self.full_text = text
+        # Almacena todas las líneas que deben mostrarse, divididas por '\n'
+        self.full_lines = text.split('\n') 
+        
         self.font = font
         self.color = color
-        self.speed = speed # Caracteres por segundo (simulación de velocidad)
         
-        # 1. Separar el texto en líneas usando \n
-        self.lines = self.full_text.split('\n')
+        # Velocidad de escritura: caracteres por segundo (valor por defecto 25)
+        self.speed = speed 
+        self.time_per_char = 1000 / self.speed # Milisegundos por caracter
+        
+        # Estados para el proceso de escritura
         self.current_line_index = 0
+        self.current_char_index = 0
+        self.last_update_time = pygame.time.get_ticks()
         
-        self.display_text = ""
-        self.char_index = 0
-        self.time_elapsed = 0
-        self.finished_typing = False
+        # Almacena el alto de la línea para el dibujo
+        self.line_height = self.font.get_linesize()
 
     def update(self):
-        if self.finished_typing:
+        """Avanza la animación de escritura caracter por caracter o línea por línea."""
+        if self.finished():
             return
-        
-        # Se calcula cuántos caracteres deberían haberse escrito
-        target_chars = int(self.time_elapsed * self.speed)
-        
-        # Si aún hay líneas y no hemos terminado de teclear en la línea actual
-        if self.current_line_index < len(self.lines):
-            line = self.lines[self.current_line_index]
             
-            # Si target_chars excede el tamaño de la línea actual
-            if target_chars >= len(line):
-                # Completa la línea actual
-                self.display_text = line
-                
-                # Mueve el índice a la siguiente línea y reinicia el conteo de tiempo/caracteres para la siguiente línea
-                self.current_line_index += 1
-                self.time_elapsed = 0 
-                self.char_index = 0 
-                
-                # Si la siguiente línea existe, empieza a teclearla en el siguiente update.
-                if self.current_line_index < len(self.lines):
-                    # Reinicia el display_text para la nueva línea
-                    self.display_text = ""
-                else:
-                    # Todas las líneas terminadas
-                    self.finished_typing = True
+        current_time = pygame.time.get_ticks()
+        
+        # Comprueba si ha pasado suficiente tiempo para mostrar el siguiente carácter
+        if current_time - self.last_update_time > self.time_per_char:
+            self.last_update_time = current_time
             
+            current_line_text = self.full_lines[self.current_line_index]
+            
+            if self.current_char_index < len(current_line_text):
+                # Escribir el siguiente carácter
+                self.current_char_index += 1
             else:
-                # Escribe carácter por carácter en la línea actual
-                self.char_index = target_chars
-                self.display_text = line[:self.char_index]
-
-            self.time_elapsed += 0.016 # Asumiendo un framerate de ~60 fps (1/60 ~ 0.016)
-        else:
-            self.finished_typing = True
-
+                # La línea actual terminó, pasar a la siguiente línea si existe
+                if self.current_line_index + 1 < len(self.full_lines):
+                    self.current_line_index += 1
+                    self.current_char_index = 0
+                        
     def complete_text(self):
-        self.display_text = self.full_text # Ya no es suficiente
-        self.finished_typing = True
-        self.current_line_index = len(self.lines)
+        """Muestra el texto completo inmediatamente (salta la animación)."""
+        if not self.finished() and self.full_lines:
+            # Pone el índice en la última línea y en el último carácter
+            self.current_line_index = len(self.full_lines) - 1
+            self.current_char_index = len(self.full_lines[-1])
 
     def finished(self):
-        return self.finished_typing
+        """Retorna True si todo el texto ha terminado de escribirse."""
+        if not self.full_lines:
+             return True
+        return (self.current_line_index == len(self.full_lines) - 1 and 
+                self.current_char_index >= len(self.full_lines[-1]))
 
-    def draw(self, surface, position):
-        # Esta es la parte CLAVE, renderizar línea por línea
-        x, y = position
-        line_height = self.font.get_height()
-        
-        current_y = y
-        
-        # 1. Dibuja las líneas COMPLETAS (ya tipeadas)
-        for i in range(self.current_line_index):
-            line_surface = self.font.render(self.lines[i], True, self.color)
-            surface.blit(line_surface, (x, current_y))
-            current_y += line_height
+    def draw(self, screen, position):
+        """Dibuja el texto actual en la pantalla."""
+        y_offset = 0
+
+        for i, line in enumerate(self.full_lines):
+            text_to_render = ""
             
-        # 2. Dibuja la línea ACTUAL (la que se está tipeando)
-        if self.current_line_index < len(self.lines):
-            # Si el texto está siendo tipeado (no completado instantáneamente)
-            if not self.finished_typing:
-                line_surface = self.font.render(self.display_text, True, self.color)
-                surface.blit(line_surface, (x, current_y))
-            # Si el usuario presiona para completar, la última línea es la que queda completa
-            else:
-                last_line_index = len(self.lines) - 1
-                line_surface = self.font.render(self.lines[last_line_index], True, self.color)
-                surface.blit(line_surface, (x, current_y))
+            # 1. Si la línea ya fue escrita
+            if i < self.current_line_index:
+                text_to_render = line
+            # 2. Si la línea se está escribiendo actualmente
+            elif i == self.current_line_index:
+                text_to_render = line[:self.current_char_index]
+            # 3. Si la línea aún no ha comenzado (no se dibuja)
+            # (text_to_render queda como "")
+
+            if text_to_render:
+                try:
+                    text_surface = self.font.render(text_to_render, True, self.color)
+                    # La posición Y se ajusta con el offset
+                    screen.blit(text_surface, (position[0], position[1] + y_offset))
+                except pygame.error as e:
+                    # Captura si la fuente no puede renderizar caracteres vacíos o raros
+                    print(f"Error al renderizar texto en TypewriterText: {e}")
+            
+            # Incrementa el offset para la siguiente línea, incluso si no se dibuja aún
+            y_offset += self.line_height

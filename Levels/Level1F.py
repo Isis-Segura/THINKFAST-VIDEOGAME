@@ -11,7 +11,7 @@ from Interacciones.Controldeobjetos.corazones import LifeManager
 from Interacciones.FloorQuiz import FloorQuiz 
 
 # =================================================================
-# CLASE CONFETTI 
+# CLASE CONFETTI (SIN CAMBIOS)
 # =================================================================
 
 class Confetti:
@@ -68,7 +68,7 @@ class Confetti:
             pygame.draw.circle(surface, color, (int(x), int(y)), size)
 
 # =================================================================
-# CLASE LEVEL 1 
+# CLASE LEVEL 1 (MODIFICADA)
 # =================================================================
 
 class Level1:
@@ -256,9 +256,9 @@ class Level1:
                     return "menu"
             return None
 
-        # Lógica para la pantalla de control (MODIFICADO)
+        # Lógica para la pantalla de control (MODIFICADO para incluir K_RETURN)
         if self.state == "controls_screen" and not self.is_fading:
-            if event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE):
+            if event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_ESCAPE or event.key == pygame.K_RETURN):
                 # Iniciar el Fade Out en lugar de cambiar de estado inmediatamente
                 self.is_fading = True
                 self.target_state = "game"
@@ -270,6 +270,7 @@ class Level1:
                 return None
             return None 
 
+        # Lógica para interactuar con el diálogo/avanzar el texto (MODIFICADO para incluir K_RETURN)
         if event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_RETURN):
             if self.dialogo_active and self.typewriter:
                 if not self.typewriter.finished():
@@ -318,7 +319,7 @@ class Level1:
             
             elif result == "finished":
                 self.quiz_timer.pause() 
-                    
+                     
         return None
 
     def update(self):
@@ -348,7 +349,7 @@ class Level1:
                         self.is_fading = True
             
             elif self.state == "game" and self.target_state is None:
-                 # Fade In para la entrada del nivel (de 255 a 0)
+                     # Fade In para la entrada del nivel (de 255 a 0)
                 self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                 if self.fade_alpha == 0:
                     self.is_fading = False
@@ -375,7 +376,8 @@ class Level1:
                     if self.win_music and not self.win_music_played:
                         self.win_music.play()
                         self.win_music_played = True
-            elif self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and keys[pygame.K_SPACE] and not self.guard_interacted:
+            # Lógica para interactuar con el guardia (MODIFICADO para incluir K_RETURN)
+            elif self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
                 self.state = "dialog"
                 self.dialogo_active = True
                 self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25) 
@@ -519,7 +521,7 @@ class Level1:
                         self.screen, 
                         text_to_render_title, 
                         self.font_control_title, 
-                        (0, 0, 0),         # Color del texto: Negro
+                        (0, 0, 0),       # Color del texto: Negro
                         (255, 128, 0),     # Color del borde: NARANJA
                         (center_x_title, center_y_title),
                         border_size=4 # Borde un poco más grande para el título
@@ -531,7 +533,7 @@ class Level1:
                 # Añadir texto "Presiona ESPACIO..." con borde NARANJA
                 font_to_use = self.font_dialog if hasattr(self, 'font_dialog') else self.font
                 try:
-                    text_to_render = "Presiona ESPACIO para comenzar el Nivel 1"
+                    text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1"
                     center_x = self.size[0] // 2
                     center_y = self.size[1] - 30
                     
@@ -539,7 +541,7 @@ class Level1:
                         self.screen, 
                         text_to_render, 
                         font_to_use, 
-                        (0, 0, 0),         # Color del texto: Negro
+                        (0, 0, 0),       # Color del texto: Negro
                         (255, 128, 0),     # Color del borde: NARANJA
                         (center_x, center_y),
                         border_size=2
@@ -615,7 +617,7 @@ class Level1:
                     self.screen.blit(self.dialog_box_img, self.dialog_box_rect.topleft)
                     
                     pygame.draw.rect(self.screen, (255, 200, 0), self.dialog_box_rect, 
-                                     width=5, border_radius=20)
+                                            width=5, border_radius=20)
                     
                     self.typewriter.draw(self.screen, (self.dialog_box_rect.x + 20, self.dialog_box_rect.y + 35))
 
@@ -684,28 +686,5 @@ class Level1:
                 try:
                     text1 = font_title_to_use.render("GAME OVER", True, (255, 0, 0))
                     self.screen.blit(text1, text1.get_rect(center=(self.size[0] // 2, self.size[1] // 2 - 40)))
-                except Exception:
-                    pass
-            
-            font_to_use = self.font_dialog if hasattr(self, 'font_dialog') else self.font
-            try:
-                text_to_render = "Presiona R para reiniciar o ESC para ir al menú"
-                center_x = self.size[0] // 2
-                center_y = self.size[1] - 50
-                
-                self._draw_text_with_border(
-                    self.screen, 
-                    text_to_render, 
-                    font_to_use, 
-                    (255, 255, 255), 
-                    (255, 140, 0), 
-                    (center_x, center_y),
-                    border_size=2 
-                )
-
-            except Exception:
-                try:
-                    text2 = font_to_use.render("Presiona R para reiniciar o ESC para ir al menú", True, (255, 255, 255))
-                    self.screen.blit(text2, text2.get_rect(center=(self.size[0] // 2, self.size[1] - 50)))
                 except Exception:
                     pass

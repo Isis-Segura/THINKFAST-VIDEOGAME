@@ -1,6 +1,6 @@
-import pygame  
+import pygame 
 import math 
-import sys  
+import sys 
 
 class Timer: 
     def __init__(self, total_seconds): 
@@ -12,17 +12,17 @@ class Timer:
         self.paused = False 
         self.pause_ticks = 0 
         # ---------------------------------
-         
+        
         # --- COLORES --- 
-        self.primary_orange = (0, 255, 255)       # Cian brillante para el marco y tag
-        self.white = (255, 255, 255)       
-        self.dark_gray = (50, 50, 50)       
-        self.gradient_end = (0, 200, 200)       # Cian más oscuro para el relleno del sector
-        self.black = (0, 0, 0)                  # Color negro para las letras
-         
+        self.primary_orange = (0, 255, 255) 
+        self.white = (255, 255, 255) 
+        self.dark_gray = (50, 50, 50) 
+        self.gradient_end = (0, 200, 200) 
+        self.black = (0, 0, 0) 
+        
         # COLORES DE ADVERTENCIA PARA EL QUIZ 
-        self.quiz_color_low_warning = (255, 140, 0)   # Naranja Oscuro (5 y 4 seg) 
-        self.quiz_color_danger = (255, 0, 0)         # Rojo Brillante (3, 2 y 1 seg) 
+        self.quiz_color_low_warning = (255, 140, 0) 
+        self.quiz_color_danger = (255, 0, 0) 
 
     # ----------------------------------------------------------------------
     # MÉTODOS DE CONTROL DE ESTADO
@@ -46,6 +46,10 @@ class Timer:
         self.finished = False 
         self.paused = False 
         self.pause_ticks = 0
+
+    def is_running(self):
+        """Retorna True si el temporizador está activo (iniciado, no pausado y no terminado)."""
+        return self.start_ticks is not None and not self.paused and not self.finished
 
     def update(self): 
         if self.start_ticks is None or self.paused: 
@@ -75,14 +79,14 @@ class Timer:
     # ----------------------------------------------------------------------
     # MÉTODO DRAW FINAL Y CORREGIDO
     # ----------------------------------------------------------------------
-    def draw(self, screen, font, is_quiz_timer=False, position=(560, 10)):  
+    def draw(self, screen, font, is_quiz_timer=False, position=(560, 10)): 
         remaining = self.update() if not self.paused else self.total_seconds - (self.pause_ticks // 1000)
 
         # --- Calcular parámetros de dibujo ---
         timer_radius = 40 
         timer_center_x = position[0] + timer_radius 
         timer_center_y = position[1] + timer_radius + 10
-        face_radius = timer_radius - 8 # Radio de la cara del reloj
+        face_radius = timer_radius - 8 
 
         # --- DIBUJAR MARCO Y FONDO ---
         shadow_offset = 5
@@ -111,7 +115,7 @@ class Timer:
         
         if remaining > 0 and percentage_remaining < 1.0: 
             
-            # 1. Lógica para crear los puntos del polígono de relleno (soluciona el "círculo raro")
+            # 1. Lógica para crear los puntos del polígono de relleno
             points = [
                 (timer_center_x, timer_center_y), 
             ]

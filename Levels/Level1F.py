@@ -597,7 +597,7 @@ class Level1:
                     self.quiz_timer.draw(self.screen, font_to_use, is_quiz_timer=True, position=(680, 10))
                 
                 if self.state != "quiz_floor" and self.timer.is_running():
-                    self.timer.draw(self.screen, font_to_use, position=(680, 10))
+                    self.timer.draw(self.screen, font_to_use, position=(680, 500))
                 elif self.state == "game" and self.timer.is_running():
                     self.timer.draw(self.screen, font_to_use, position=(680, 10))
 
@@ -627,7 +627,7 @@ class Level1:
                     BORDER_COLOR = (255, 200, 0) 
                     pygame.draw.rect(self.screen, BORDER_COLOR, box_rect, 5, border_radius=PIXEL_RADIUS)
                     
-                    self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
+                    self.typewriter.draw(self.screen, (box_rect.x + 100, box_rect.y + 35))
 
             if self.state == "game" and self.is_fading and self.fade_alpha > 0:
                 fade_surface = pygame.Surface(self.size).convert_alpha()

@@ -2,9 +2,17 @@ import pygame
 
 class Characterb:
     def __init__(self, x, y, speed=2):
+<<<<<<< HEAD
         self.speed = speed
         
         # ... (Carga de Animaciones) ...
+=======
+        # ⬅ Define la velocidad de movimiento del personaje.
+        self.speed = speed
+        
+        # Diccionario para guardar todas las animaciones (imágenes)
+        # Cada clave ("down", "up", etc.) guarda una lista de frames.
+>>>>>>> origin/main
         self.animations = {
             "down": [
                 pygame.image.load("Materials/Pictures/Characters/boy/chico_down1.png").convert_alpha(),
@@ -37,6 +45,7 @@ class Characterb:
             self.animations[direction] = [
                 pygame.transform.scale(img, (60, 90)) for img in frames
             ]
+<<<<<<< HEAD
 
         self.direction = "down"
         self.frame_index = 0
@@ -51,6 +60,22 @@ class Characterb:
         self.frame_speed = 0.1
         
         self.fence_offset = 80
+=======
+        # Estado inicial del personaje
+        self.direction = "down" # Dirección inicial
+        self.frame_index = 0 # Imagen inicial (primer frame quieto)
+        self.image = self.animations[self.direction][self.frame_index]
+        self.rect = self.image.get_rect(center=(x, y)) # Rectángulo para la posición y colisiones
+        #Posición con decimales para un movimiento más suave (luego se convierte a int para self.rect)
+        self.x_float = float(x)
+        self.y_float = float(y)
+
+        # Variables para controlar la animación
+        self.frame_timer = 0 # Temporizador para cambiar de frame
+        self.frame_speed = 0.1 # Velocidad de cambio de frame (cuánto se incrementa el temporizador cada actualización)
+        
+        self.fence_offset = 80  # Desplazamiento para la cerca inferior
+>>>>>>> origin/main
 
 
     def move(self, keys, screen_width, screen_height, npc_rect=None):
@@ -86,7 +111,11 @@ class Characterb:
         if npc_rect is not None:
             if self.rect.colliderect(npc_rect):
                 self.x_float = previous_x
+<<<<<<< HEAD
                 self.y_float = previous_y
+=======
+                self.y_float = previous_y 
+>>>>>>> origin/main
                 self.rect.x = int(self.x_float)
                 self.rect.y = int(self.y_float)
 

@@ -23,7 +23,11 @@ class FloorQuiz:
         self.QUESTION_BOX_RADIUS = 10 
         
         self.start_x = (size[0] - self.QUESTION_BOX_WIDTH) // 2 
+<<<<<<< HEAD
         self.start_y = size[1] - self.QUESTION_BOX_HEIGHT - 20 
+=======
+        self.start_y = size[1] - self.QUESTION_BOX_HEIGHT - 500
+>>>>>>> origin/main
         self.box_width = self.QUESTION_BOX_WIDTH 
         self.box_height = self.QUESTION_BOX_HEIGHT 
 

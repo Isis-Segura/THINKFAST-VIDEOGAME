@@ -1,12 +1,11 @@
 import pygame
 
-
 class Characterg:
     def __init__(self, x, y, speed=2):
         self.speed = speed
         
         self.animations = {
-            "down": [
+           "down": [
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down1.png").convert_alpha(),
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down2.png").convert_alpha(),
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down3.png").convert_alpha(),
@@ -35,7 +34,7 @@ class Characterg:
 
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (49, 80)) for img in frames
+                pygame.transform.scale(img, (60, 90)) for img in frames
             ]
 
         self.direction = "down"
@@ -49,13 +48,17 @@ class Characterg:
 
         self.frame_timer = 0
         self.frame_speed = 0.1
+        
+        self.fence_offset = 80
 
-    def move(self, keys, screen_width, screen_height, npc_rect):
+
+    def move(self, keys, screen_width, screen_height, npc_rect=None):
         moving = False
         
         previous_x = self.x_float
         previous_y = self.y_float
         
+        # Lógica de movimiento
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.y_float -= self.speed
             self.direction = "up"
@@ -78,14 +81,19 @@ class Characterg:
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
         
-        if self.rect.colliderect(npc_rect):
-            self.x_float = previous_x
-            self.y_float = previous_y
-            self.rect.x = int(self.x_float)
-            self.rect.y = int(self.y_float)
+        # Lógica de Colisión con NPC 
+        if npc_rect is not None:
+            if self.rect.colliderect(npc_rect):
+                self.x_float = previous_x
+                self.y_float = previous_y
+                self.rect.x = int(self.x_float)
+                self.rect.y = int(self.y_float)
 
-        margin = 245
-        margin2 = 210
+        # Lógica de límites de pantalla
+        margin = 340 
+        margin2 = 100 
+        
+        bottom_fence_limit = screen_height - self.fence_offset 
 
         if self.rect.left < margin2:
             self.rect.left = margin2
@@ -96,10 +104,12 @@ class Characterg:
         if self.rect.top < margin:
             self.rect.top = margin
             self.y_float = float(self.rect.y)
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
+            
+        if self.rect.bottom > bottom_fence_limit:
+            self.rect.bottom = bottom_fence_limit
             self.y_float = float(self.rect.y)
 
+        # Lógica de animación
         if moving:
             self.update_animation()
         else:
@@ -111,9 +121,6 @@ class Characterg:
             self.frame_timer = 0
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
             self.image = self.animations[self.direction][self.frame_index]
-
-
-    
 
 
     def draw(self, surface):

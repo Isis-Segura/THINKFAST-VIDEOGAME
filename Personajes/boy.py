@@ -1,10 +1,12 @@
 import pygame
 
-
 class Characterb:
     def __init__(self, x, y, speed=2):
+        # ⬅ Define la velocidad de movimiento del personaje.
         self.speed = speed
         
+        # Diccionario para guardar todas las animaciones (imágenes)
+        # Cada clave ("down", "up", etc.) guarda una lista de frames.
         self.animations = {
             "down": [
                 pygame.image.load("Materials/Pictures/Characters/boy/chico_down1.png").convert_alpha(),
@@ -35,27 +37,31 @@ class Characterb:
 
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (40, 70)) for img in frames
+                pygame.transform.scale(img, (60, 90)) for img in frames
             ]
-
-        self.direction = "down"
-        self.frame_index = 0
+        # Estado inicial del personaje
+        self.direction = "down" # Dirección inicial
+        self.frame_index = 0 # Imagen inicial (primer frame quieto)
         self.image = self.animations[self.direction][self.frame_index]
-        self.rect = self.image.get_rect(center=(x, y))
-
+        self.rect = self.image.get_rect(center=(x, y)) # Rectángulo para la posición y colisiones
+        #Posición con decimales para un movimiento más suave (luego se convierte a int para self.rect)
         self.x_float = float(x)
         self.y_float = float(y)
 
+        # Variables para controlar la animación
+        self.frame_timer = 0 # Temporizador para cambiar de frame
+        self.frame_speed = 0.1 # Velocidad de cambio de frame (cuánto se incrementa el temporizador cada actualización)
+        
+        self.fence_offset = 80  # Desplazamiento para la cerca inferior
 
-        self.frame_timer = 0
-        self.frame_speed = 0.1
 
-    def move(self, keys, screen_width, screen_height, npc_rect):
+    def move(self, keys, screen_width, screen_height, npc_rect=None):
         moving = False
         
         previous_x = self.x_float
         previous_y = self.y_float
         
+        # Lógica de movimiento
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.y_float -= self.speed
             self.direction = "up"
@@ -78,14 +84,19 @@ class Characterb:
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
         
-        if self.rect.colliderect(npc_rect):
-            self.x_float = previous_x
-            self.y_float = previous_y
-            self.rect.x = int(self.x_float)
-            self.rect.y = int(self.y_float)
+        # Lógica de Colisión con NPC 
+        if npc_rect is not None:
+            if self.rect.colliderect(npc_rect):
+                self.x_float = previous_x
+                self.y_float = previous_y 
+                self.rect.x = int(self.x_float)
+                self.rect.y = int(self.y_float)
 
-        margin = 245
-        margin2 = 210
+        # Lógica de límites de pantalla
+        margin = 340 
+        margin2 = 100 
+        
+        bottom_fence_limit = screen_height - self.fence_offset 
 
         if self.rect.left < margin2:
             self.rect.left = margin2
@@ -96,10 +107,12 @@ class Characterb:
         if self.rect.top < margin:
             self.rect.top = margin
             self.y_float = float(self.rect.y)
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
+            
+        if self.rect.bottom > bottom_fence_limit:
+            self.rect.bottom = bottom_fence_limit
             self.y_float = float(self.rect.y)
 
+        # Lógica de animación
         if moving:
             self.update_animation()
         else:
@@ -111,9 +124,6 @@ class Characterb:
             self.frame_timer = 0
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
             self.image = self.animations[self.direction][self.frame_index]
-
-
-    
 
 
     def draw(self, surface):

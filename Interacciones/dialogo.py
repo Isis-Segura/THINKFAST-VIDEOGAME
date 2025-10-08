@@ -21,13 +21,13 @@ class DialogBox:
         if self.typewriter:
             self.typewriter.update()
 
-    def draw(self, surface, x=50, y=550):
+    def draw(self, surface, x=50, y=100):
         if not self.active or not self.typewriter:
             return
         rect = pygame.Rect(x, y, self.width, self.height)
         pygame.draw.rect(surface, (0,0,0), rect)
         pygame.draw.rect(surface, (255,255,255), rect, 3)
-        self.typewriter.draw(surface, (rect.x + 20, rect.y + 30))
+        self.typewriter.draw(surface, (rect.x + 20, rect.y + 400))
 
     def finished(self):
         if self.typewriter:

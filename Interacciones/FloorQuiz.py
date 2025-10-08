@@ -23,7 +23,7 @@ class FloorQuiz:
         self.QUESTION_BOX_RADIUS = 10 
         
         self.start_x = (size[0] - self.QUESTION_BOX_WIDTH) // 2 
-        self.start_y = size[1] - self.QUESTION_BOX_HEIGHT - 500
+        self.start_y = size[1] - self.QUESTION_BOX_HEIGHT - 460
         self.box_width = self.QUESTION_BOX_WIDTH 
         self.box_height = self.QUESTION_BOX_HEIGHT 
 
@@ -216,7 +216,7 @@ class FloorQuiz:
                 # Estado post-respuesta: Solo la opción incorrecta seleccionada es ROJO NEÓN.
 
                 if i == self.selected_choice_index and i != correct_index: 
-                    # 🟥 ¡RESPUESTA INCORRECTA SELECCIONADA! -> ROJO NEÓN BRILLANTE
+                    #  ¡RESPUESTA INCORRECTA SELECCIONADA! -> ROJO NEÓN BRILLANTE
                     draw_color = self.NEON_RED_ERROR  
                     border_color = self.NEON_RED_ERROR 
                     border_thickness = 5 

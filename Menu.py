@@ -141,11 +141,11 @@ def create_character_buttons():
     select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
 
     char1_text = None
-    char1_button_rect = pygame.Rect(0, 0, 250, 80)
-    char1_button_rect.center = (screen.get_width() // 2 - 140, screen.get_height() // 2 + 40)
+    char1_button_rect = pygame.Rect(0, 0, 180, 250)
+    char1_button_rect.center = (screen.get_width() // 2 - 150, screen.get_height() // 2 + 40)
 
     char2_text = None
-    char2_button_rect = pygame.Rect(0, 0, 250, 80)
+    char2_button_rect = pygame.Rect(0, 0, 180, 250)
     char2_button_rect.center = (screen.get_width() // 2 + 150, screen.get_height() // 2 + 40)
 
     return select_surface, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect

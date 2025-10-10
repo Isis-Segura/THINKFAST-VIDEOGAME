@@ -2,13 +2,10 @@ import pygame
 
 class Characterg:
     def __init__(self, x, y, speed=2):
-
         self.speed = speed
-         #Velocidad y posición
-
-        #Animaciones por frames
+        
         self.animations = {
-            "down": [
+           "down": [
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down1.png").convert_alpha(),
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down2.png").convert_alpha(),
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_down3.png").convert_alpha(),
@@ -34,45 +31,44 @@ class Characterg:
             ]
         }
 
-        #Escalas de los frames al mismo tamaño
 
         for direction, frames in self.animations.items():
             self.animations[direction] = [
-                pygame.transform.scale(img, (90, 100)) for img in frames
+                pygame.transform.scale(img, (60, 90)) for img in frames
             ]
-
-        #Imagen inicial y rectángulo
 
         self.direction = "down"
         self.frame_index = 0
         self.image = self.animations[self.direction][self.frame_index]
         self.rect = self.image.get_rect(center=(x, y))
 
-
         self.x_float = float(x)
         self.y_float = float(y)
 
-        #Velocidad de animación
-        self.frame_timer = 0
-        self.frame_speed = 0.018
 
-    #Movimiento y cambio de direccción
-    def move(self, keys, screen_width, screen_height):
+        self.frame_timer = 0
+        self.frame_speed = 0.1
+        
+        self.fence_offset = 80
+
+
+    def move(self, keys, screen_width, screen_height, npc_rect=None):
         moving = False
         
-        #Lógica de movimiento
+        previous_x = self.x_float
+        previous_y = self.y_float
+        
+        # Lógica de movimiento
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.y_float -= self.speed
             self.direction = "up"
             moving = True
         elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
             self.y_float += self.speed
-
             self.direction = "down"
             moving = True
 
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-
             self.x_float -= self.speed
             self.direction = "left"
             moving = True
@@ -81,18 +77,23 @@ class Characterg:
             self.direction = "right"
             moving = True
 
-        #Actualiza el rectángulo con la posición flotante
+
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
+        
+        # Lógica de Colisión con NPC 
+        if npc_rect is not None:
+            if self.rect.colliderect(npc_rect):
+                self.x_float = previous_x
+                self.y_float = previous_y
+                self.rect.x = int(self.x_float)
+                self.rect.y = int(self.y_float)
 
-        if moving:
-            self.update_animation()
-        else:
-            self.image = self.animations[self.direction][0]
-
-        # Lógica de los márgenes
-        margin = 200
-        margin2 = 75
+        # Lógica de límites de pantalla
+        margin = 340 
+        margin2 = 100 
+        
+        bottom_fence_limit = screen_height - self.fence_offset 
 
         if self.rect.left < margin2:
             self.rect.left = margin2
@@ -103,19 +104,24 @@ class Characterg:
         if self.rect.top < margin:
             self.rect.top = margin
             self.y_float = float(self.rect.y)
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
+            
+        if self.rect.bottom > bottom_fence_limit:
+            self.rect.bottom = bottom_fence_limit
             self.y_float = float(self.rect.y)
 
-    def update_animation(self):
+        # Lógica de animación
+        if moving:
+            self.update_animation()
+        else:
+            self.image = self.animations[self.direction][0]
 
+    def update_animation(self):
         self.frame_timer += self.frame_speed
         if self.frame_timer >= 1:
             self.frame_timer = 0
             self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
             self.image = self.animations[self.direction][self.frame_index]
 
+
     def draw(self, surface):
-
         surface.blit(self.image, self.rect)
-

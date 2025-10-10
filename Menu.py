@@ -75,30 +75,72 @@ volume_level = 0.7  # Volumen por defecto 70%
 
 texts = {
     "es": {
+        # Menú principal
         "play": "Jugar",
-        "quit": "Salir",
+        "quit": "Salir", 
         "config": "Configuración",
+        "title_menu": "Think Fast!",
+        
+        # Configuración
         "volume": "Volumen",
-        "language": "Idioma",
+        "language": "Idioma", 
         "back": "Regresar",
         "spanish": "Español",
         "english": "Inglés",
-        "title": "Menú de Configuración",
+        "title_config": "Menú de Configuración",
         "sound_on": "Sonido: ON",
-        "sound_off": "Sonido: OFF"
+        "sound_off": "Sonido: OFF",
+        
+        # Selección de dificultad
+        "select_difficulty": "Selecciona la dificultad",
+        "beginner": "Principiante",
+        "advanced": "Avanzado",
+        
+        # Selección de personaje
+        "select_character": "Selecciona tu personaje",
+        "boy": "Niño",
+        "girl": "Niña",
+        
+        # Selección de nivel
+        "select_level": "Selecciona el nivel",
+        "level": "Nivel",
+        
+        # Mensajes
+        "coming_soon": "¡Próximamente!"
     },
     "en": {
+        # Main menu
         "play": "Play",
         "quit": "Quit",
-        "config": "Settings",
+        "config": "Settings", 
+        "title_menu": "Think Fast!",
+        
+        # Settings
         "volume": "Volume",
         "language": "Language",
         "back": "Back",
-        "spanish": "Spanish",
+        "spanish": "Spanish", 
         "english": "English",
-        "title": "Settings Menu",
+        "title_config": "Settings Menu",
         "sound_on": "Sound: ON",
-        "sound_off": "Sound: OFF"
+        "sound_off": "Sound: OFF",
+        
+        # Difficulty selection
+        "select_difficulty": "Select difficulty",
+        "beginner": "Beginner", 
+        "advanced": "Advanced",
+        
+        # Character selection
+        "select_character": "Select your character",
+        "boy": "Boy",
+        "girl": "Girl",
+        
+        # Level selection  
+        "select_level": "Select level",
+        "level": "Level",
+        
+        # Messages
+        "coming_soon": "Coming soon!"
     }
 }
 
@@ -143,6 +185,20 @@ def draw_button(image, rect, text_surface=None):
         text_rect = text_surface.get_rect(center=rect.center)
         screen.blit(text_surface, text_rect)
 
+def draw_button_with_text(image, rect, text, font, text_color=yellow, outline_color=black):
+    """Dibuja un botón con imagen y texto con borde"""
+    # Escalar y dibujar la imagen del botón
+    scaled_img = pygame.transform.scale(image, (rect.width, rect.height))
+    screen.blit(scaled_img, rect)
+    
+    # Renderizar texto con borde si se proporciona texto
+    if text:
+        text_surface = render_text_with_outline(text, font, text_color, outline_color)
+        text_rect = text_surface.get_rect(center=rect.center)
+        screen.blit(text_surface, text_rect)
+    
+    return rect
+
 def draw_colorful_button(rect, color, text, font, text_color=white, border_color=purple, border_width=4):
     # Dibujar borde
     pygame.draw.rect(screen, border_color, rect, border_width, border_radius=15)
@@ -178,167 +234,230 @@ def draw_volume_slider(x, y, width, height, volume, color):
 # Definimos COMING_SOON_TEXT aquí (después de definir la función render_text_with_outline)
 COMING_SOON_TEXT = render_text_with_outline("¡Próximamente!", font_medium, red, white)
 
-# Menú principal
+# -------------------- CREACIÓN DE BOTONES --------------------
 def create_menu_buttons():
-    play_text = font_medium.render("", True, black)
     play_button_rect = pygame.Rect(0, 0, 250, 80)
-    play_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 - 20)
-    play_button_rect = play_button_rect.inflate(-0, -0)
-
-    quit_text = font_medium.render("", True, black)
+    play_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 50)
+    
     quit_button_rect = pygame.Rect(0, 0, 250, 80)
-    quit_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 + 80)
-    quit_button_rect = quit_button_rect.inflate(-0, -0)
-
-    return play_text, play_button_rect, quit_text, quit_button_rect
+    quit_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 50)
+    
+    config_button_rect = pygame.Rect(0, 0, 200, 80)
+    config_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 150)
+    
+    return play_button_rect, quit_button_rect, config_button_rect
 
 def create_difficulty_buttons():
-    difficulty_surface = render_text_with_outline("Selecciona la dificultad", font_large, black, orange)
-    difficulty_text_rect = difficulty_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-
-    beginner_text = None
     beginner_button_rect = pygame.Rect(0, 0, 250, 80)
-    beginner_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 - 20)
+    beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 20)
 
-    advanced_text = None
     advanced_button_rect = pygame.Rect(0, 0, 250, 80)
-    advanced_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 + 80)
+    advanced_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 80)
 
-    return difficulty_surface, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect
+    back_button_rect = pygame.Rect(0, 0, 200, 80)
+    back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+
+    return beginner_button_rect, advanced_button_rect, back_button_rect
 
 def create_character_buttons():
-    select_surface = render_text_with_outline("Selecciona tu personaje", font_large, black, orange)
-    select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-
-    char1_text = None
     char1_button_rect = pygame.Rect(0, 0, 180, 250)
     char1_button_rect.center = (screen.get_width() // 2 - 150, screen.get_height() // 2 + 40)
 
-    char2_text = None
     char2_button_rect = pygame.Rect(0, 0, 180, 250)
     char2_button_rect.center = (screen.get_width() // 2 + 150, screen.get_height() // 2 + 40)
 
-    return select_surface, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect
+    back_button_rect = pygame.Rect(0, 0, 200, 80)
+    back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+
+    return char1_button_rect, char2_button_rect, back_button_rect
 
 def create_level_buttons():
-    level_surface = render_text_with_outline("Selecciona el nivel", font_large, black, orange)
-    level_text_rect = level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-
-    level1_text = None
     level1_button_rect = pygame.Rect(0, 0, 250, 80)
-    level1_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 -20)
+    level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 -20)
 
-    level2_text = None
     level2_button_rect = pygame.Rect(0, 0, 250, 80)
-    level2_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 + 80)
+    level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 80)
 
-    level3_text = None
     level3_button_rect = pygame.Rect(0, 0, 250, 80)
-    level3_button_rect.center = (screen.get_width() // 2 + 5, screen.get_height() // 2 + 180)
+    level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 180)
 
-    return level_surface, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect
-
-def create_back_button():
-    back_text = font_small.render("", True, white)
     back_button_rect = pygame.Rect(0, 0, 200, 80)
-    back_button_rect.bottomleft = (50, screen.get_height() - 50)
-    return back_text, back_button_rect
+    back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+
+    return level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect
+
+def create_config_buttons():
+    back_button_rect = pygame.Rect(0, 0, 200, 80)
+    back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    
+    return back_button_rect
 
 # -------------------- PANTALLAS --------------------
-def draw_menu(play_text, play_button_rect, quit_text, quit_button_rect, config_button_rect):
+def draw_menu(play_button_rect, quit_button_rect, config_button_rect):
     screen.blit(menu_background, [0, 0])
-    draw_button(play_button_img, play_button_rect, play_text)
-    draw_button(quit_button_img, quit_button_rect, quit_text)
+    
+    # Título del juego traducido
+    title_surface = render_text_with_outline(texts[language]["title_menu"], font_large, yellow, black)
+    title_rect = title_surface.get_rect(center=(size[0] // 2, 150))
+    screen.blit(title_surface, title_rect)
+    
+    # Botones con texto traducido
+    play_text_surface = render_text_with_outline(texts[language]["play"], font_medium, yellow, black)
+    quit_text_surface = render_text_with_outline(texts[language]["quit"], font_medium, yellow, black)
+    config_text_surface = render_text_with_outline(texts[language]["config"], font_small, yellow, black)
+    
+    draw_button_with_text(play_button_img, play_button_rect, "", font_medium)
+    draw_button_with_text(quit_button_img, quit_button_rect, "", font_medium)
+    draw_button_with_text(config_button_img, config_button_rect, "", font_small)
+    
+    # Dibujar texto sobre los botones
+    screen.blit(play_text_surface, play_text_surface.get_rect(center=play_button_rect.center))
+    screen.blit(quit_text_surface, quit_text_surface.get_rect(center=quit_button_rect.center))
+    screen.blit(config_text_surface, config_text_surface.get_rect(center=config_button_rect.center))
 
-    scaled_config_img = pygame.transform.scale(config_button_img, (config_button_rect.width, config_button_rect.height))
-    screen.blit(scaled_config_img, config_button_rect)
-
-def draw_difficulty_selection(difficulty_text_surface, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect, back_text, back_button_rect):
-    global show_coming_soon, COMING_SOON_TEXT
+def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_button_rect):
+    global show_coming_soon
     
     screen.blit(imageb, [0, 0])
-    screen.blit(difficulty_text_surface, difficulty_text_rect)
     
-    draw_button(beginner_button_img, beginner_button_rect, beginner_text)
-    draw_button(advanced_button_img, advanced_button_rect, advanced_text)
+    # Texto traducido
+    difficulty_surface = render_text_with_outline(texts[language]["select_difficulty"], font_large, yellow, black)
+    difficulty_text_rect = difficulty_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(difficulty_surface, difficulty_text_rect)
     
-    draw_button(back_button_img, back_button_rect, back_text)
+    # Texto para botones
+    beginner_text_surface = render_text_with_outline(texts[language]["beginner"], font_medium, yellow, black)
+    advanced_text_surface = render_text_with_outline(texts[language]["advanced"], font_medium, yellow, black)
+    back_text_surface = render_text_with_outline(texts[language]["back"], font_small, yellow, black)
     
-    # Dibuja el mensaje de "Próximamente" si está activo
+    # Dibujar botones
+    draw_button_with_text(beginner_button_img, beginner_button_rect, "", font_medium)
+    draw_button_with_text(advanced_button_img, advanced_button_rect, "", font_medium)
+    draw_button_with_text(back_button_img, back_button_rect, "", font_small)
+    
+    # Dibujar texto sobre botones
+    screen.blit(beginner_text_surface, beginner_text_surface.get_rect(center=beginner_button_rect.center))
+    screen.blit(advanced_text_surface, advanced_text_surface.get_rect(center=advanced_button_rect.center))
+    screen.blit(back_text_surface, back_text_surface.get_rect(center=back_button_rect.center))
+    
     if show_coming_soon:
-        text_rect = COMING_SOON_TEXT.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
-        screen.blit(COMING_SOON_TEXT, text_rect)
+        coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
+        text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
+        screen.blit(coming_soon_text, text_rect)
 
-def draw_character_selection(select_text_surface, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect, back_text, back_button_rect):
+def draw_character_selection(char1_button_rect, char2_button_rect, back_button_rect):
     screen.blit(imageb, [0, 0])
-    screen.blit(select_text_surface, select_text_rect)
-    draw_button(char1_button_img, char1_button_rect, char1_text)
-    draw_button(char2_button_img, char2_button_rect, char2_text)
-    draw_button(back_button_img, back_button_rect, back_text)
+    
+    # Texto traducido
+    select_surface = render_text_with_outline(texts[language]["select_character"], font_large, yellow, black)
+    select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(select_surface, select_text_rect)
+    
+    # Texto para botones
+    boy_text_surface = render_text_with_outline(texts[language]["boy"], font_small, yellow, black)
+    girl_text_surface = render_text_with_outline(texts[language]["girl"], font_small, yellow, black)
+    back_text_surface = render_text_with_outline(texts[language]["back"], font_small, yellow, black)
+    
+    draw_button_with_text(char1_button_img, char1_button_rect, "", font_small)
+    draw_button_with_text(char2_button_img, char2_button_rect, "", font_small)
+    draw_button_with_text(back_button_img, back_button_rect, "", font_small)
+    
+    # Dibujar texto sobre botones
+    screen.blit(boy_text_surface, boy_text_surface.get_rect(center=char1_button_rect.center))
+    screen.blit(girl_text_surface, girl_text_surface.get_rect(center=char2_button_rect.center))
+    screen.blit(back_text_surface, back_text_surface.get_rect(center=back_button_rect.center))
 
-def draw_level_selection(level_text_surface, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect):
-    global show_coming_soon, COMING_SOON_TEXT
+def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect):
+    global show_coming_soon
+    
     screen.blit(imageb, [0, 0])
-    screen.blit(level_text_surface, level_text_rect)
     
-    draw_button(level1_button_img, level1_button_rect, level1_text)
-    draw_button(level2_button_img, level2_button_rect, level2_text)
-    draw_button(level3_button_img, level3_button_rect, level3_text)
+    # Texto traducido
+    level_surface = render_text_with_outline(texts[language]["select_level"], font_large, yellow, black)
+    level_text_rect = level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(level_surface, level_text_rect)
     
-    draw_button(back_button_img, back_button_rect, back_text)
+    # Texto para botones
+    level1_text_surface = render_text_with_outline(f"{texts[language]['level']} 1", font_medium, yellow, black)
+    level2_text_surface = render_text_with_outline(f"{texts[language]['level']} 2", font_medium, yellow, black)
+    level3_text_surface = render_text_with_outline(f"{texts[language]['level']} 3", font_medium, yellow, black)
+    back_text_surface = render_text_with_outline(texts[language]["back"], font_small, yellow, black)
+    
+    draw_button_with_text(level1_button_img, level1_button_rect, "", font_medium)
+    draw_button_with_text(level2_button_img, level2_button_rect, "", font_medium)
+    draw_button_with_text(level3_button_img, level3_button_rect, "", font_medium)
+    draw_button_with_text(back_button_img, back_button_rect, "", font_small)
+    
+    # Dibujar texto sobre botones
+    screen.blit(level1_text_surface, level1_text_surface.get_rect(center=level1_button_rect.center))
+    screen.blit(level2_text_surface, level2_text_surface.get_rect(center=level2_button_rect.center))
+    screen.blit(level3_text_surface, level3_text_surface.get_rect(center=level3_button_rect.center))
+    screen.blit(back_text_surface, back_text_surface.get_rect(center=back_button_rect.center))
     
     if show_coming_soon:
-        text_rect = COMING_SOON_TEXT.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
-        screen.blit(COMING_SOON_TEXT, text_rect)
+        coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
+        text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
+        screen.blit(coming_soon_text, text_rect)
 
-def draw_config_menu(back_text, back_button_rect):
+def draw_config_menu(back_button_rect):
     screen.blit(config_background, [0, 0])
     
-    # Título colorido
-    title_surface = render_text_with_outline(texts[language]["title"], font_large, purple, yellow)
+    # Título traducido
+    title_surface = render_text_with_outline(texts[language]["title_config"], font_large, yellow, black)
     screen.blit(title_surface, title_surface.get_rect(center=(size[0] // 2, 100)))
     
-    # Sección idioma con diseño infantil
-    lang_label = font_medium.render(f" {texts[language]['language']}:", True, purple)
+    # Sección idioma
+    lang_label = render_text_with_outline(f"{texts[language]['language']}:", font_medium, yellow, black)
     screen.blit(lang_label, (150, 200))
     
-    # Botones de idioma coloridos
+    # Botones de idioma
     global language_es_rect, language_en_rect
-    language_es_rect = draw_colorful_button(pygame.Rect(150, 250, 200, 60), 
-                                          green if language == "es" else light_blue, 
-                                          texts["es"]["spanish"], font_small)
+    language_es_rect = draw_button_with_text(
+        play_button_img,
+        pygame.Rect(150, 250, 200, 60),
+        texts["es"]["spanish"], font_small
+    )
     
-    language_en_rect = draw_colorful_button(pygame.Rect(400, 250, 200, 60), 
-                                          green if language == "en" else light_blue, 
-                                          texts["en"]["english"], font_small)
+    language_en_rect = draw_button_with_text(
+        play_button_img,  
+        pygame.Rect(400, 250, 200, 60),
+        texts["en"]["english"], font_small
+    )
     
-    # Sección volumen con diseño infantil
-    vol_label = font_medium.render(f"🔊 {texts[language]['volume']}: {int(volume_level * 100)}%", True, purple)
+    # Sección volumen
+    vol_label = render_text_with_outline(f"🔊 {texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, yellow, black)
     screen.blit(vol_label, (150, 350))
     
-    # Slider de volumen colorido
+    # Slider de volumen
     global volume_slider_rect
     volume_slider_rect = draw_volume_slider(150, 400, 400, 20, volume_level, pink)
     
     # Botones de volumen
     global volume_down_rect, volume_up_rect
-    volume_down_rect = draw_colorful_button(pygame.Rect(150, 450, 80, 60), red, "-", font_medium)
-    volume_up_rect = draw_colorful_button(pygame.Rect(470, 450, 80, 60), green, "+", font_medium)
+    volume_down_rect = draw_button_with_text(
+        play_button_img,
+        pygame.Rect(150, 450, 80, 60),
+        "-", font_medium
+    )
     
-    # Indicador visual del volumen
-    volume_status = font_tiny.render("🔊 " + ("🔊" * int(volume_level * 5)), True, purple)
-    screen.blit(volume_status, (300, 460))
+    volume_up_rect = draw_button_with_text(
+        play_button_img,
+        pygame.Rect(470, 450, 80, 60),
+        "+", font_medium
+    )
     
     # Botón regresar
-    draw_button(back_button_img, back_button_rect, back_text)
+    back_text_surface = render_text_with_outline(texts[language]["back"], font_small, yellow, black)
+    draw_button_with_text(back_button_img, back_button_rect, "", font_small)
+    screen.blit(back_text_surface, back_text_surface.get_rect(center=back_button_rect.center))
 
 # -------------------- CREACIÓN DE ELEMENTOS --------------------
-play_text, play_button_rect, quit_text, quit_button_rect = create_menu_buttons()
-difficulty_surface, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect = create_difficulty_buttons()
-select_surface, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect = create_character_buttons()
-level_surface, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect = create_level_buttons()
-back_text, back_button_rect = create_back_button()  # ¡CORREGIDO!
-config_button_rect = pygame.Rect(650, 25, 200, 80)
+# Crear todos los botones necesarios
+play_button_rect, quit_button_rect, config_button_rect = create_menu_buttons()
+beginner_button_rect, advanced_button_rect, back_button_rect_difficulty = create_difficulty_buttons()
+char1_button_rect, char2_button_rect, back_button_rect_character = create_character_buttons()
+level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect_level = create_level_buttons()
+back_button_rect_config = create_config_buttons()
 
 # Rectángulos para configuración (se inicializan en draw_config_menu)
 language_es_rect = None
@@ -372,12 +491,24 @@ while running:
                 pass
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                # Manejo del botón regresar para todos los estados excepto MENU
-                if back_button_rect.collidepoint(event.pos) and game_state != MENU:
+                # Manejo del botón regresar para cada estado
+                if game_state == SELECT_DIFFICULTY and back_button_rect_difficulty.collidepoint(event.pos):
                     if len(state_history) > 1:
                         state_history.pop()
                         game_state = state_history[-1]
                         show_coming_soon = False
+                elif game_state == SELECT_CHARACTER and back_button_rect_character.collidepoint(event.pos):
+                    if len(state_history) > 1:
+                        state_history.pop()
+                        game_state = state_history[-1]
+                elif game_state == SELECT_LEVEL and back_button_rect_level.collidepoint(event.pos):
+                    if len(state_history) > 1:
+                        state_history.pop()
+                        game_state = state_history[-1]
+                elif game_state == CONFIG_MENU and back_button_rect_config.collidepoint(event.pos):
+                    if len(state_history) > 1:
+                        state_history.pop()
+                        game_state = state_history[-1]
                 
                 elif game_state == MENU:
                     if play_button_rect.collidepoint(event.pos):
@@ -390,11 +521,7 @@ while running:
                         state_history.append(game_state)
                 
                 elif game_state == CONFIG_MENU:
-                    if back_button_rect.collidepoint(event.pos):
-                        if len(state_history) > 1:
-                            state_history.pop()
-                            game_state = state_history[-1]
-                    elif language_es_rect and language_es_rect.collidepoint(event.pos):
+                    if language_es_rect and language_es_rect.collidepoint(event.pos):
                         language = "es"
                     elif language_en_rect and language_en_rect.collidepoint(event.pos):
                         language = "en"
@@ -452,15 +579,15 @@ while running:
 
     # -------------------- DIBUJAR PANTALLAS --------------------
     if game_state == MENU:
-        draw_menu(play_text, play_button_rect, quit_text, quit_button_rect, config_button_rect)
+        draw_menu(play_button_rect, quit_button_rect, config_button_rect)
     elif game_state == SELECT_DIFFICULTY:
-        draw_difficulty_selection(difficulty_surface, difficulty_text_rect, beginner_text, beginner_button_rect, advanced_text, advanced_button_rect, back_text, back_button_rect)
+        draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_button_rect_difficulty)
     elif game_state == SELECT_CHARACTER:
-        draw_character_selection(select_surface, select_text_rect, char1_text, char1_button_rect, char2_text, char2_button_rect, back_text, back_button_rect)
+        draw_character_selection(char1_button_rect, char2_button_rect, back_button_rect_character)
     elif game_state == SELECT_LEVEL:
-        draw_level_selection(level_surface, level_text_rect, level1_text, level1_button_rect, level2_text, level2_button_rect, level3_text, level3_button_rect, back_text, back_button_rect)
+        draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect_level)
     elif game_state == CONFIG_MENU:
-        draw_config_menu(back_text, back_button_rect)
+        draw_config_menu(back_button_rect_config)
     elif game_state == GAME_LEVEL_1 and level_instance:
         level_state = level_instance.update()
         if level_state == "quit":

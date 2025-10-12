@@ -1,14 +1,15 @@
+
 import pygame
 import random
-import math
+
 
 # Importa las clases de los personajes y controladores del juego
-from Personajes.boy import Characterb
+from Personajes.boy import  Characterb
 from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpc 
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.Controldeobjetos.corazones import LifeManager
+
 from Interacciones.FloorQuiz import FloorQuiz
 
 # Inicializa el mezclador de audio (para música y sonidos)
@@ -23,6 +24,11 @@ except pygame.error:
 # ============================================================
 class Confetti:
     def __init__(self, screen_width, screen_height):
+     # --- Animación de feedback (brillo verde o rojo) ---
+        self.flash_color = None
+        self.flash_alpha = 0
+        self.flash_timer = 0
+
         self.particles = []
         self.colors = [
             (255, 0, 0), (0, 255, 0), (0, 150, 255),
@@ -84,6 +90,9 @@ class Confetti:
 # ============================================================
 class Level1:
     def __init__(self, screen, size, font, character_choice):
+        self.flash_color = None
+        self.flash_alpha = 0
+        self.flash_timer = 0
         self.screen = screen
         self.size = size
         self.font = font
@@ -177,8 +186,35 @@ class Level1:
         self.timer = Timer(120)      # tiempo general del nivel
         self.quiz_timer = Timer(10)  # tiempo para responder cada pregunta
 
-        # Gestor de vidas (corazones)
-        self.life_manager = LifeManager(3, 'Materials/Pictures/Assets/corazones.png')
+        # palomitas y taches -> ahora con imágenes
+        self.answer_results = []  # guarda "correct" / "incorrect" en orden de respuesta
+        self.max_questions = 4    # ahora serán 4 cuadros (marcos)
+
+        # Carga imágenes para marcos y símbolos
+        try:
+            self.marco_img = pygame.image.load("Materials/Pictures/Assets/marco.png").convert_alpha()
+            self.palomita_img = pygame.image.load("Materials/Pictures/Assets/palomita.png").convert_alpha()
+            self.tache_img = pygame.image.load("Materials/Pictures/Assets/tache.png").convert_alpha()
+        except Exception:
+            # Si falla la carga, creamos superficies simples para no romper
+            self.marco_img = pygame.Surface((48, 48), pygame.SRCALPHA)
+            pygame.draw.rect(self.marco_img, (255, 255, 255), self.marco_img.get_rect(), 3, border_radius=6)
+            self.palomita_img = pygame.Surface((36, 36), pygame.SRCALPHA)
+            self.tache_img = pygame.Surface((36, 36), pygame.SRCALPHA)
+            # dibujar fallback simple
+            pygame.draw.line(self.palomita_img, (0, 200, 0), (4, 18), (14, 30), 4)
+            pygame.draw.line(self.palomita_img, (0, 200, 0), (14, 30), (30, 6), 4)
+            pygame.draw.line(self.tache_img, (200, 0, 0), (6, 6), (30, 30), 4)
+            pygame.draw.line(self.tache_img, (200, 0, 0), (30, 6), (6, 30), 4)
+
+        # Escalar imágenes para que se vean bien en la UI
+        marco_w = 56
+        marco_h = 56
+        symbol_w = 40
+        symbol_h = 40
+        self.marco_img = pygame.transform.scale(self.marco_img, (marco_w, marco_h))
+        self.palomita_img = pygame.transform.scale(self.palomita_img, (symbol_w, symbol_h))
+        self.tache_img = pygame.transform.scale(self.tache_img, (symbol_w, symbol_h))
 
         # Carga sonidos y música
         self.controls_music = None
@@ -217,7 +253,7 @@ class Level1:
         # Confeti (efecto de victoria)
         self.confetti = Confetti(self.size[0], self.size[1])
 
-        # Preguntas del minijuego
+        # Preguntas del minijuego (4 preguntas)
         self.questions = [
             { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cómo se llama nuestro país?", "choices": ["España", "México", "Roma", "Berlín"], "correct_answer": 1 },
             { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "¿Cuánto es 6 + 2?", "choices": ["7", "8", "9", "10"], "correct_answer": 1 }, 
@@ -235,7 +271,9 @@ class Level1:
         self.font_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
         self.font_timer = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 24)
         self.font_control_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 36)
-# ============================================================
+
+
+    # ============================================================
     # Maneja los eventos del teclado y las interacciones del jugador
     # ============================================================
     def handle_events(self, event):
@@ -245,6 +283,7 @@ class Level1:
                 if event.key == pygame.K_r:
                     pygame.mixer.stop()
                     self.__init__(self.screen, self.size, self.font, self.character_choice)
+                    self.answer_results.clear() # reinicia los cuadros de respuestas
                     return "restart"
                 if event.key == pygame.K_ESCAPE:
                     pygame.mixer.stop()
@@ -290,19 +329,28 @@ class Level1:
         if self.state == "quiz_floor" and self.quiz_game:
             result = self.quiz_game.handle_event(event)
             if result in ["correct", "incorrect"]:
-                if result == "correct" and self.correct_sound:
-                    self.correct_sound.play()
-                elif result == "incorrect":
-                    if self.incorrect_sound:
-                        self.incorrect_sound.play()
-                    self.life_manager.lose_life()
+                # guardar resultado: sólo si aún hay marcos vacíos (en orden)
+                if len(self.answer_results) < self.max_questions:
+                    if result == "correct":
+                        if self.correct_sound:
+                            self.correct_sound.play()
+                        self.answer_results.append("correct")
+                    else:
+                        if self.incorrect_sound:
+                            self.incorrect_sound.play()
+                        self.answer_results.append("incorrect")
+                else:
+                    # si por alguna razón ya se llenaron, ignoramos extras
+                    pass
+
+                # pausar temporizador del quiz
                 self.quiz_timer.pause()
-                if self.life_manager.is_dead():
+
+                if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
                     pygame.mixer.music.stop()
                     if self.loss_sound:
                         self.loss_sound.play()
-            elif result == "advanced":
                 # pasa a la siguiente pregunta
                 self.quiz_timer = Timer(10)
                 self.quiz_timer.start()
@@ -384,23 +432,27 @@ class Level1:
                 # tiempo agotado = respuesta incorrecta
                 if self.incorrect_sound:
                     self.incorrect_sound.play()
-                self.life_manager.lose_life()
+                # Registrar tache por tiempo agotado (si hay marco libre)
+                if len(self.answer_results) < self.max_questions:
+                    self.answer_results.append("incorrect")
+
                 self.quiz_game.is_answered = True
                 self.quiz_game.answer_result = "incorrect"
                 self.quiz_game.selected_choice_index = -1
                 self.quiz_timer.pause()
-                if self.life_manager.is_dead():
+
+                # Condición para terminar el juego si hay 3 taches
+                if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
                     pygame.mixer.music.stop()
                     if self.loss_sound:
                         self.loss_sound.play()
-                    return
-
             # Verifica colisión del jugador con los cuadros del quiz
-            self.quiz_game.check_player_collision(self.player.rect)
+            if self.quiz_game:
+                self.quiz_game.check_player_collision(self.player.rect)
 
             # Si termina el quiz, muestra diálogo final
-            if self.quiz_game.finished:
+            if self.quiz_game and self.quiz_game.finished:
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
                 score = self.quiz_game.correct_answers
@@ -548,7 +600,30 @@ class Level1:
             self.screen.blit(self.background_image, (0, 0))
             self.Guardia.draw(self.screen)
             self.player.draw(self.screen)
-            self.life_manager.draw(self.screen)
+
+            # --- DIBUJAR MARCOS (IMAGENES) EN LA PARTE SUPERIOR ---
+            spacing = 18
+            marco_w, marco_h = self.marco_img.get_size()
+            total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
+            x_start = (self.size[0] - total_width) // 2
+            y = 18
+
+            for i in range(self.max_questions):
+                x = x_start + i * (marco_w + spacing)
+                # dibuja marco
+                self.screen.blit(self.marco_img, (x, y))
+
+                # si ya hay resultado para este índice, dibujar la palomita/tache centrada en el marco
+                if i < len(self.answer_results):
+                    res = self.answer_results[i]
+                    symbol_img = self.palomita_img if res == "correct" else self.tache_img
+                    sx, sy = symbol_img.get_size()
+                    # centrar símbolo dentro del marco
+                    sym_x = x + (marco_w - sx) // 2
+                    sym_y = y + (marco_h - sy) // 2
+                    self.screen.blit(symbol_img, (sym_x, sym_y))
+
+            # Dibuja confetti
             self.confetti.draw(self.screen)
 
             # Dibuja timers
@@ -575,7 +650,7 @@ class Level1:
                     self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
 
         # Pantalla de derrota
-        elif self.state == "game_over":
+        if self.state == "game_over":
             self.screen.fill((0, 0, 0))
             if self.game_over_image:
                 self.screen.blit(self.game_over_image, (0, 0))
@@ -590,18 +665,16 @@ class Level1:
             self.screen.fill((0, 0, 0)) 
             if self.win_image:
                 self.screen.blit(self.win_image, (0, 0))
-                
             self.confetti.draw(self.screen)
-            
             text_restart = "Presiona 'R' para Reiniciar"
             text_menu = "Presiona 'ESC' para volver al MenÃº"
             font_to_use = self.font_title 
-
             self._draw_text_with_border(self.screen, text_restart, font_to_use, (255, 255, 255), (0, 0, 0), (self.size[0] // 2, self.size[1] - 80), border_size=3)
             self._draw_text_with_border(self.screen, text_menu, font_to_use, (255, 255, 255), (0, 0, 0), (self.size[0] // 2, self.size[1] - 30), border_size=3)
-            
+
+        # Estado de perdida        
         elif self.state == "loss_sound_state":
             self.screen.blit(self.background_image, (0, 0)) 
             self.player.draw(self.screen)
             self.Guardia.draw(self.screen)
-            self.life_manager.draw(self.screen)
+            

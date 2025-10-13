@@ -22,11 +22,8 @@ font_large = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 38)
 font_medium = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 38)
 font_small = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 38)
 
-# -------------------- 🎥 BLOQUE DE VIDEO DE INTRODUCCIÓN 🎥 --------------------
+# -------------------- VIDEO DE INTRODUCCIÓN  --------------------
 try:
-    # -------------------------------------------------------------------------
-    # !!!  LÍNEA CLAVE: DÓNDE AGREGAS TU VIDEO  !!!
-    # REEMPLAZA 'intro_video.mp4' con la RUTA exacta de tu archivo de video.
     intro_path = "Materials/videos/ramiro.mp4" 
     # -------------------------------------------------------------------------
     

@@ -13,7 +13,7 @@ light_blue = (173, 216, 230)
 pink = (255, 182, 193)
 green = (144, 238, 144)
 purple = (147, 112, 219)
-
+brown=(87, 27, 15)
 # Tamaños
 size = (900, 700)
 screen = pygame.display.set_mode(size)
@@ -37,11 +37,16 @@ imageb = pygame.transform.scale(imageb, size)
 config_background = pygame.image.load("Materials/Pictures/Assets/fondo_sin.png").convert()
 config_background = pygame.transform.scale(config_background, size)
 
+# AÑADIR: Imagen de fondo para textos
+text_background_img = pygame.image.load("Materials/Pictures/Assets/botontitusoli.png").convert_alpha()
+# Escalar a un tamaño apropiado para los textos
+text_background_img = pygame.transform.scale(text_background_img, (600, 80))
+
 # -------------------- BOTONES --------------------
 play_button_img = pygame.image.load("Materials/Pictures/Assets/btn_play.png").convert_alpha()
 quit_button_img = pygame.image.load("Materials/Pictures/Assets/btn_quit.png").convert_alpha()
-beginner_button_img = pygame.image.load("Materials/Pictures/Assets/btn_libro_solo.png").convert_alpha()
-advanced_button_img = pygame.image.load("Materials/Pictures/Assets/btn_montana_libros.png").convert_alpha()
+beginner_button_img = pygame.image.load("Materials/Pictures/Assets/buttonsoli.png").convert_alpha()
+advanced_button_img = pygame.image.load("Materials/Pictures/Assets/buttonsoli.png").convert_alpha()
 char1_button_img = pygame.image.load("Materials/Pictures/Assets/btn_boy.png").convert_alpha()
 char2_button_img = pygame.image.load("Materials/Pictures/Assets/btn_girl.png").convert_alpha()
 level1_button_img = pygame.image.load("Materials/Pictures/Assets/btn_principiante_1.png").convert_alpha()
@@ -49,6 +54,10 @@ level2_button_img = pygame.image.load("Materials/Pictures/Assets/btn_principiant
 level3_button_img = pygame.image.load("Materials/Pictures/Assets/btn_principiante_3.png").convert_alpha()
 back_button_img = pygame.image.load("Materials/Pictures/Assets/btn_regresar.png").convert_alpha()
 config_button_img = pygame.image.load("Materials/Pictures/Assets/btn_confi.png").convert_alpha()
+
+# AÑADIR: Botones de volumen sin texto
+volume_up_img = pygame.image.load("Materials/Pictures/Assets/btn_volum_mas.png").convert_alpha()
+volume_down_img = pygame.image.load("Materials/Pictures/Assets/btn_volum_menos.png").convert_alpha()
 
 clock = pygame.time.Clock()
 
@@ -183,7 +192,7 @@ def draw_button(image, rect):
     screen.blit(scaled_img, rect)
     return rect
 
-def draw_button_with_text(image, rect, text, font, text_color=yellow, outline_color=black):
+def draw_button_with_text(image, rect, text, font, text_color=brown, outline_color=white):
     """Dibuja un botón con imagen y texto con borde - SOLO para configuración"""
     # Escalar y dibujar la imagen del botón
     scaled_img = pygame.transform.scale(image, (rect.width, rect.height))
@@ -230,7 +239,7 @@ def create_menu_buttons():
     return play_button_rect, quit_button_rect, config_button_rect
 
 def create_difficulty_buttons():
-    beginner_button_rect = pygame.Rect(0, 0, 250, 80)
+    beginner_button_rect = pygame.Rect(0, 0, 285, 80)
     beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 20)
 
     advanced_button_rect = pygame.Rect(0, 0, 250, 80)
@@ -282,7 +291,7 @@ def draw_menu(play_button_rect, quit_button_rect, config_button_rect):
     
     # SOLO DIBUJAR BOTONES SIN TEXTO SOBREESCRITO
     draw_button(play_button_img, play_button_rect)
-    draw_button(quit_button_img, quit_button_rect)
+    draw_button(quit_button_img, quit_button_rect)  
     draw_button(config_button_img, config_button_rect)
 
 def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_button_rect):
@@ -290,15 +299,19 @@ def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_b
     
     screen.blit(imageb, [0, 0])
     
-    # Texto traducido con fuente mejorada
-    difficulty_surface = render_text_with_outline(texts[language]["select_difficulty"], font_large, yellow, black)
+    # FONDO PARA EL TEXTO "Selecciona la dificultad"
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(text_background_img, bg_rect)
+    
+    # Texto traducido 
+    difficulty_surface = render_text_with_outline(texts[language]["select_difficulty"], font_medium, brown, white)
     difficulty_text_rect = difficulty_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
     screen.blit(difficulty_surface, difficulty_text_rect)
     
-    # SOLO DIBUJAR BOTONES SIN TEXTO SOBREESCRITO
-    draw_button(beginner_button_img, beginner_button_rect)
-    draw_button(advanced_button_img, advanced_button_rect)
-    draw_button(back_button_img, back_button_rect)
+    # BOTONES CON TEXTO
+    draw_button_with_text(beginner_button_img, beginner_button_rect, texts[language]["beginner"], font_small, brown, white)
+    draw_button_with_text(advanced_button_img, advanced_button_rect, texts[language]["advanced"], font_small, brown, white)
+    draw_button(back_button_img, back_button_rect)  # Botón regresar
     
     if show_coming_soon:
         coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
@@ -308,31 +321,39 @@ def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_b
 def draw_character_selection(char1_button_rect, char2_button_rect, back_button_rect):
     screen.blit(imageb, [0, 0])
     
-    # Texto traducido con fuente mejorada
-    select_surface = render_text_with_outline(texts[language]["select_character"], font_large, yellow, black)
+    # FONDO PARA EL TEXTO "Selecciona el personaje"
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(text_background_img, bg_rect)
+    
+    # Texto traducido con fuente MÁS PEQUEÑA para que quepa en el botón
+    select_surface = render_text_with_outline(texts[language]["select_character"], font_medium, brown, white)
     select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
     screen.blit(select_surface, select_text_rect)
     
-    # SOLO DIBUJAR BOTONES SIN TEXTO SOBREESCRITO
-    draw_button(char1_button_img, char1_button_rect)
-    draw_button(char2_button_img, char2_button_rect)
-    draw_button(back_button_img, back_button_rect)
+    # BOTONES CON TEXTO CENTRADO (amarillo con borde blanco)
+    draw_button_with_text(char1_button_img, char1_button_rect, texts[language]["boy"], font_small, brown, white)
+    draw_button_with_text(char2_button_img, char2_button_rect, texts[language]["girl"], font_small, brown, white)
+    draw_button(back_button_img, back_button_rect)  # Botón regresar SIN texto
 
 def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect):
     global show_coming_soon
     
     screen.blit(imageb, [0, 0])
     
-    # Texto traducido con fuente mejorada
-    level_surface = render_text_with_outline(texts[language]["select_level"], font_large, yellow, black)
+    # FONDO PARA EL TEXTO "Selecciona el nivel"
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(text_background_img, bg_rect)
+    
+    # Texto traducido con fuente MÁS PEQUEÑA para que quepa en el botón
+    level_surface = render_text_with_outline(texts[language]["select_level"], font_medium, brown, white)
     level_text_rect = level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
     screen.blit(level_surface, level_text_rect)
     
-    # SOLO DIBUJAR BOTONES SIN TEXTO SOBREESCRITO
-    draw_button(level1_button_img, level1_button_rect)
-    draw_button(level2_button_img, level2_button_rect)
-    draw_button(level3_button_img, level3_button_rect)
-    draw_button(back_button_img, back_button_rect)
+    # BOTONES CON TEXTO CENTRADO (amarillo con borde blanco)
+    draw_button_with_text(level1_button_img, level1_button_rect, f"{texts[language]['level']} 1", font_small, brown, white)
+    draw_button_with_text(level2_button_img, level2_button_rect, f"{texts[language]['level']} 2", font_small, brown, white)
+    draw_button_with_text(level3_button_img, level3_button_rect, f"{texts[language]['level']} 3", font_small, brown, white)
+    draw_button(back_button_img, back_button_rect)  # Botón regresar SIN texto
     
     if show_coming_soon:
         coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
@@ -342,51 +363,46 @@ def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_r
 def draw_config_menu(back_button_rect):
     screen.blit(config_background, [0, 0])
     
-    # Título traducido con fuente mejorada
-    title_surface = render_text_with_outline(texts[language]["title_config"], font_large, yellow, black)
+    # FONDO PARA EL TEXTO "Menú de Configuración"
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, 100))
+    screen.blit(text_background_img, bg_rect)
+    
+    # Título traducido con fuente MÁS PEQUEÑA para que quepa en el botón
+    title_surface = render_text_with_outline(texts[language]["title_config"], font_medium, brown, white)
     screen.blit(title_surface, title_surface.get_rect(center=(size[0] // 2, 100)))
     
     # Sección idioma
-    lang_label = render_text_with_outline(f"{texts[language]['language']}:", font_medium, yellow, black)
+    lang_label = render_text_with_outline(f"{texts[language]['language']}:", font_medium, brown, white)
     screen.blit(lang_label, (150, 200))
     
     # Botones de idioma (aquí SÍ usamos texto porque son botones genéricos)
     global language_es_rect, language_en_rect
     language_es_rect = draw_button_with_text(
         play_button_img,
-        pygame.Rect(150, 250, 200, 60),
-        texts["es"]["spanish"], font_small
+        pygame.Rect(130, 180, 160, 60),
+        texts["es"]["spanish"], font_small, brown, white
     )
     
     language_en_rect = draw_button_with_text(
         play_button_img,  
         pygame.Rect(400, 250, 200, 60),
-        texts["en"]["english"], font_small
+        texts["en"]["english"], font_small, yellow, white
     )
     
     # Sección volumen
-    vol_label = render_text_with_outline(f"🔊 {texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, yellow, black)
+    vol_label = render_text_with_outline(f"🔊 {texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, brown, white)
     screen.blit(vol_label, (150, 350))
     
     # Slider de volumen
     global volume_slider_rect
     volume_slider_rect = draw_volume_slider(150, 400, 400, 20, volume_level, pink)
     
-    # Botones de volumen (aquí SÍ usamos texto porque son botones genéricos)
+    # Botones de volumen SIN TEXTO - solo imágenes
     global volume_down_rect, volume_up_rect
-    volume_down_rect = draw_button_with_text(
-        play_button_img,
-        pygame.Rect(150, 450, 80, 60),
-        "-", font_medium
-    )
+    volume_down_rect = draw_button(volume_down_img, pygame.Rect(150, 450, 80, 60))
+    volume_up_rect = draw_button(volume_up_img, pygame.Rect(470, 450, 80, 60))
     
-    volume_up_rect = draw_button_with_text(
-        play_button_img,
-        pygame.Rect(470, 450, 80, 60),
-        "+", font_medium
-    )
-    
-    # Botón regresar (SOLO imagen, sin texto sobreescrito)
+    # Botón regresar SIN TEXTO
     draw_button(back_button_img, back_button_rect)
 
 # -------------------- CREACIÓN DE ELEMENTOS --------------------

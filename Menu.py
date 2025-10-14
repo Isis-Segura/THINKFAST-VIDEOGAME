@@ -330,10 +330,10 @@ def draw_character_selection(char1_button_rect, char2_button_rect, back_button_r
     select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
     screen.blit(select_surface, select_text_rect)
     
-    # BOTONES CON TEXTO CENTRADO (amarillo con borde blanco)
-    draw_button_with_text(char1_button_img, char1_button_rect, texts[language]["boy"], font_small, brown, white)
-    draw_button_with_text(char2_button_img, char2_button_rect, texts[language]["girl"], font_small, brown, white)
-    draw_button(back_button_img, back_button_rect)  # Botón regresar SIN texto
+    # BOTONES SIN TEXTO - solo imágenes de niño y niña
+    draw_button(char1_button_img, char1_button_rect)
+    draw_button(char2_button_img, char2_button_rect)
+    draw_button(back_button_img, back_button_rect)  
 
 def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect):
     global show_coming_soon
@@ -353,7 +353,7 @@ def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_r
     draw_button_with_text(level1_button_img, level1_button_rect, f"{texts[language]['level']} 1", font_small, brown, white)
     draw_button_with_text(level2_button_img, level2_button_rect, f"{texts[language]['level']} 2", font_small, brown, white)
     draw_button_with_text(level3_button_img, level3_button_rect, f"{texts[language]['level']} 3", font_small, brown, white)
-    draw_button(back_button_img, back_button_rect)  # Botón regresar SIN texto
+    draw_button(back_button_img, back_button_rect)  
     
     if show_coming_soon:
         coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
@@ -379,18 +379,18 @@ def draw_config_menu(back_button_rect):
     global language_es_rect, language_en_rect
     language_es_rect = draw_button_with_text(
         play_button_img,
-        pygame.Rect(130, 180, 160, 60),
+        pygame.Rect(135, 248, 200, 60),
         texts["es"]["spanish"], font_small, brown, white
     )
     
     language_en_rect = draw_button_with_text(
         play_button_img,  
         pygame.Rect(400, 250, 200, 60),
-        texts["en"]["english"], font_small, yellow, white
+        texts["en"]["english"], font_small, brown, white
     )
     
     # Sección volumen
-    vol_label = render_text_with_outline(f"🔊 {texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, brown, white)
+    vol_label = render_text_with_outline(f" {texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, brown, white)
     screen.blit(vol_label, (150, 350))
     
     # Slider de volumen

@@ -6,7 +6,7 @@ import random
 # Importa las clases de los personajes y controladores del juego
 from Personajes.boy import  Characterb
 from Personajes.girl import Characterg
-from Personajes.Guardian import Characternpc 
+from Personajes.Prefect import Characternpcp 
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
 
@@ -126,7 +126,7 @@ class Level1:
             self.player = Characterg(440, 600, 2)
 
         # Crea el guardia (NPC)
-        self.Guardia = Characternpc(470, 330, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
+        self.Guardia = Characternpcp(470, 330, 'Materials/Pictures/Characters/NPCs/Prefecta/Prefect.png')
 
         # Define área de colisión del guardia (más pequeña que su sprite)
         guardia_width = self.Guardia.rect.width

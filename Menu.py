@@ -40,7 +40,7 @@ config_background = pygame.transform.scale(config_background, size)
 # AÑADIR: Imagen de fondo para textos
 text_background_img = pygame.image.load("Materials/Pictures/Assets/botontitusoli.png").convert_alpha()
 # Escalar a un tamaño apropiado para los textos
-text_background_img = pygame.transform.scale(text_background_img, (600, 80))
+text_background_img = pygame.transform.scale(text_background_img, (730, 80))
 
 # -------------------- BOTONES --------------------
 play_button_img = pygame.image.load("Materials/Pictures/Assets/btn_play.png").convert_alpha()
@@ -287,9 +287,6 @@ def create_config_buttons():
 def draw_menu(play_button_rect, quit_button_rect, config_button_rect):
     screen.blit(menu_background, [0, 0])
     
-    # ELIMINADO: Título del juego (ya no se muestra)
-    
-    # SOLO DIBUJAR BOTONES SIN TEXTO SOBREESCRITO
     draw_button(play_button_img, play_button_rect)
     draw_button(quit_button_img, quit_button_rect)  
     draw_button(config_button_img, config_button_rect)

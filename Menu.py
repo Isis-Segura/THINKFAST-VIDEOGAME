@@ -360,46 +360,85 @@ def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_r
 def draw_config_menu(back_button_rect):
     screen.blit(config_background, [0, 0])
     
-    # FONDO PARA EL TEXTO "Menú de Configuración"
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, 100))
+    # FONDO PARA EL TEXTO "Menú de Configuración" - CENTRADO EN LA PARTE SUPERIOR
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, 120))  # Bajado de 100 a 120
     screen.blit(text_background_img, bg_rect)
     
-    # Título traducido con fuente MÁS PEQUEÑA para que quepa en el botón
+    # Título traducido centrado
     title_surface = render_text_with_outline(texts[language]["title_config"], font_medium, brown, white)
-    screen.blit(title_surface, title_surface.get_rect(center=(size[0] // 2, 100)))
+    screen.blit(title_surface, title_surface.get_rect(center=(size[0] // 2, 120)))  # Bajado de 100 a 120
     
-    # Sección idioma
+    # CALCULAR POSICIONES CENTRADAS
+    center_x = size[0] // 2
+    start_y = 220  # Bajado de 180 a 220 (40 píxeles más abajo)
+    section_spacing = 120  # Espacio entre secciones
+    
+    # Sección idioma - CENTRADA
+    lang_y = start_y
     lang_label = render_text_with_outline(f"{texts[language]['language']}:", font_medium, brown, white)
-    screen.blit(lang_label, (150, 200))
+    lang_label_rect = lang_label.get_rect(center=(center_x, lang_y))
+    screen.blit(lang_label, lang_label_rect)
     
-    # Botones de idioma (aquí SÍ usamos texto porque son botones genéricos)
+    # Botones de idioma CENTRADOS y en línea horizontal
+    button_width, button_height = 200, 60
+    button_spacing = 30  # Espacio entre botones
+    
     global language_es_rect, language_en_rect
-    language_es_rect = draw_button_with_text(
+    
+    # Botón Español (IZQUIERDA)
+    language_es_rect = pygame.Rect(0, 0, button_width, button_height)
+    language_es_rect.center = (center_x - button_width//2 - button_spacing, lang_y + 60)
+    draw_button_with_text(
         play_button_img,
-        pygame.Rect(135, 248, 200, 60),
+        language_es_rect,
         texts["es"]["spanish"], font_small, brown, white
     )
     
-    language_en_rect = draw_button_with_text(
+    # Botón Inglés (DERECHA)
+    language_en_rect = pygame.Rect(0, 0, button_width, button_height)
+    language_en_rect.center = (center_x + button_width//2 + button_spacing, lang_y + 60)
+    draw_button_with_text(
         play_button_img,  
-        pygame.Rect(400, 250, 200, 60),
+        language_en_rect,
         texts["en"]["english"], font_small, brown, white
     )
     
-    # Sección volumen
-    vol_label = render_text_with_outline(f" {texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, brown, white)
-    screen.blit(vol_label, (150, 350))
+    # Sección volumen - CENTRADA
+    vol_y = start_y + section_spacing
+    vol_label = render_text_with_outline(f"{texts[language]['volume']}: {int(volume_level * 100)}%", font_medium, brown, white)
+    vol_label_rect = vol_label.get_rect(center=(center_x, vol_y))
+    screen.blit(vol_label, vol_label_rect)
     
-    # Slider de volumen
+    # Slider de volumen CENTRADO
+    slider_width, slider_height = 400, 20
     global volume_slider_rect
-    volume_slider_rect = draw_volume_slider(150, 400, 400, 20, volume_level, pink)
+    volume_slider_rect = draw_volume_slider(
+        center_x - slider_width//2, 
+        vol_y + 40, 
+        slider_width, 
+        slider_height, 
+        volume_level, 
+        pink
+    )
     
-    # Botones de volumen SIN TEXTO - solo imágenes
+    # Botones de volumen CENTRADOS y en línea horizontal
+    vol_button_width, vol_button_height = 80, 60
+    vol_button_spacing = 220  # Espacio entre botones de volumen
+    
     global volume_down_rect, volume_up_rect
-    volume_down_rect = draw_button(volume_down_img, pygame.Rect(150, 450, 80, 60))
-    volume_up_rect = draw_button(volume_up_img, pygame.Rect(470, 450, 80, 60))
     
-    # Botón regresar SIN TEXTO
+    # Botón volumen menos (IZQUIERDA)
+    volume_down_rect = pygame.Rect(0, 0, vol_button_width, vol_button_height)
+    volume_down_rect.center = (center_x - vol_button_spacing//2, vol_y + 100)
+    draw_button(volume_down_img, volume_down_rect)
+    
+    # Botón volumen más (DERECHA)
+    volume_up_rect = pygame.Rect(0, 0, vol_button_width, vol_button_height)
+    volume_up_rect.center = (center_x + vol_button_spacing//2, vol_y + 100)
+    draw_button(volume_up_img, volume_up_rect)
+    
+    # Botón regresar CENTRADO en la parte inferior
+    back_button_rect.center = (center_x, size[1] - 100)
     draw_button(back_button_img, back_button_rect)
 
 # -------------------- CREACIÓN DE ELEMENTOS --------------------

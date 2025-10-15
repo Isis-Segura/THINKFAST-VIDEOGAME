@@ -42,6 +42,10 @@ text_background_img = pygame.image.load("Materials/Pictures/Assets/botontitusoli
 # Escalar a un tamaño apropiado para los textos
 text_background_img = pygame.transform.scale(text_background_img, (730, 80))
 
+# Añade estas líneas donde cargas las otras imágenes:
+spanish_button_img = pygame.image.load("Materials/Pictures/Assets/btn_spanish.png").convert_alpha()
+english_button_img = pygame.image.load("Materials/Pictures/Assets/btn_inglish.png").convert_alpha()
+
 # -------------------- BOTONES --------------------
 play_button_img = pygame.image.load("Materials/Pictures/Assets/btn_play.png").convert_alpha()
 quit_button_img = pygame.image.load("Materials/Pictures/Assets/btn_quit.png").convert_alpha()
@@ -55,7 +59,7 @@ level3_button_img = pygame.image.load("Materials/Pictures/Assets/btn_principiant
 back_button_img = pygame.image.load("Materials/Pictures/Assets/btn_regresar.png").convert_alpha()
 config_button_img = pygame.image.load("Materials/Pictures/Assets/btn_confi.png").convert_alpha()
 
-# AÑADIR: Botones de volumen sin texto
+# AÑADIR: Botones de volumen
 volume_up_img = pygame.image.load("Materials/Pictures/Assets/btn_volum_mas.png").convert_alpha()
 volume_down_img = pygame.image.load("Materials/Pictures/Assets/btn_volum_menos.png").convert_alpha()
 
@@ -315,63 +319,21 @@ def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_b
         text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
         screen.blit(coming_soon_text, text_rect)
 
-def draw_character_selection(char1_button_rect, char2_button_rect, back_button_rect):
-    screen.blit(imageb, [0, 0])
-    
-    # FONDO PARA EL TEXTO "Selecciona el personaje"
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-    screen.blit(text_background_img, bg_rect)
-    
-    # Texto traducido con fuente MÁS PEQUEÑA para que quepa en el botón
-    select_surface = render_text_with_outline(texts[language]["select_character"], font_medium, brown, white)
-    select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-    screen.blit(select_surface, select_text_rect)
-    
-    # BOTONES SIN TEXTO - solo imágenes de niño y niña
-    draw_button(char1_button_img, char1_button_rect)
-    draw_button(char2_button_img, char2_button_rect)
-    draw_button(back_button_img, back_button_rect)  
-
-def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect):
-    global show_coming_soon
-    
-    screen.blit(imageb, [0, 0])
-    
-    # FONDO PARA EL TEXTO "Selecciona el nivel"
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-    screen.blit(text_background_img, bg_rect)
-    
-    # Texto traducido con fuente MÁS PEQUEÑA para que quepa en el botón
-    level_surface = render_text_with_outline(texts[language]["select_level"], font_medium, brown, white)
-    level_text_rect = level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
-    screen.blit(level_surface, level_text_rect)
-    
-    # BOTONES CON TEXTO CENTRADO (amarillo con borde blanco)
-    draw_button_with_text(level1_button_img, level1_button_rect, f"{texts[language]['level']} 1", font_small, brown, white)
-    draw_button_with_text(level2_button_img, level2_button_rect, f"{texts[language]['level']} 2", font_small, brown, white)
-    draw_button_with_text(level3_button_img, level3_button_rect, f"{texts[language]['level']} 3", font_small, brown, white)
-    draw_button(back_button_img, back_button_rect)  
-    
-    if show_coming_soon:
-        coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
-        text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
-        screen.blit(coming_soon_text, text_rect)
-
 def draw_config_menu(back_button_rect):
     screen.blit(config_background, [0, 0])
     
     # FONDO PARA EL TEXTO "Menú de Configuración" - CENTRADO EN LA PARTE SUPERIOR
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, 120))  # Bajado de 100 a 120
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, 120))
     screen.blit(text_background_img, bg_rect)
     
     # Título traducido centrado
     title_surface = render_text_with_outline(texts[language]["title_config"], font_medium, brown, white)
-    screen.blit(title_surface, title_surface.get_rect(center=(size[0] // 2, 120)))  # Bajado de 100 a 120
+    screen.blit(title_surface, title_surface.get_rect(center=(size[0] // 2, 120)))
     
     # CALCULAR POSICIONES CENTRADAS
     center_x = size[0] // 2
-    start_y = 220  # Bajado de 180 a 220 (40 píxeles más abajo)
-    section_spacing = 120  # Espacio entre secciones
+    start_y = 220
+    section_spacing = 120
     
     # Sección idioma - CENTRADA
     lang_y = start_y
@@ -379,29 +341,21 @@ def draw_config_menu(back_button_rect):
     lang_label_rect = lang_label.get_rect(center=(center_x, lang_y))
     screen.blit(lang_label, lang_label_rect)
     
-    # Botones de idioma CENTRADOS y en línea horizontal
-    button_width, button_height = 200, 60
-    button_spacing = 30  # Espacio entre botones
+    # Botones de banderas CENTRADOS y en línea horizontal - MÁS PEQUEÑOS
+    flag_button_width, flag_button_height = 80, 60  # Tamaño más pequeño para banderas
+    flag_spacing = 30  # Espacio entre banderas
     
     global language_es_rect, language_en_rect
     
-    # Botón Español (IZQUIERDA)
-    language_es_rect = pygame.Rect(0, 0, button_width, button_height)
-    language_es_rect.center = (center_x - button_width//2 - button_spacing, lang_y + 60)
-    draw_button_with_text(
-        play_button_img,
-        language_es_rect,
-        texts["es"]["spanish"], font_small, brown, white
-    )
+    # Botón Bandera Española (IZQUIERDA) - SIN TEXTO
+    language_es_rect = pygame.Rect(0, 0, flag_button_width, flag_button_height)
+    language_es_rect.center = (center_x - flag_button_width//2 - flag_spacing, lang_y + 70)
+    draw_button(spanish_button_img, language_es_rect)  # Solo dibuja la imagen sin texto
     
-    # Botón Inglés (DERECHA)
-    language_en_rect = pygame.Rect(0, 0, button_width, button_height)
-    language_en_rect.center = (center_x + button_width//2 + button_spacing, lang_y + 60)
-    draw_button_with_text(
-        play_button_img,  
-        language_en_rect,
-        texts["en"]["english"], font_small, brown, white
-    )
+    # Botón Bandera Inglesa (DERECHA) - SIN TEXTO
+    language_en_rect = pygame.Rect(0, 0, flag_button_width, flag_button_height)
+    language_en_rect.center = (center_x + flag_button_width//2 + flag_spacing, lang_y + 70)
+    draw_button(english_button_img, language_en_rect)  # Solo dibuja la imagen sin texto
     
     # Sección volumen - CENTRADA
     vol_y = start_y + section_spacing
@@ -423,7 +377,7 @@ def draw_config_menu(back_button_rect):
     
     # Botones de volumen CENTRADOS y en línea horizontal
     vol_button_width, vol_button_height = 80, 60
-    vol_button_spacing = 220  # Espacio entre botones de volumen
+    vol_button_spacing = 250
     
     global volume_down_rect, volume_up_rect
     
@@ -440,7 +394,6 @@ def draw_config_menu(back_button_rect):
     # Botón regresar CENTRADO en la parte inferior
     back_button_rect.center = (center_x, size[1] - 100)
     draw_button(back_button_img, back_button_rect)
-
 # -------------------- CREACIÓN DE ELEMENTOS --------------------
 # Crear todos los botones necesarios
 play_button_rect, quit_button_rect, config_button_rect = create_menu_buttons()

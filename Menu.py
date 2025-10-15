@@ -319,6 +319,48 @@ def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_b
         text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
         screen.blit(coming_soon_text, text_rect)
 
+def draw_character_selection(char1_button_rect, char2_button_rect, back_button_rect):
+    screen.blit(imageb, [0, 0])
+    
+    # FONDO PARA EL TEXTO "Selecciona el personaje"
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(text_background_img, bg_rect)
+    
+    # Texto traducido
+    select_surface = render_text_with_outline(texts[language]["select_character"], font_medium, brown, white)
+    select_text_rect = select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(select_surface, select_text_rect)
+    
+    # BOTONES SIN TEXTO - solo imágenes de niño y niña
+    draw_button(char1_button_img, char1_button_rect)
+    draw_button(char2_button_img, char2_button_rect)
+    draw_button(back_button_img, back_button_rect)
+
+def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect):
+    global show_coming_soon
+    
+    screen.blit(imageb, [0, 0])
+    
+    # FONDO PARA EL TEXTO "Selecciona el nivel"
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(text_background_img, bg_rect)
+    
+    # Texto traducido
+    level_surface = render_text_with_outline(texts[language]["select_level"], font_medium, brown, white)
+    level_text_rect = level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    screen.blit(level_surface, level_text_rect)
+    
+    # BOTONES CON TEXTO
+    draw_button_with_text(level1_button_img, level1_button_rect, f"{texts[language]['level']} 1", font_small, brown, white)
+    draw_button_with_text(level2_button_img, level2_button_rect, f"{texts[language]['level']} 2", font_small, brown, white)
+    draw_button_with_text(level3_button_img, level3_button_rect, f"{texts[language]['level']} 3", font_small, brown, white)
+    draw_button(back_button_img, back_button_rect)
+    
+    if show_coming_soon:
+        coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
+        text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
+        screen.blit(coming_soon_text, text_rect)
+
 def draw_config_menu(back_button_rect):
     screen.blit(config_background, [0, 0])
     
@@ -333,7 +375,7 @@ def draw_config_menu(back_button_rect):
     # CALCULAR POSICIONES CENTRADAS
     center_x = size[0] // 2
     start_y = 220
-    section_spacing = 120
+    section_spacing = 140  # AUMENTADO de 120 a 140 para más separación
     
     # Sección idioma - CENTRADA
     lang_y = start_y
@@ -394,6 +436,7 @@ def draw_config_menu(back_button_rect):
     # Botón regresar CENTRADO en la parte inferior
     back_button_rect.center = (center_x, size[1] - 100)
     draw_button(back_button_img, back_button_rect)
+
 # -------------------- CREACIÓN DE ELEMENTOS --------------------
 # Crear todos los botones necesarios
 play_button_rect, quit_button_rect, config_button_rect = create_menu_buttons()

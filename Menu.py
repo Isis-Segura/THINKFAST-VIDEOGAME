@@ -1,5 +1,6 @@
 import pygame, sys
 import Levels.Level1F as Level1F
+import Levels.Level2F as Level2F  # Importación del Nivel 2
 from Interacciones.Controldeobjetos.pyvidplayer import Video
 
 pygame.init()
@@ -27,7 +28,7 @@ font_medium = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 28)
 font_small = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 22)
 font_tiny = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 18)
 
-# -------------------- VIDEO DE INTRODUCCIÓN  --------------------
+# -------------------- VIDEO DE INTRODUCCIÓN --------------------
 try:
     intro_path = "Materials/videos/ramiro.mp4" 
     # -------------------------------------------------------------------------
@@ -115,7 +116,7 @@ MENU = 0
 SELECT_DIFFICULTY = 1
 SELECT_CHARACTER = 2
 SELECT_LEVEL = 3
-GAME_LEVEL_1 = 4
+GAME_LEVEL_1 = 4 # Estado genérico para cualquier nivel
 CONFIG_MENU = 5
 
 game_state = MENU
@@ -127,6 +128,7 @@ level_instance = None
 # -------- CONFIGURACIÓN GLOBAL --------
 language = "es"  # 'es' o 'en'
 volume_level = 0.7  # Volumen por defecto 70%
+pygame.mixer.music.set_volume(volume_level) # Aplicar volumen inicial
 
 texts = {
     "es": {
@@ -209,15 +211,11 @@ def render_text_with_outline(text, font, text_color, outline_color, offset=3):
 
     blit_list = []
     
-    blit_list.append((outline_surface, (-offset, 0)))
-    blit_list.append((outline_surface, (offset, 0)))
-    blit_list.append((outline_surface, (0, -offset)))
-    blit_list.append((outline_surface, (0, offset)))
-
-    blit_list.append((outline_surface, (-offset, -offset)))
-    blit_list.append((outline_surface, (offset, -offset)))
-    blit_list.append((outline_surface, (-offset, offset)))
-    blit_list.append((outline_surface, (offset, offset)))
+    # Renderizar todos los bordes
+    for dx in [-offset, 0, offset]:
+        for dy in [-offset, 0, offset]:
+            if dx != 0 or dy != 0:
+                 blit_list.append((outline_surface, (dx, dy)))
 
     blit_list.append((text_surface, (0, 0)))
 
@@ -238,7 +236,7 @@ def draw_button(image, rect):
     return rect
 
 def draw_button_with_text(image, rect, text, font, text_color=brown, outline_color=white):
-    """Dibuja un botón con imagen y texto con borde - SOLO para configuración"""
+    """Dibuja un botón con imagen y texto con borde"""
     # Escalar y dibujar la imagen del botón
     scaled_img = pygame.transform.scale(image, (rect.width, rect.height))
     screen.blit(scaled_img, rect)
@@ -532,6 +530,7 @@ while running:
                     if len(state_history) > 1:
                         state_history.pop()
                         game_state = state_history[-1]
+                        show_coming_soon = False
                 elif game_state == CONFIG_MENU and back_button_rect_config.collidepoint(event.pos):
                     if len(state_history) > 1:
                         state_history.pop()
@@ -587,8 +586,17 @@ while running:
                     if level1_button_rect.collidepoint(event.pos):
                         game_state = GAME_LEVEL_1
                         level_instance = Level1F.Level1(screen, size, font_small, selected_character)
-                    elif level2_button_rect.collidepoint(event.pos) or level3_button_rect.collidepoint(event.pos):
-                        # Lógica de "Próximamente" para niveles no implementados
+                        show_coming_soon = False
+                    
+                    # --- NUEVA LÓGICA: INICIAR NIVEL 2 ---
+                    elif level2_button_rect.collidepoint(event.pos):
+                        game_state = GAME_LEVEL_1
+                        level_instance = Level2F.Level2(screen, size, font_small, selected_character)
+                        show_coming_soon = False
+                    # --------------------------------------
+                        
+                    elif level3_button_rect.collidepoint(event.pos):
+                        # Lógica de "Próximamente" para el Nivel 3
                         if not show_coming_soon:
                             show_coming_soon = True
                             coming_soon_timer = pygame.time.get_ticks()
@@ -631,4 +639,4 @@ while running:
     clock.tick(60)
 
 pygame.quit()
-sys.exit()
+sys.exit() 

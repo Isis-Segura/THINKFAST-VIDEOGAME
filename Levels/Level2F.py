@@ -5,7 +5,7 @@ import os
 # Importa las clases de los personajes y controladores del juego
 from Personajes.boy import Characterb
 from Personajes.girl import Characterg
-from Personajes.Guardian import Characternpcg 
+from Personajes.Prefect import Characternpcp 
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
 # from Interacciones.FloorQuiz import FloorQuiz # Clase ya no usada para la nueva mecánica
@@ -111,7 +111,7 @@ class Level2:
         else:
             self.player = Characterg(440, 600, 2)
 
-        self.Guardia = Characternpcg(470, 330, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
+        self.Guardia = Characternpcp(470, 330, 'Materials/Pictures/Characters/NPCs/Prefecta/Prefect.png')
 
         # Define área de colisión del guardia
         guardia_width = self.Guardia.rect.width

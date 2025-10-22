@@ -1,9 +1,6 @@
 import pygame
 import random
 import os
-
-# Importa las clases de los personajes y controladores del juego
-# Asegúrate de que las rutas a estas clases sean correctas en tu proyecto
 from Personajes.boy import Characterb
 from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpcg

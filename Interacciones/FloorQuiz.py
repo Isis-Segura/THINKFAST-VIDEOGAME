@@ -1,6 +1,14 @@
 import pygame 
 import random 
 
+# Definiciones de colores para usar en el dibujo
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 200, 0)
+RED = (200, 0, 0)
+YELLOW = (255, 255, 0)
+BLUE = (0, 100, 255) # Azul Neón
+
 class FloorQuiz: 
     """ 
     Gestiona la lógica y el dibujo del minijuego de preguntas en el suelo. 
@@ -71,9 +79,9 @@ class FloorQuiz:
         self.QUESTION_BOX_BORDER = (255, 200, 0)  
         
         # Color del texto por defecto para las opciones (negro)
-        self.option_text_color_default = (0, 0, 0) 
+        self.option_text_color_default = BLACK 
         
-        self.selected_color = (255, 255, 255) # Color del borde cuando está seleccionado
+        self.selected_color = WHITE # Color del borde cuando está seleccionado
         self.correct_color_highlight = (0, 255, 0) # Verde brillante para la correcta
         
         # COLOR ROJO NEÓN PARA LA RESPUESTA INCORRECTA SELECCIONADA
@@ -115,8 +123,24 @@ class FloorQuiz:
             q["choices"] = new_choices 
             q["correct_answer"] = new_correct_index 
             
-    def _create_choice_rects_from_positions(self): 
-        pass 
+    # ----------------------------------------------------------------------
+    # MÉTODO RENOMBRADO Y CORREGIDO: next_question()
+    # ----------------------------------------------------------------------
+    def next_question(self): 
+        """
+        Avanza al siguiente estado del quiz o lo finaliza. 
+        Este método es llamado por Level1F.py después de un avance exitoso.
+        """
+        self.current_question_index += 1 
+        
+        if self.current_question_index >= len(self.questions): 
+            self.finished = True 
+            return "finished" 
+        else: 
+            self.is_answered = False 
+            self.selected_choice_index = -1 
+            self.answer_result = None 
+            return "advanced" 
         
     def check_player_collision(self, player_rect): 
         """ 
@@ -134,16 +158,19 @@ class FloorQuiz:
 
         self.selected_choice_index = -1 
 
+    # ----------------------------------------------------------------------
+    # MÉTODO CORREGIDO: handle_event() (Solo procesa la respuesta, NO avanza)
+    # ----------------------------------------------------------------------
     def handle_event(self, event): 
-        """Maneja los eventos (solo la tecla ESPACIO/ENTER para responder o avanzar).""" 
-        if self.finished: 
+        """
+        Maneja el evento de contestar (tecla ESPACIO/ENTER). 
+        Solo devuelve el resultado ('correct'/'incorrect'), NO llama a next_question().
+        """
+        if self.finished or self.is_answered: 
             return None 
             
         if event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_RETURN): 
-            if self.is_answered: 
-                # SEGUNDA PULSACIÓN: Avanza
-                return self.advance_question() 
-            elif self.selected_choice_index != -1: 
+            if self.selected_choice_index != -1: 
                 # PRIMERA PULSACIÓN: Contesta
                 return self.submit_answer() 
         return None 
@@ -161,19 +188,6 @@ class FloorQuiz:
         else: 
             self.answer_result = "incorrect" 
             return "incorrect" 
-
-    def advance_question(self): 
-        """Avanza al siguiente estado del quiz o lo finaliza.""" 
-        self.current_question_index += 1 
-        
-        if self.current_question_index >= len(self.questions): 
-            self.finished = True 
-            return "finished" 
-        else: 
-            self.is_answered = False 
-            self.selected_choice_index = -1 
-            self.answer_result = None 
-            return "advanced" 
 
     def draw(self, screen): 
         """Dibuja la pregunta, las opciones y el estado del quiz.""" 
@@ -193,9 +207,9 @@ class FloorQuiz:
         
         # Dibujar pregunta: Centrado (Texto blanco) 
         try: 
-            text_surface = self.font.render(question_text, True, (255, 255, 255)) 
+            text_surface = self.font.render(question_text, True, WHITE) 
         except: 
-            text_surface = self.font.render("Error de Texto", True, (255, 0, 0)) 
+            text_surface = self.font.render("Error de Texto", True, RED) 
 
         text_rect = text_surface.get_rect(center=question_box_rect.center) 
         screen.blit(text_surface, text_rect.topleft) 
@@ -213,28 +227,27 @@ class FloorQuiz:
             is_currently_selected = (i == self.selected_choice_index) 
             
             if self.is_answered: 
-                # Estado post-respuesta: Solo la opción incorrecta seleccionada es ROJO NEÓN.
-
+                # Estado post-respuesta
                 if i == self.selected_choice_index and i != correct_index: 
-                    #  ¡RESPUESTA INCORRECTA SELECCIONADA! -> ROJO NEÓN BRILLANTE
+                    # ¡RESPUESTA INCORRECTA SELECCIONADA! -> ROJO NEÓN BRILLANTE
                     draw_color = self.NEON_RED_ERROR  
                     border_color = self.NEON_RED_ERROR 
                     border_thickness = 5 
-                    text_color = (255, 255, 255) 
+                    text_color = WHITE 
 
                 elif i == correct_index:
                     # Respuesta CORRECTA -> VERDE
                     draw_color = (0, 150, 0) 
                     border_color = self.correct_color_highlight 
                     border_thickness = 3 
-                    text_color = (255, 255, 255) 
+                    text_color = WHITE 
 
                 else:
-                    # OTRAS OPCIONES INCORRECTAS (no seleccionadas) -> ROJO OSCURO
-                    draw_color = self.DIM_COLOR # <-- APLICACIÓN DEL ROJO OSCURO
+                    # OTRAS OPCIONES INCORRECTAS (no seleccionadas) -> ROJO OSCURO ATENUADO
+                    draw_color = self.DIM_COLOR 
                     border_color = self.DIM_COLOR 
                     border_thickness = 0
-                    text_color = (255, 255, 255) # Texto blanco sobre fondo rojo oscuro
+                    text_color = WHITE 
                     
                 # Dibujar el cuadro con el color final
                 pygame.draw.rect(screen, draw_color, rect, border_radius=self.PIXEL_RADIUS) 

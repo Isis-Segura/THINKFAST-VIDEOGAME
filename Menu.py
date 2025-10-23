@@ -199,7 +199,7 @@ def create_level_buttons():
     level1_button_rect = pygame.Rect(0, 0, 250, 80); level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 -20)
     level2_button_rect = pygame.Rect(0, 0, 250, 80); level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 80)
     level3_button_rect = pygame.Rect(0, 0, 250, 80); level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 180)
-    back_button_rect = pygame.Rect(0, 0, 200, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    back_button_rect = pygame.Rect(0, 0, 200, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 80)
     return level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect
 
 def create_config_buttons():

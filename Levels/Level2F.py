@@ -557,6 +557,29 @@ class Level2:
                     text_rect = text_surface.get_rect(center=rect.center)
                     self.screen.blit(text_surface, text_rect)
 
+            # --- DIBUJO DEL CUADRO DE PREGUNTA ---
+            if self.state in ["quiz_pickup", "quiz_delivery"]:
+                q_index = len(self.answer_results)
+                if q_index < len(self.questions):
+                    current_q = self.questions[q_index]
+                    question_text = current_q["question"]
+                    
+                    # Define la caja de la pregunta (puedes ajustar las coordenadas)
+                    q_box_rect = pygame.Rect(100, 100, 700, 80)
+                    pygame.draw.rect(self.screen, BLACK, q_box_rect, border_radius=10)
+                    pygame.draw.rect(self.screen, BLUE, q_box_rect, 5, border_radius=10)
+
+                    # Dibuja el texto de la pregunta (centrado y ajustado al tamaño de la fuente)
+                    self._draw_text_with_border(
+                        self.screen, 
+                        question_text, 
+                        self.font_question, # Utiliza la fuente para preguntas
+                        WHITE, 
+                        BLACK, 
+                        q_box_rect.center, 
+                        border_size=2
+                    )
+
             # --- DIBUJO DEL OBJETO EN MANO ---
             if self.state == "quiz_delivery" and self.answer_item:
                 # Dibuja el objeto cerca del jugador
@@ -567,7 +590,7 @@ class Level2:
                 self.screen.blit(item_text, (item_rect.x + 15, item_rect.y - 5))
 
             # --- DIBUJO DE RESULTADOS DE LAS PREGUNTAS ---
-            # Dibuja iconos de 👍 o 👎
+            
             result_y = 50
             for i, result in enumerate(self.answer_results):
                 icon = "👍" if result == "correct" else "👎"

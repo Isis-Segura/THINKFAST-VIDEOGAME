@@ -193,8 +193,8 @@ class Level2:
         # ------------------------------------------------------------------
         # LÓGICA DEL JUEGO
         # ------------------------------------------------------------------
-        self.timer = Timer(180)      
-        self.quiz_timer = Timer(20)  
+        self.timer = Timer(180) 	 
+        self.quiz_timer = Timer(20) 	
 
         self.answer_results = []
         self.max_questions = 4 
@@ -212,10 +212,10 @@ class Level2:
 
         # Preguntas del Nivel 2
         self.questions = [
-            { "image": "Materials/Pictures/Assets/imagen2_1.jpg", "question": "Cuantos huesos tiene el cuerpo humano adulto?", "choices": ["206", "190", "250", "300"], "correct_answer": 0 },
-            { "image": "Materials/Pictures/Assets/imagen2_2.jpg", "question": "Cual es el pais mas poblado del mundo?", "choices": ["India", "China", "Estados Unidos", "Indonesia"], "correct_answer": 0 },
-            { "image": "Materials/Pictures/Assets/imagen2_3.jpg", "question": "Que elemento quimico representa la letra K?", "choices": ["Fosforo", "Potasio", "Calcio", "Sodio"], "correct_answer": 1 },
-            { "image": "Materials/Pictures/Assets/imagen2_4.jpg", "question": "Quien pinto la Mona Lisa?", "choices": ["Michelangelo", "Raphael", "Donatello", "Leonardo da Vinci"], "correct_answer": 3 }
+            { "image": "Materials/Pictures/Assets/imagen2_1.jpg", "question": "¿Cuantos huesos tiene el cuerpo humano adulto?", "choices": ["206", "190", "250", "300"], "correct_answer": 0 },
+            { "image": "Materials/Pictures/Assets/imagen2_2.jpg", "question": "¿Cual es el pais mas poblado del mundo?", "choices": ["India", "China", "Estados Unidos", "Indonesia"], "correct_answer": 0 },
+            { "image": "Materials/Pictures/Assets/imagen2_3.jpg", "question": "¿Que elemento quimico representa la letra K?", "choices": ["Fosforo", "Potasio", "Calcio", "Sodio"], "correct_answer": 1 },
+            { "image": "Materials/Pictures/Assets/imagen2_4.jpg", "question": "¿Quien pinto la Mona Lisa?", "choices": ["Michelangelo", "Raphael", "Donatello", "Leonardo da Vinci"], "correct_answer": 3 }
         ]
 
         # Posiciones de los rectángulos en el piso (ajusta estas coordenadas a tu mapa)
@@ -390,7 +390,7 @@ class Level2:
     def update(self):
         keys = pygame.key.get_pressed()
 
-        # ... (La lógica de fade in/out y el timer general se mantiene igual)
+        # ... (La lógica de fade in/out y el timer global se mantiene igual)
         if self.is_fading:
             if self.state == "game" and self.target_state is None:
                 self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
@@ -541,39 +541,51 @@ class Level2:
             self.Guardia.draw(self.screen)
             self.player.draw(self.screen)
 
-            # --- DIBUJO DE OBJETOS DE RESPUESTA EN EL PISO ---
+            # --- DIBUJO DE OBJETOS DE RESPUESTA EN EL PISO (NUEVO ESTILO) --- (Línea 523)
             if self.state == "quiz_pickup" and self.answer_zone_rects:
-                for item in self.answer_zone_rects:
+                # Definimos una paleta de colores brillantes para las respuestas
+                answer_colors = [
+                    (0, 150, 255), # Azul
+                    (255, 50, 50), # Rojo
+                    (100, 255, 100), # Verde
+                    (255, 165, 0) # Naranja
+                ]
+                for i, item in enumerate(self.answer_zone_rects):
                     rect = item["rect"]
                     text_val = item["text"]
                     
-                    # Dibuja el rectángulo de la respuesta en el piso
-                    # CRÍTICO: DIBUJO VISIBLE
-                    pygame.draw.rect(self.screen, BLACK, rect, border_radius=5)
-                    pygame.draw.rect(self.screen, YELLOW, rect, 3, border_radius=5)
+                    color_fill = answer_colors[i % len(answer_colors)]
+                    color_border = YELLOW 
                     
-                    # Dibuja el texto de la respuesta sobre el rectángulo
-                    text_surface = self.font_question.render(text_val, True, WHITE)
+                    # Relleno y Borde con más radio para un look de botón
+                    pygame.draw.rect(self.screen, color_fill, rect, border_radius=10) # Mayor border_radius
+                    pygame.draw.rect(self.screen, color_border, rect, 4, border_radius=10)
+                    
+                    # Dibuja el texto en negro para el mejor contraste
+                    text_surface = self.font_question.render(text_val, True, BLACK)
                     text_rect = text_surface.get_rect(center=rect.center)
                     self.screen.blit(text_surface, text_rect)
 
-            # --- DIBUJO DEL CUADRO DE PREGUNTA ---
+            # --- DIBUJO DEL CUADRO DE PREGUNTA (NUEVO ESTILO) --- (Línea 539)
             if self.state in ["quiz_pickup", "quiz_delivery"]:
                 q_index = len(self.answer_results)
                 if q_index < len(self.questions):
                     current_q = self.questions[q_index]
                     question_text = current_q["question"]
                     
-                    # Define la caja de la pregunta (puedes ajustar las coordenadas)
+                    # Define la caja de la pregunta (manteniendo la posición)
                     q_box_rect = pygame.Rect(100, 100, 700, 80)
-                    pygame.draw.rect(self.screen, BLACK, q_box_rect, border_radius=10)
-                    pygame.draw.rect(self.screen, BLUE, q_box_rect, 5, border_radius=10)
+                    
+                    # Relleno con un color más llamativo (Azul brillante)
+                    pygame.draw.rect(self.screen, BLUE, q_box_rect, border_radius=15)
+                    # Borde grueso y brillante (Amarillo)
+                    pygame.draw.rect(self.screen, YELLOW, q_box_rect, 7, border_radius=15)
 
-                    # Dibuja el texto de la pregunta (centrado y ajustado al tamaño de la fuente)
+                    # Dibuja el texto de la pregunta (utiliza texto blanco con borde negro)
                     self._draw_text_with_border(
                         self.screen, 
                         question_text, 
-                        self.font_question, # Utiliza la fuente para preguntas
+                        self.font_question, 
                         WHITE, 
                         BLACK, 
                         q_box_rect.center, 

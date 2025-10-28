@@ -1,6 +1,6 @@
-# TINKFAST! 🚀
+#📚 TINKFAST! 📚
 
-## 💡 Introducción
+## Introducción
 
 **TINKFAST!** es un innovador videojuego educativo diseñado específicamente para la población infantil. Su propósito fundamental es servir como una herramienta lúdica y efectiva para **reforzar los conocimientos generales** que típicamente se adquieren en el entorno escolar.
 
@@ -10,7 +10,7 @@ Si tuviéramos que describirlo, diríamos que es un juego **fácil, divertido y 
 
 ---
 
-## 🖼️ Vistazo al Juego
+## Vistazo al Juego
 
 | Pantalla de Bienvenida | Interfaz de Nivel |
 | :---: | :---: |
@@ -18,7 +18,7 @@ Si tuviéramos que describirlo, diríamos que es un juego **fácil, divertido y 
 
 ---
 
-## 🎯 Nuestro Compromiso Social (ODS 4)
+## Nuestro Compromiso Social (ODS 4)
 
 Este proyecto fue desarrollado por un equipo de estudiantes comprometidos con la búsqueda de soluciones a problemáticas sociales. TINKFAST! está directamente alineado con la **Objetivo de Desarrollo Sostenible (ODS) número 4 de la ONU: Educación de Calidad**.
 

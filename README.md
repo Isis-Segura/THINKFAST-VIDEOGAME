@@ -13,7 +13,7 @@ Si tuviéramos que describirlo, diríamos que es un juego **fácil, divertido y 
 ## Vistazo al Juego
 
 | Pantalla de Bienvenida | Interfaz de Nivel |
-| :---: | :---: |
+
 | **| <img src="assets/menu.png" alt="Menú de inicio de TINKFAST" width="450"/> | <img src="assets/nivel_de_preguntas.png" alt="Ejemplo de preguntas y juego" width="450"/> |** | **[ESPACIO PARA IMAGEN 2: CAPTURA DE PANTALLA DE UN NIVEL/JUEGO]** |
 
 ---

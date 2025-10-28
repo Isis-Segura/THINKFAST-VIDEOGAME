@@ -14,7 +14,7 @@ Si tuviéramos que describirlo, diríamos que es un juego **fácil, divertido y 
 
 | Pantalla de Bienvenida | Interfaz de Nivel |
 | :---: | :---: |
-| **[ESPACIO PARA IMAGEN 1: PANTALLA DE INICIO/MENÚ]** | **[ESPACIO PARA IMAGEN 2: CAPTURA DE PANTALLA DE UN NIVEL/JUEGO]** |
+| **Materials/Pictures/Assets/menu.PNG** | **[ESPACIO PARA IMAGEN 2: CAPTURA DE PANTALLA DE UN NIVEL/JUEGO]** |
 
 ---
 

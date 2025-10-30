@@ -5,7 +5,7 @@ from Personajes.girl import Characterg
 from Personajes.Prefect import Characternpcp 
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.FloorQuiz import FloorQuiz 
+from Interacciones.Mecanicas.FloorQuiz import FloorQuiz 
 from Interacciones.Controldeobjetos.AnswerPickup import AnswerPickup 
 
 # Inicializa el mezclador de audio (para música y sonidos)

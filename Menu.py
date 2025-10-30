@@ -1,7 +1,7 @@
 import pygame, sys
 import Levels.Level1F as Level1F
 import Levels.Level2F as Level2F
-import Levels.Level3F as Level3F  # CORREGIDO: Importación necesaria para Nivel 3
+import Levels.Level3F as Level3F
 from Interacciones.Controldeobjetos.pyvidplayer import Video
 
 pygame.init()

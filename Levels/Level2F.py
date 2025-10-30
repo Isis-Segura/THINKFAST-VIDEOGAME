@@ -6,7 +6,7 @@ from Personajes.girl import Characterg
 from Personajes.Prefect import Characternpcp
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.Mecanicas.FloorQuiz_KeyAndCarry import FloorQuiz_KeyAndCarry # ¡IMPORTACIÓN ACTUALIZADA!
+from Interacciones.Mecanicas.FloorQuiz_KeyAndCarry import FloorQuiz_KeyAndCarry
 
 try:
     pygame.mixer.init()
@@ -189,7 +189,7 @@ class Level2:
         self.level_music_loaded = False
         try:
             self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
-            pygame.mixer.music.load('Materials/Music/Level1.wav')
+            pygame.mixer.music.load('Materials/Music/Level2.wav')
             self.level_music_loaded = True
             self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
             self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
@@ -238,6 +238,36 @@ class Level2:
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
 
+    def _process_quiz_result(self, quiz_result):
+        if quiz_result == "finished":
+            result_string = self.quiz_game.answer_result
+        else:
+            result_string = quiz_result
+        
+        self.quiz_timer.pause() 
+        
+        if len(self.answer_results) < self.max_questions:
+            if result_string == "correct":
+                if self.correct_sound:
+                    self.correct_sound.play()
+                self.answer_results.append("correct")
+            else:
+                if self.incorrect_sound:
+                    self.incorrect_sound.play()
+                self.answer_results.append("incorrect")
+
+        if self.answer_results.count("incorrect") >= 3:
+            self.state = "loss_sound_state"
+            pygame.mixer.music.stop()
+            if self.loss_sound:
+                self.loss_sound.play()
+                
+        if quiz_result in ["correct", "incorrect"]:
+            self.player.rect.x -= 20 
+        
+        return self.state
+
+
     def handle_events(self, event):
         if self.state in ["game_over", "loss_sound_state", "win_state"]:
             if event.type == pygame.KEYDOWN:
@@ -261,18 +291,22 @@ class Level2:
             return None
 
         if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_RETURN]):
+            
             if self.dialogo_active and self.typewriter:
                 if not self.typewriter.finished():
                     self.typewriter.complete_text()
-                elif self.state == "dialog":
+                    return None
+                
+                if self.state == "dialog":
                     self.timer.start()
                     self.quiz_timer = Timer(10)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False
                     self.typewriter = None
-                    self.quiz_game = FloorQuiz_KeyAndCarry(self.size, self.questions, self.font_question)
+                    self.quiz_game = FloorQuiz_KeyAndCarry(self.size, self.questions, self.font_question, self.dialog_box_img, self.dialog_box_rect, self._dialog_img_loaded)
                     return None
+                
                 elif self.state == "quiz_complete_dialog":
                     self.current_dialog_index += 1
                     if self.current_dialog_index < len(self.post_quiz_dialogs):
@@ -282,13 +316,29 @@ class Level2:
                     else:
                         self.dialogo_active = False
                         self.typewriter = None
-            
-            if self.state == "quiz_floor" and self.quiz_game:
-                if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.state != "loss_sound_state":
+                        
+            elif self.state == "game" and not self.dialogo_active and not self.guard_interacted:
+                if self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)):
+                    self.state = "dialog"
+                    self.dialogo_active = True
+                    self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
+                    return None
+
+            elif self.state == "quiz_floor" and self.quiz_game:
+                if self.quiz_game.is_answered and not self.quiz_game.finished and self.state != "loss_sound_state":
                     self.quiz_timer = Timer(10)
                     self.quiz_timer.start()
                     self.quiz_game.next_question()
                     return None
+                
+                if not self.quiz_game.is_answered:
+                    quiz_result = self.quiz_game.handle_interaction_input(self.player.rect, self.Guardia.rect)
+                    
+                    if quiz_result == "picked_up":
+                        return None
+                    elif quiz_result in ["correct", "incorrect", "finished"]:
+                        return self._process_quiz_result(quiz_result)
+        
         return None
 
     def update(self):
@@ -312,6 +362,7 @@ class Level2:
                     self.is_fading = False
                     if self.level_music_loaded and not pygame.mixer.music.get_busy():
                         pygame.mixer.music.play(-1)
+            return self.state
 
         if self.state == "controls_screen":
             return self.state
@@ -322,41 +373,11 @@ class Level2:
             
             barrier = self.guardia_collision_rect
             
-            if self.quiz_game and self.state == "quiz_floor":
-                
-                # Manejar RECOGER/ENTREGAR con tecla
-                quiz_result = self.quiz_game.handle_interaction(self.player.rect, keys, self.Guardia.rect)
-                
-                if quiz_result == "picked_up":
-                    pass # Solo se recogió, seguimos moviendo
-                elif quiz_result in ["correct", "incorrect", "finished"]:
-                    # La respuesta fue entregada
-                    result_string = quiz_result if quiz_result != "finished" else self.quiz_game.answer_result
-                    
-                    self.quiz_timer.pause() 
-                    
-                    if quiz_result != "finished" and len(self.answer_results) < self.max_questions:
-                        if result_string == "correct":
-                            if self.correct_sound:
-                                self.correct_sound.play()
-                            self.answer_results.append("correct")
-                        else:
-                            if self.incorrect_sound:
-                                self.incorrect_sound.play()
-                            self.answer_results.append("incorrect")
-
-                    if self.answer_results.count("incorrect") >= 3:
-                        self.state = "loss_sound_state"
-                        pygame.mixer.music.stop()
-                        if self.loss_sound:
-                            self.loss_sound.play()
-                            
-                    if quiz_result in ["correct", "incorrect"]:
-                        self.player.rect.x -= 20 
-                    return self.state
+            if not self.dialogo_active:
+                self.player.move(keys, self.size[0], self.size[1], barrier)
+            else:
+                self.player.move_animation_only()
             
-            self.player.move(keys, self.size[0], self.size[1], barrier)
-
             if self.quiz_game and self.quiz_game.carried_choice_index != -1:
                 self.quiz_game.update_carried_choice_position(self.player.rect.centerx, self.player.rect.top)
 
@@ -378,12 +399,7 @@ class Level2:
                 if self.win_music and not self.win_music_played:
                     self.win_music.play()
                     self.win_music_played = True
-
-            if not self.is_fading and self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
-                self.state = "dialog"
-                self.dialogo_active = True
-                self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
-
+            
         elif self.state == "quiz_floor":
             if not self.quiz_timer.paused and not getattr(self.quiz_game, "is_answered", False):
                 self.quiz_timer.update()
@@ -561,9 +577,7 @@ class Level2:
                     text_surface = self.font_question.render(drop_text, True, (255, 255, 255))
                     text_rect = text_surface.get_rect(center=(self.size[0] // 2, self.Guardia.rect.top - 20))
                     self.screen.blit(text_surface, text_rect)
-                elif self.quiz_game.highlighted_choice_index != -1:
-                    pass # El mensaje se dibuja dentro de FloorQuiz_KeyAndCarry.draw
-                elif not self.quiz_game.is_answered:
+                elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1:
                     drop_text = "MUEVETE CERCA DE UNA RESPUESTA para RECOGERLA."
                     text_surface = self.font_question.render(drop_text, True, (255, 255, 255))
                     text_rect = text_surface.get_rect(center=(self.size[0] // 2, self.size[1] - 250))

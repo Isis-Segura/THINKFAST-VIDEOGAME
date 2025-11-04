@@ -77,7 +77,7 @@ class Timer:
         self.pause_ticks = 0
 
     # ----------------------------------------------------------------------
-    # MÉTODO DRAW FINAL Y CORREGIDO
+    # MÉTODO DRAW (Dibuja el temporizador)
     # ----------------------------------------------------------------------
     def draw(self, screen, font, is_quiz_timer=False, position=(560, 10)): 
         remaining = self.update() if not self.paused else self.total_seconds - (self.pause_ticks // 1000)
@@ -163,7 +163,7 @@ class Timer:
                 tag_text_color = self.quiz_color_danger 
             elif remaining <= 5:
                 tag_text_color = self.quiz_color_low_warning
- 
+    
         font_large = pygame.font.Font(None, font.get_height() + 10) 
         font_small = pygame.font.Font(None, font.get_height() - 5) 
 

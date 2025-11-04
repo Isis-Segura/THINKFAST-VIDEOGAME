@@ -18,6 +18,7 @@ class LifeManager:
     def is_dead(self):
         return self.current_lives == 0
 
+
     def draw(self, screen, position=(50, 50)):
         for i in range(self.current_lives):
             x = position[0] + i * 70  # Separación entre corazones

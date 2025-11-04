@@ -6,7 +6,6 @@ class Characterb:
         self.speed = speed
         
         # Diccionario para guardar todas las animaciones (imágenes)
-        # Cada clave ("down", "up", etc.) guarda una lista de frames.
         self.animations = {
             "down": [
                 pygame.image.load("Materials/Pictures/Characters/boy/chico_down1.png").convert_alpha(),
@@ -50,12 +49,20 @@ class Characterb:
 
         # Variables para controlar la animación
         self.frame_timer = 0 # Temporizador para cambiar de frame
-        self.frame_speed = 0.1 # Velocidad de cambio de frame (cuánto se incrementa el temporizador cada actualización)
+        self.frame_speed = 0.1 # Velocidad de cambio de frame
         
         self.fence_offset = 80  # Desplazamiento para la cerca inferior
 
 
-    def move(self, keys, screen_width, screen_height, npc_rect=None):
+    # --- FUNCIÓN MOVE CORREGIDA ---
+    def move(self, keys, screen_width, screen_height, npc_rect=None, can_move=True):
+        
+        # ⬅ CORRECCIÓN: Si no puede moverse, salimos y evitamos toda la lógica de movimiento.
+        if not can_move:
+            # Asegura que la animación se detiene y muestra el primer frame
+            self.image = self.animations[self.direction][0]
+            return 
+        
         moving = False
         
         previous_x = self.x_float
@@ -84,7 +91,7 @@ class Characterb:
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
         
-        # Lógica de Colisión con NPC 
+        # Lógica de Colisión con NPC (si se usa 'barrier' en Level2F, usa ese rect)
         if npc_rect is not None:
             if self.rect.colliderect(npc_rect):
                 self.x_float = previous_x

@@ -52,7 +52,15 @@ class Characterg:
         self.fence_offset = 80
 
 
-    def move(self, keys, screen_width, screen_height, npc_rect=None):
+    # --- FUNCIÓN MOVE CORREGIDA ---
+    def move(self, keys, screen_width, screen_height, npc_rect=None, can_move=True):
+        
+        # ⬅ CORRECCIÓN: Si no puede moverse, salimos y evitamos toda la lógica de movimiento.
+        if not can_move:
+            # Asegura que la animación se detiene y muestra el primer frame
+            self.image = self.animations[self.direction][0]
+            return 
+            
         moving = False
         
         previous_x = self.x_float

@@ -1,6 +1,6 @@
 import pygame
 
-class Characternpcg:
+class Characternpcp:
     def __init__(self, x, y, image_path):
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, (80, 150))

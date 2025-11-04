@@ -6,7 +6,7 @@ from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpcg
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.FloorQuiz import FloorQuiz # Asumiendo que esta clase existe
+from Interacciones.Mecanicas.FloorQuiz import FloorQuiz
 
 # Inicializa el mezclador de audio (para música y sonidos)
 try:

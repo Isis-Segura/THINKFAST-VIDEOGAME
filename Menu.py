@@ -22,7 +22,7 @@ purple = (147, 112, 219)
 brown=(87, 27, 15)
 orange2=(211,134,81)
 # Tamaños
-size = (900, 800)
+size = (900, 700)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Think Fast!")
 
@@ -95,6 +95,9 @@ config_button_click_img = pygame.image.load("Materials/Pictures/Assets/btn_confi
 # --- NUEVOS BOTONES DE 3 ESTADOS ---
 
 # Botones de Dificultad/Nivel (btn_normal)
+avanzado_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_avanzado1.png").convert_alpha()
+avanzado_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_avanzado3.png").convert_alpha()
+avanzado_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_avanzado2.png").convert_alpha()
 normal_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_normal1.png").convert_alpha()
 normal_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_normal3.png").convert_alpha()
 normal_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_normal2.png").convert_alpha()
@@ -214,7 +217,7 @@ def draw_button_with_text_3_state(rect, text, font, mouse_pos, current_pressed_s
     """Dibuja un botón con texto, 3 estados de imagen, desplazamiento y ajuste de posición del texto."""
     
    
-    text_adjust_x = +4 
+    text_adjust_x = -40
     text_adjust_y = -5  
     if current_pressed_state == button_id:
         image = img_2 
@@ -284,7 +287,7 @@ def create_menu_buttons():
 
 def create_difficulty_buttons():
     # Usando el tamaño de los botones btn_normal
-    btn_w, btn_h = 200, 80 
+    btn_w, btn_h = 270, 80 
     beginner_button_rect = pygame.Rect(0, 0, btn_w, btn_h); beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 20)
     advanced_button_rect = pygame.Rect(0, 0, btn_w, btn_h); advanced_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 80)
     back_button_rect = pygame.Rect(0, 0, 180, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
@@ -297,10 +300,10 @@ def create_character_buttons():
     return char1_button_rect, char2_button_rect, back_button_rect
 
 def create_level_buttons():
-    btn_w, btn_h = 200, 80
-    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 -20)
-    level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 80)
-    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 180)
+    btn_w, btn_h = 270, 80
+    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 60)
+    level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 40)
+    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 140)
     back_button_rect = pygame.Rect(0, 0, 180, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect
 
@@ -357,7 +360,7 @@ def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_b
     
     # Botones con texto y 3 estados de imagen (btn_normal)
     draw_button_with_text_3_state(beginner_button_rect, texts[language]["beginner"], font_small, mouse_pos, button_pressed, "beginner", normal_button_img_1, normal_button_img_3, normal_button_img_2)
-    draw_button_with_text_3_state(advanced_button_rect, texts[language]["advanced"], font_small, mouse_pos, button_pressed, "advanced", normal_button_img_1, normal_button_img_3, normal_button_img_2)
+    draw_button_with_text_3_state(advanced_button_rect, texts[language]["advanced"], font_small, mouse_pos, button_pressed, "advanced", avanzado_button_img_1, avanzado_button_img_3, avanzado_button_img_2)
     
     # Botón Regresar (btn_back) - SIN TEXTO
     draw_3_state_button(back_button_rect_difficulty, back_button_img_1, back_button_img_3, back_button_img_2, mouse_pos, button_pressed, "back_difficulty")

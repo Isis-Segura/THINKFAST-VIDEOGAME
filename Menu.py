@@ -92,8 +92,6 @@ play_button_click_img = pygame.image.load("Materials/Pictures/Assets/btn_play2.p
 quit_button_click_img = pygame.image.load("Materials/Pictures/Assets/btn_quit2.png").convert_alpha()
 config_button_click_img = pygame.image.load("Materials/Pictures/Assets/btn_confi2.png").convert_alpha()
 
-# --- NUEVOS BOTONES DE 3 ESTADOS ---
-
 # Botones de Dificultad/Nivel (btn_normal)
 avanzado_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_avanzado1.png").convert_alpha()
 avanzado_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_avanzado3.png").convert_alpha()
@@ -101,6 +99,16 @@ avanzado_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_avanzad
 normal_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_normal1.png").convert_alpha()
 normal_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_normal3.png").convert_alpha()
 normal_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_normal2.png").convert_alpha()
+# Botones de Niveles
+level1_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_patio1.png").convert_alpha()
+level1_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_patio3.png").convert_alpha()
+level1_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_patio2.png").convert_alpha()
+level2_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_pasillo1.png").convert_alpha()
+level2_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_pasillo3.png").convert_alpha()
+level2_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_pasillo2.png").convert_alpha()
+level3_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_salon1.png").convert_alpha()
+level3_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_salon3.png").convert_alpha()
+level3_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_salon2.png").convert_alpha()
 
 # Botones de Personaje (btn_boy/btn_girl)
 boy_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_boy1.png").convert_alpha()
@@ -161,6 +169,7 @@ volume_level = 0.7
 pygame.mixer.music.set_volume(volume_level) 
 button_pressed = None # Variable para rastrear el estado Clicked
 
+# Reemplaza completamente tu diccionario 'texts' con este:
 texts = {
     "es": {
         "play": "Jugar", "quit": "Salir", "config": "Configuración",
@@ -168,7 +177,12 @@ texts = {
         "spanish": "Español", "english": "Inglés", "title_config": "Menú de Configuración",
         "select_difficulty": "Selecciona la dificultad", "beginner": "Normal", "advanced": "Avanzado",
         "select_character": "Selecciona tu personaje", "boy": "Niño", "girl": "Niña",
-        "select_level": "Selecciona el nivel", "level": "Nivel", "coming_soon": "¡Proximamente!"
+        
+        "select_level": "Selecciona el desafío", 
+        "level1_name": "Entrada",  
+        "level2_name": "Pasillo",  
+        "level3_name": "Salón",  
+        "coming_soon": "¡Proximamente!"
     },
     "en": {
         "play": "Play", "quit": "Quit", "config": "Settings",
@@ -176,7 +190,12 @@ texts = {
         "spanish": "Spanish", "english": "English", "title_config": "Settings Menu",
         "select_difficulty": "Select difficulty", "beginner": "Beginner", "advanced": "Advanced",
         "select_character": "Select your character", "boy": "Boy", "girl": "Girl",
-        "select_level": "Select level", "level": "Level", "coming_soon": "Coming soon!"
+        
+        "select_level": "Select the challenge", 
+        "level1_name": "Learn to Add", 
+        "level2_name": "Multiply Fast", 
+        "level3_name": "Equations", 
+        "coming_soon": "Coming soon!"
     }
 }
 
@@ -213,12 +232,11 @@ def draw_3_state_button(rect, img_1, img_3, img_2, mouse_pos, current_pressed_st
         image = img_1
     return draw_button(image, rect)
 
-def draw_button_with_text_3_state(rect, text, font, mouse_pos, current_pressed_state, button_id, img_1, img_3, img_2, text_color=white, outline_color=brown):
+
+def draw_button_with_text_3_state(rect, text, font, mouse_pos, current_pressed_state, button_id, img_1, img_3, img_2, text_color=white, outline_color=brown, text_adjust_x=-40, text_adjust_y=-5):
     """Dibuja un botón con texto, 3 estados de imagen, desplazamiento y ajuste de posición del texto."""
     
-   
-    text_adjust_x = -40
-    text_adjust_y = -5  
+    # text_adjust_x y text_adjust_y ahora son parámetros de la función
     if current_pressed_state == button_id:
         image = img_2 
         text_offset_y = 5 
@@ -239,8 +257,8 @@ def draw_button_with_text_3_state(rect, text, font, mouse_pos, current_pressed_s
         # Aplicamos el desplazamiento y los ajustes de alineación
         text_rect = text_surface.get_rect(
             center=(
-                rect.center[0] + text_adjust_x,             # Centro X del botón + ajuste constante
-                rect.center[1] + text_adjust_y + text_offset_y  # Centro Y del botón + ajuste constante + hundimiento
+                rect.center[0] + text_adjust_x,             # Centro X del botón + ajuste constante (PARÁMETRO)
+                rect.center[1] + text_adjust_y + text_offset_y  # Centro Y del botón + ajuste constante (PARÁMETRO) + hundimiento
             )
         )
         
@@ -278,37 +296,37 @@ def draw_volume_slider(x, y, width, height, volume, thumb_img_1, thumb_img_3, th
     # Devolvemos el rect del área de arrastre (la barra)
     return pygame.Rect(x, y, width, height)
 
-# -------------------- CREACIÓN DE RECTÁNGULOS --------------------
+
 def create_menu_buttons():
-    play_button_rect = pygame.Rect(0, 0, 200, 80); play_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 50)
-    quit_button_rect = pygame.Rect(0, 0, 200, 80); quit_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 50)
-    config_button_rect = pygame.Rect(0, 0, 200, 80); config_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 150)
+    play_button_rect = pygame.Rect(0, 0, 190, 80); play_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 50)
+    quit_button_rect = pygame.Rect(0, 0, 190, 80); quit_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 50)
+    config_button_rect = pygame.Rect(0, 0, 190, 80); config_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 150)
     return play_button_rect, quit_button_rect, config_button_rect
 
 def create_difficulty_buttons():
     # Usando el tamaño de los botones btn_normal
-    btn_w, btn_h = 270, 80 
-    beginner_button_rect = pygame.Rect(0, 0, btn_w, btn_h); beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 20)
-    advanced_button_rect = pygame.Rect(0, 0, btn_w, btn_h); advanced_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 80)
-    back_button_rect = pygame.Rect(0, 0, 180, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    btn_w, btn_h = 260, 80 
+    beginner_button_rect = pygame.Rect(0, 0, btn_w, btn_h); beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 60)
+    advanced_button_rect = pygame.Rect(0, 0, 290, btn_h); advanced_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 40)
+    back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return beginner_button_rect, advanced_button_rect, back_button_rect
 
 def create_character_buttons():
-    char1_button_rect = pygame.Rect(0, 0, 150, 330); char1_button_rect.center = (screen.get_width() // 2 - 150, screen.get_height() // 2 + 40)
-    char2_button_rect = pygame.Rect(0, 0, 150, 330); char2_button_rect.center = (screen.get_width() // 2 + 150, screen.get_height() // 2 + 40)
-    back_button_rect = pygame.Rect(0, 0, 180, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    char1_button_rect = pygame.Rect(0, 0, 150, 330); char1_button_rect.center = (screen.get_width() // 2 - 150, screen.get_height() // 2 + 20)
+    char2_button_rect = pygame.Rect(0, 0, 150, 330); char2_button_rect.center = (screen.get_width() // 2 + 150, screen.get_height() // 2 + 20)
+    back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return char1_button_rect, char2_button_rect, back_button_rect
 
 def create_level_buttons():
     btn_w, btn_h = 270, 80
-    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 60)
-    level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 40)
-    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 140)
-    back_button_rect = pygame.Rect(0, 0, 180, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 100)
+    level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 )
+    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 100)
+    back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect
 
 def create_config_buttons():
-    back_button_rect = pygame.Rect(0, 0, 180, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return back_button_rect
 
 # -------------------- FUNCIONES DE DIBUJO DE PANTALLAS --------------------
@@ -353,16 +371,16 @@ def draw_difficulty_selection(beginner_button_rect, advanced_button_rect, back_b
     screen.blit(school_secondary_img, school_secondary_rect) 
     
     # Título
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 200))
     screen.blit(text_background_img, bg_rect)
     difficulty_surface = render_text_with_outline(texts[language]["select_difficulty"], font_medium, white, brown)
-    screen.blit(difficulty_surface, difficulty_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180)))
+    screen.blit(difficulty_surface, difficulty_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 200)))
     
-    # Botones con texto y 3 estados de imagen (btn_normal)
-    draw_button_with_text_3_state(beginner_button_rect, texts[language]["beginner"], font_small, mouse_pos, button_pressed, "beginner", normal_button_img_1, normal_button_img_3, normal_button_img_2)
-    draw_button_with_text_3_state(advanced_button_rect, texts[language]["advanced"], font_small, mouse_pos, button_pressed, "advanced", avanzado_button_img_1, avanzado_button_img_3, avanzado_button_img_2)
+    # AJUSTE PARA DIFICULTAD: El texto ahora estará centrado (0, 0)
+    draw_button_with_text_3_state(beginner_button_rect, texts[language]["beginner"], font_small, mouse_pos, button_pressed, "beginner", normal_button_img_1, normal_button_img_3, normal_button_img_2, text_adjust_x=-40, text_adjust_y=-4)
+    draw_button_with_text_3_state(advanced_button_rect, texts[language]["advanced"], font_small, mouse_pos, button_pressed, "advanced", avanzado_button_img_1, avanzado_button_img_3, avanzado_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
     
-    # Botón Regresar (btn_back) - SIN TEXTO
+    # Botón Regresar (btn_back)
     draw_3_state_button(back_button_rect_difficulty, back_button_img_1, back_button_img_3, back_button_img_2, mouse_pos, button_pressed, "back_difficulty")
     
     if show_coming_soon:
@@ -380,10 +398,10 @@ def draw_character_selection(char1_button_rect, char2_button_rect, back_button_r
     screen.blit(school_secondary_img, school_secondary_rect) 
     
     # Título
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 200))
     screen.blit(text_background_img, bg_rect)
     select_surface = render_text_with_outline(texts[language]["select_character"], font_medium, white, brown)
-    screen.blit(select_surface, select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180)))
+    screen.blit(select_surface, select_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 200)))
     
     # Botones Personaje (btn_boy/btn_girl) - SIN TEXTO
     draw_3_state_button(char1_button_rect, boy_button_img_1, boy_button_img_3, boy_button_img_2, mouse_pos, button_pressed, "char_boy")
@@ -402,16 +420,16 @@ def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_r
     screen.blit(school_secondary_img, school_secondary_rect) 
     
     # Título
-    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 180))
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 200))
     screen.blit(text_background_img, bg_rect)
     level_surface = render_text_with_outline(texts[language]["select_level"], font_medium, white, brown)
-    screen.blit(level_surface, level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 180)))
+    screen.blit(level_surface, level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 200)))
     
     # Botones Nivel con texto y 3 estados de imagen (btn_normal)
-    draw_button_with_text_3_state(level1_button_rect, f"{texts[language]['level']} 1", font_small, mouse_pos, button_pressed, "lvl1", normal_button_img_1, normal_button_img_3, normal_button_img_2)
-    draw_button_with_text_3_state(level2_button_rect, f"{texts[language]['level']} 2", font_small, mouse_pos, button_pressed, "lvl2", normal_button_img_1, normal_button_img_3, normal_button_img_2)
-    draw_button_with_text_3_state(level3_button_rect, f"{texts[language]['level']} 3", font_small, mouse_pos, button_pressed, "lvl3", normal_button_img_1, normal_button_img_3, normal_button_img_2)
-    
+    # AJUSTE PARA NIVELES: El texto ahora estará centrado (0, 0)
+    draw_button_with_text_3_state(level1_button_rect, texts[language]["level1_name"], font_small, mouse_pos, button_pressed, "lvl1", level1_button_img_1, level1_button_img_3, level1_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
+    draw_button_with_text_3_state(level2_button_rect, texts[language]["level2_name"], font_small, mouse_pos, button_pressed, "lvl2", level2_button_img_1, level2_button_img_3, level2_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
+    draw_button_with_text_3_state(level3_button_rect, texts[language]["level3_name"], font_small, mouse_pos, button_pressed, "lvl3", level3_button_img_1, level3_button_img_3, level3_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
     # Botón Regresar (btn_back) - SIN TEXTO
     draw_3_state_button(back_button_rect_level, back_button_img_1, back_button_img_3, back_button_img_2, mouse_pos, button_pressed, "back_level")
     

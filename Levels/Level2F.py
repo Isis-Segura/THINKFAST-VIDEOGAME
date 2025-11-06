@@ -153,13 +153,13 @@ class Level2:
             self.dialog_box_rect = pygame.Rect(50, self.size[1] - 150, 800, 100)
 
         try:
-            img = pygame.image.load('Materials/Pictures/Assets/perdiste.png').convert()
+            img = pygame.image.load('Materials/Pictures/Assets/perdiste2.png').convert()
             self.game_over_image = pygame.transform.scale(img, self.size)
         except pygame.error:
             self.game_over_image = None
 
         try:
-            img = pygame.image.load('Materials/Pictures/Assets/ganaste.png').convert()
+            img = pygame.image.load('Materials/Pictures/Assets/ganaste2.png').convert()
             self.win_image = pygame.transform.scale(img, self.size)
         except pygame.error:
             self.win_image = None

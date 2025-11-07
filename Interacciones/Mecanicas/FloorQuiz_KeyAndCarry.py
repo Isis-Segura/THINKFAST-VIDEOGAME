@@ -47,13 +47,15 @@ class FloorQuiz_KeyAndCarry:
             desired_width = 600
             desired_height = 80
             self.question_box_img = pygame.transform.scale(self.dialog_box_img_template, (desired_width, desired_height))
-            self.question_box_rect = self.question_box_img.get_rect(center=(self.size[0] // 2, 80))
+            # *** CAMBIO REALIZADO PARA BAJAR LA CAJA A Y=200 ***
+            self.question_box_rect = self.question_box_img.get_rect(center=(self.size[0] // 2, 200))
         else:
             # Cuadro de texto de fallback si no hay imagen
             self.question_box_img = pygame.Surface((600, 80), pygame.SRCALPHA)
             self.question_box_img.fill((20, 30, 80, 180)) # Color con transparencia
             pygame.draw.rect(self.question_box_img, (255, 200, 0), self.question_box_img.get_rect(), 3, border_radius=10)
-            self.question_box_rect = self.question_box_img.get_rect(center=(self.size[0] // 2, 80))
+            # *** CAMBIO REALIZADO PARA BAJAR LA CAJA A Y=200 ***
+            self.question_box_rect = self.question_box_img.get_rect(center=(self.size[0] // 2, 200))
 
     # Eliminamos _load_question_image ya que no usaremos la imagen de la pregunta
 

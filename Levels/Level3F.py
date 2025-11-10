@@ -120,23 +120,48 @@ class Level3:
         else:
             self.player = Characterg(440, 600, 2)
 
-        # Crea el guardia (NPC)
-        self.Guardia = Characternpcp(470, 330, 'Materials/Pictures/Characters/NPCs/Prefecta/Prefect.png')
+        # Crea maestro
+        self.maestro = Characternpcp(500, 250, 'Materials/Pictures/Characters/MAESTRO_NIVEL_3.png')
 
-        # Define área de colisión del guardia
-        guardia_width = self.Guardia.rect.width
-        guardia_height = self.Guardia.rect.height
-        COL_WIDTH_FACTOR = 0.5
-        COL_HEIGHT_PIXELS = 5
-        new_width = int(guardia_width * COL_WIDTH_FACTOR)
+        # CORRECCIÓN: Define área de colisión del maestro MÁS PEQUEÑA
+        maestro_width = self.maestro.rect.width
+        maestro_height = self.maestro.rect.height
+        
+        # Reducir significativamente el área de colisión (solo la parte inferior)
+        COL_WIDTH_FACTOR = 0.15-0.25 
+        COL_HEIGHT_PIXELS = 4  # Aumentado ligeramente para mejor detección
+        
+        new_width = int(maestro_width * COL_WIDTH_FACTOR)
         new_height = COL_HEIGHT_PIXELS
-        new_x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
-        new_y = self.Guardia.rect.y + guardia_height - new_height
-        self.guardia_collision_rect = pygame.Rect(new_x, new_y, new_width, new_height)
+        new_x = self.maestro.rect.x + int((maestro_width - new_width) / 2)
+        new_y = self.maestro.rect.y + maestro_height - new_height
+        
+        self.maestro_collision_rect = pygame.Rect(new_x, new_y, new_width, new_height)
+        self.maestro_drop_zone = self.maestro_collision_rect.inflate(30, 30)  # Aumentado para mejor entrega
+
+        # NUEVO: Definir colisiones del entorno (obstáculos)
+        self.obstacles = [
+            # Bordes de la pantalla
+            pygame.Rect(0, 0, self.size[0], 10),  # Borde superior
+            pygame.Rect(0, 0, 10, self.size[1]),  # Borde izquierdo
+            pygame.Rect(self.size[0]-10, 0, 10, self.size[1]),  # Borde derecho
+            pygame.Rect(0, self.size[1]-10, self.size[0], 10),  # Borde inferior 
+            
+            # Obstáculos específicos del nivel 3
+            pygame.Rect(200, 150, 100, 20),   # Mesa superior izquierda
+            pygame.Rect(600, 150, 100, 20),   # Mesa superior derecha
+            pygame.Rect(300, 400, 150, 20),   # Mesa central
+            pygame.Rect(200, 550, 100, 20),   # Mesa inferior izquierda
+            pygame.Rect(600, 550, 100, 20),   # Mesa inferior derecha
+            
+            # Paredes o columnas
+            pygame.Rect(0, 200, 50, 100),     # Columna izquierda
+            pygame.Rect(self.size[0]-50, 200, 50, 100),  # Columna derecha
+        ]
 
         # Fondos
         try:
-            self.background_image_game = pygame.image.load('Materials/Pictures/Assets/fondon3.png').convert() 
+            self.background_image_game = pygame.image.load('Materials/Pictures/Assets/fondon3-Isis_Segura.png').convert() 
             self.background_image_game = pygame.transform.scale(self.background_image_game, self.size)
         except pygame.error:
             self.background_image_game = pygame.Surface(self.size)
@@ -144,7 +169,7 @@ class Level3:
         self.background_image = self.background_image_game
 
         try:
-            self.background_image_open = pygame.image.load('Materials/Pictures/Assets/fondon2.jpg').convert() 
+            self.background_image_open = pygame.image.load('Materials/Pictures/Assets/fondon3-Isis_Segura.png').convert() 
             self.background_image_open = pygame.transform.scale(self.background_image_open, self.size)
         except pygame.error:
             self.background_image_open = self.background_image_game
@@ -360,6 +385,14 @@ class Level3:
             if self.quiz_game and hasattr(self.quiz_game, 'finished'):
                 self.quiz_game.finished = True
     
+    # NUEVA FUNCIÓN: Manejo de colisiones con obstáculos
+    def _check_collision_with_obstacles(self, new_rect):
+        """Verifica si un rectángulo colisiona con algún obstáculo"""
+        for obstacle in self.obstacles:
+            if new_rect.colliderect(obstacle):
+                return True
+        return False
+    
     # MANEJO DE EVENTOS
     def handle_events(self, event):
         # Reinicio o salida desde pantalla final
@@ -434,8 +467,8 @@ class Level3:
                             return None
                         
                 elif self.held_answer:
-                    # 2. Intentar ENTREGAR al guardia
-                    if self.player.rect.colliderect(self.guardia_collision_rect.inflate(20, 20)):
+                    # 2. Intentar ENTREGAR al maestro (CORRECCIÓN: usar maestro_collision_rect)
+                    if self.player.rect.colliderect(self.maestro_collision_rect.inflate(20, 20)):
                         self._submit_answer(self.held_answer)
                         return None
                             
@@ -483,10 +516,11 @@ class Level3:
                 self.held_answer.update_position(self.player.rect)
                 barrier = None # Sin barrera si el jugador tiene la respuesta
             else:
-                # Barrera del guardia activa hasta que se resuelva el quiz
-                barrier = self.guardia_collision_rect if not self.guard_interacted else None
+                # Barrera del maestro activa hasta que se resuelva el quiz
+                barrier = self.maestro_collision_rect if not self.guard_interacted else None
             
-            self.player.move(keys, self.size[0], self.size[1], barrier)
+            # CORRECCIÓN: Pasar los obstáculos al método move del jugador
+            self.player.move(keys, self.size[0], self.size[1], barrier, self.obstacles)
 
             # Condición de tiempo general agotado
             if self.timer.finished and self.state not in ["loss_sound_state", "game_over", "win_state"]:
@@ -495,9 +529,9 @@ class Level3:
                 if self.loss_sound: self.loss_sound.play()
                 return self.state
 
-        # Interacción con el guardia
+        # Interacción con el maestro
         if self.state == "game":
-            # Condición de victoria (alcanza la zona de la puerta tras interactuar con el guardia)
+            # Condición de victoria (alcanza la zona de la puerta tras interactuar con el maestro)
             if self.guard_interacted and self.player.rect.colliderect(self.win_zone):
                 pygame.mixer.music.stop()
                 self.state = "win_state"
@@ -507,7 +541,7 @@ class Level3:
                     self.win_music_played = True
 
             # Iniciar el diálogo/quiz
-            if not self.is_fading and self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
+            if not self.is_fading and self.player.rect.colliderect(self.maestro_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
                 self.state = "dialog"
                 self.dialogo_active = True
                 self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
@@ -585,12 +619,12 @@ class Level3:
         # Diálogo final tras el quiz
         elif self.state == "quiz_complete_dialog":
             if not self.dialogo_active and self.current_dialog_index >= len(self.post_quiz_dialogs):
-                # Mueve al guardia para liberar el paso
-                self.Guardia.rect.x -= 130
-                guardia_width = self.Guardia.rect.width
-                new_width = self.guardia_collision_rect.width
-                self.guardia_collision_rect.x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
-                self.Guardia.rect.y = 330
+                # Mueve al maestro para liberar el paso
+                self.maestro.rect.x -= 130
+                maestro_width = self.maestro.rect.width
+                new_width = self.maestro_collision_rect.width
+                self.maestro_collision_rect.x = self.maestro.rect.x + int((maestro_width - new_width) / 2)
+                self.maestro.rect.y = 330
                 self.player.rect.x = 450
                 self.player.rect.y = 570
                 self.guard_interacted = True
@@ -667,21 +701,27 @@ class Level3:
         # Dibujo principal del juego
         if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor", "loss_sound_state"]:
             self.screen.blit(self.background_image, (0, 0))
-            self.Guardia.draw(self.screen)
+            self.maestro.draw(self.screen)
+            
+            # DEBUG: Dibujar área de colisión del maestro (opcional - quitar en versión final)
+            # pygame.draw.rect(self.screen, (255, 0, 0), self.maestro_collision_rect, 2)
+            
+            # DEBUG: Dibujar obstáculos (opcional - quitar en versión final)
+            # for obstacle in self.obstacles:
+            #     pygame.draw.rect(self.screen, (0, 255, 0), obstacle, 1)
+            
+            self.player.draw(self.screen)
             
             # DIBUJAR RESPUESTAS EN EL PISO
             for answer in self.answer_pickups:
                 if answer.visible and not answer.is_held:
                     answer.draw(self.screen)
             
-            self.player.draw(self.screen)
-            
             # DIBUJAR RESPUESTA SOSTENIDA (encima del jugador)
             if self.held_answer:
                 self.held_answer.draw(self.screen)
             
             # DIBUJAR TEMPORIZADOR GENERAL Y MARCADOR DE RESULTADOS
-            # El dibujo del temporizador general debe ir aquí
             if self.timer.is_running() or self.timer.paused:
                 self.timer.draw(self.screen, self.font_timer) 
                 
@@ -707,11 +747,8 @@ class Level3:
                 self.quiz_game.draw(self.screen)
                 
                 # Dibujar temporizador del QUIZ (en la posición de la pregunta)
-                # NOTA: El temporizador del quiz se dibujará si no está pausado
                 if self.quiz_timer.is_running() or self.quiz_timer.paused:
-                    # Lo dibujo centrado encima de la pregunta
                     self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(self.size[0] // 2 - 80, 150))
-
 
             # DIBUJAR DIÁLOGO (si está activo)
             if self.dialogo_active and self.typewriter:

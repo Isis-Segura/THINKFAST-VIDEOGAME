@@ -10,9 +10,9 @@
 
 ---
 
-## 🎨 **Vistazo al Juego**
+## **Vistazo al Juego**
 
-### 🖼️ **Pantalla de Inicio**
+### **Pantalla de Inicio**
 
 [<img width="1346" height="1122" alt="Image" src="https://github.com/user-attachments/assets/6358fb9b-2e66-42cd-95bc-089057db928e" />]
 
@@ -26,7 +26,7 @@
 
 ---
 
-## 💡 **¿Qué es TINKFAST?**
+## **¿Qué es TINKFAST?**
 
 **TINKFAST!** es un videojuego educativo diseñado especialmente para niñas y niños en etapa escolar. Su objetivo es reforzar conocimientos básicos de una forma divertida, accesible y motivadora.
 
@@ -40,7 +40,7 @@ Este proyecto se alinea con el **Objetivo de Desarrollo Sostenible #4: Educació
 
 ---
 
-# 🎒 **La Aventura del Conocimiento**
+#  **La Aventura del Conocimiento**
 
 Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
@@ -94,7 +94,7 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 ## ⚙️ **Herramientas y Requisitos**
 
-🔧 **Desarrollado con:**
+ **Desarrollado con:**
 
 * Python
 * Pygame
@@ -129,7 +129,7 @@ python menu.py
 
 ---
 
-## 🖋️ **Equipo de Creadores**
+## **Equipo de Creadores**
 
 | Nombre             | GitHub       |
 | ------------------ | ------------ |

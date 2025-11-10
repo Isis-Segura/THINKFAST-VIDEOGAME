@@ -22,7 +22,7 @@ purple = (147, 112, 219)
 brown=(87, 27, 15)
 orange2=(211,134,81)
 # Tamaños
-size = (900, 800)
+size = (900, 700)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Think Fast!")
 
@@ -36,7 +36,7 @@ try:
 except pygame.error:
     print("Advertencia: No se encontraron fuentes personalizadas. Usando fuente por defecto.")
     font_medium = pygame.font.Font(None, 40)
-    font_small = pygame.font.Font(None, 30)
+    font_small = pygame.font.Font(None, 30)  
 
 # -------------------- EJECUCIÓN DEL VIDEO DE INTRODUCCIÓN --------------------
 run_intro_video(screen, size)

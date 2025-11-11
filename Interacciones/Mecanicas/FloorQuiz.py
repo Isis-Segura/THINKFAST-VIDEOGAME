@@ -13,7 +13,8 @@ class FloorQuiz:
     """ 
     Gestiona la lógica y el dibujo del minijuego de preguntas en el suelo. 
     """ 
-    def __init__(self, size, questions, font): 
+    
+    def __init__(self, size, questions, font, question_text_color=WHITE, question_border_color=BLACK): 
         self.size = size 
         self.questions = questions 
         self.font = font 
@@ -78,6 +79,11 @@ class FloorQuiz:
         self.QUESTION_BOX_BACKGROUND = (20, 30, 80)  
         self.QUESTION_BOX_BORDER = (255, 200, 0)  
         
+        # ATRIBUTOS nuevos para el texto de la pregunta
+        self.question_text_color = question_text_color 
+        self.question_border_color = question_border_color 
+        self.question_border_size = 1 # Tamaño fijo del borde para la pregunta
+        
         # Color del texto por defecto para las opciones (negro)
         self.option_text_color_default = BLACK 
         
@@ -92,6 +98,22 @@ class FloorQuiz:
         
         self.ALPHA_SELECTED = 150 
 
+    # --- FUNCIÓN AUXILIAR PARA DIBUJAR TEXTO CON BORDE (centrado) ---
+    def _draw_text_with_border(self, surface, text, font, text_color, border_color, center_pos, border_size=2):
+        text_surface = font.render(text, True, text_color)
+        text_rect = text_surface.get_rect(center=center_pos)
+        
+        if border_color:
+            for dx in range(-border_size, border_size + 1):
+                for dy in range(-border_size, border_size + 1):
+                    if dx != 0 or dy != 0:
+                        border_surface = font.render(text, True, border_color)
+                        # Cálculo de posición para centrar el texto con borde
+                        surface.blit(border_surface, (center_pos[0] + dx - text_rect.width // 2, center_pos[1] + dy - text_rect.height // 2))
+        
+        surface.blit(text_surface, text_rect)
+    # ----------------------------------------------------------------------
+    
     def _shuffle_questions_choices(self): 
         """ 
         Mezcla las opciones (choices) de cada pregunta y actualiza el  
@@ -124,7 +146,7 @@ class FloorQuiz:
             q["correct_answer"] = new_correct_index 
             
     # ----------------------------------------------------------------------
-    # MÉTODO RENOMBRADO Y CORREGIDO: next_question()
+    # MÉTODO next_question()
     # ----------------------------------------------------------------------
     def next_question(self): 
         """
@@ -159,7 +181,7 @@ class FloorQuiz:
         self.selected_choice_index = -1 
 
     # ----------------------------------------------------------------------
-    # MÉTODO CORREGIDO: handle_event() (Solo procesa la respuesta, NO avanza)
+    # MÉTODO handle_event()
     # ----------------------------------------------------------------------
     def handle_event(self, event): 
         """
@@ -205,14 +227,16 @@ class FloorQuiz:
         pygame.draw.rect(screen, self.QUESTION_BOX_BACKGROUND, question_box_rect, border_radius=self.QUESTION_BOX_RADIUS) 
         pygame.draw.rect(screen, self.QUESTION_BOX_BORDER, question_box_rect, 5, border_radius=self.QUESTION_BOX_RADIUS)  
         
-        # Dibujar pregunta: Centrado (Texto blanco) 
-        try: 
-            text_surface = self.font.render(question_text, True, WHITE) 
-        except: 
-            text_surface = self.font.render("Error de Texto", True, RED) 
-
-        text_rect = text_surface.get_rect(center=question_box_rect.center) 
-        screen.blit(text_surface, text_rect.topleft) 
+        # Dibujar pregunta: Centrado (Texto con Borde)
+        self._draw_text_with_border(
+            screen, 
+            question_text, 
+            self.font, 
+            self.question_text_color, 
+            self.question_border_color, 
+            question_box_rect.center, 
+            self.question_border_size
+        )
         
         # --- 2. Dibujo de las opciones (Rectángulos Neón en 2x2) --- 
         for i, choice in enumerate(choices): 
@@ -287,14 +311,13 @@ class FloorQuiz:
             else: 
                 correct_choice = choices[correct_index].replace('\n', ' ') 
                 msg = f"¡Mal! La correcta era: {correct_choice} (ESPACIO para avanzar)" 
-                color = self.NEON_RED_ERROR 
-            
-            msg_surface = self.font.render(msg, True, color) 
-            msg_rect = msg_surface.get_rect(bottomright=(question_box_rect.right - 10, question_box_rect.bottom - 10)) 
-            screen.blit(msg_surface, msg_rect) 
+                color = self.NEON_RED_ERROR
+            center_x = question_box_rect.right - 10 - self.font.size(msg)[0] // 2 
+            center_y = question_box_rect.bottom - 10 - self.font.size(msg)[1] // 2 
+            self._draw_text_with_border(screen, msg, self.font, color, BLACK, (center_x, center_y), border_size=1)
             
         elif self.selected_choice_index != -1: 
             msg = "Presiona ESPACIO para contestar." 
-            msg_surface = self.font.render(msg, True, self.selected_color) 
-            msg_rect = msg_surface.get_rect(bottomright=(question_box_rect.right - 10, question_box_rect.bottom - 10)) 
-            screen.blit(msg_surface, msg_rect)
+            center_x = question_box_rect.right - 10 - self.font.size(msg)[0] // 2 
+            center_y = question_box_rect.bottom - 10 - self.font.size(msg)[1] // 2 
+            self._draw_text_with_border(screen, msg, self.font, self.selected_color, BLACK, (center_x, center_y), border_size=1)

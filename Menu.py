@@ -317,13 +317,32 @@ def create_character_buttons():
     back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return char1_button_rect, char2_button_rect, back_button_rect
 
+# *** FUNCIÓN MODIFICADA PARA EVITAR SUPERPOSICIÓN DE BOTONES ***
 def create_level_buttons():
     btn_w, btn_h = 270, 80
-    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level1_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 100)
-    level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level2_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 )
-    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h); level3_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 100)
-    back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    center_x = screen.get_width() // 2
+    
+    # Espacio vertical entre botones
+    spacing_y = btn_h + 30 
+
+    # Nivel 1 (Arriba)
+    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level1_button_rect.center = (center_x, screen.get_height() // 2 - spacing_y)
+    
+    # Nivel 2 (Medio)
+    level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level2_button_rect.center = (center_x, screen.get_height() // 2)
+    
+    # Nivel 3 (Abajo)
+    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level3_button_rect.center = (center_x, screen.get_height() // 2 + spacing_y)
+    
+    back_button_rect = pygame.Rect(0, 0, 160, 80)
+    back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    
     return level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect
+# ***************************************************************
+
 
 def create_config_buttons():
     back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
@@ -641,7 +660,7 @@ while running:
                 selected_character = "girl"
                 game_state = SELECT_LEVEL; state_history.append(game_state)
                 
-            # Lógica de NIVELES
+            # Lógica de NIVELES (Esta parte es la que abre el nivel, y es la misma que ya tenías)
             elif button_pressed == "lvl1" and level1_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level1F.Level1(screen, size, font_small, selected_character)

@@ -8,10 +8,16 @@ from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
 from Interacciones.Mecanicas.FloorQuiz_KeyAndCarry import FloorQuiz_KeyAndCarry
 
+# -------------------- INICIALIZACIÓN Y DEBUGGING --------------------
+MIXER_INITIALIZED = False
 try:
     pygame.mixer.init()
-except pygame.error:
-    pass
+    MIXER_INITIALIZED = True
+    print("DEBUG INICIO: pygame.mixer inicializado correctamente.")
+except pygame.error as e:
+    print(f"ADVERTENCIA CRÍTICA: No se pudo inicializar pygame.mixer. El juego no tendrá sonido. Error: {e}")
+# --------------------------------------------------------------------
+
 
 class Confetti:
     def __init__(self, screen_width, screen_height):
@@ -72,6 +78,7 @@ class Confetti:
 
 class Level2:
     def __init__(self, screen, size, font, character_choice):
+        global MIXER_INITIALIZED
         self.flash_color = None
         self.flash_alpha = 0
         self.flash_timer = 0
@@ -146,19 +153,19 @@ class Level2:
             self.dialog_box_rect = pygame.Rect(50, self.size[1] - 150, 800, 100)
 
         try:
-            img = pygame.image.load('Materials/Pictures/Assets/perdiste.png').convert()
+            img = pygame.image.load('Materials/Pictures/Assets/perdiste2.png').convert()
             self.game_over_image = pygame.transform.scale(img, self.size)
         except pygame.error:
             self.game_over_image = None
 
         try:
-            img = pygame.image.load('Materials/Pictures/Assets/ganaste.png').convert()
+            img = pygame.image.load('Materials/Pictures/Assets/ganaste2.png').convert()
             self.win_image = pygame.transform.scale(img, self.size)
         except pygame.error:
             self.win_image = None
 
         self.timer = Timer(120)
-        self.quiz_timer = Timer(10)
+        self.quiz_timer = Timer(20)
 
         self.answer_results = []
         self.max_questions = 4
@@ -185,23 +192,47 @@ class Level2:
         self.palomita_img = pygame.transform.scale(self.palomita_img, (symbol_w, symbol_h))
         self.tache_img = pygame.transform.scale(self.tache_img, (symbol_w, symbol_h))
 
-        self.controls_music = None
+        # -------------------- CARGA DE SONIDOS CONDICIONAL Y CON DEBUG --------------------
         self.level_music_loaded = False
-        try:
-            self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
-            pygame.mixer.music.load('Materials/Music/Level2.wav')
-            self.level_music_loaded = True
-            self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
-            self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
-            self.win_music = pygame.mixer.Sound('Materials/Music/Ganar.wav')
-            self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
-            self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
-        except Exception:
-            self.loss_sound = None
-            self.game_over_music = None
-            self.win_music = None
-            self.correct_sound = None
-            self.incorrect_sound = None
+        self.controls_music = None
+        self.loss_sound = None
+        self.game_over_music = None
+        self.win_music = None
+        self.correct_sound = None
+        self.incorrect_sound = None
+
+        if MIXER_INITIALIZED:
+            try:
+                # Intenta cargar la música de fondo del nivel
+                pygame.mixer.music.load('Materials/Music/Level2.wav')
+                self.level_music_loaded = True
+                print("DEBUG CARGA: Música de Level2.wav cargada con éxito.")
+
+                # Intenta cargar los efectos y otras músicas
+                self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
+                self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
+                self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
+                self.win_music = pygame.mixer.Sound('Materials/Music/Ganar.wav')
+                self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
+                self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
+                print("DEBUG CARGA: Todos los efectos de sonido cargados con éxito.")
+
+            except pygame.error as e:
+                self.level_music_loaded = False
+                print("---------------------------------------------------------------")
+                print(f"!!! ERROR FATAL DE CARGA DE AUDIO !!!")
+                print(f"El juego NO PUDO encontrar uno o más archivos de audio, o el formato es incorrecto.")
+                print(f"Verifica que los archivos .wav estén en la ruta: 'Materials/Music/'")
+                print(f"Error detallado: {e}")
+                print("---------------------------------------------------------------")
+        # ---------------------------------------------------------------------------------------------
+        
+        # -------------------- SOLUCIÓN FALTANTE: REPRODUCCIÓN DE MÚSICA DE CONTROL --------------------
+        # Reproduce la música de control al iniciar la pantalla de controles
+        if self.state == "controls_screen" and self.controls_music:
+            self.controls_music.play(-1) # El -1 indica reproducción en bucle
+            print("DEBUG PLAY: Música de control (controls.wav) iniciada en bucle.")
+        # ---------------------------------------------------------------------------------------------
 
         self.dialogo_text = "Si quieres pasar, tendras que responder estas\n preguntas!!"
         self.typewriter = None
@@ -217,12 +248,34 @@ class Level2:
 
         self.confetti = Confetti(self.size[0], self.size[1])
 
+        # -------------------- CORRECCIÓN DE ESTRUCTURA DE PREGUNTAS (Sin imagen de pregunta principal) --------------------
         self.questions = [
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Como se llama nuestro pais?", "choices": ["Espana", "Mexico", "Roma", "Berlin"], "correct_answer": 1 },
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Cuanto es 6 + 2?", "choices": ["7", "8", "9", "10"], "correct_answer": 1 },
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Cual es el animal mas grande del mundo?", "choices": ["Ballena azul", "Elefante", "Tiburon", "Jirafa"], "correct_answer": 0 },
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Cual es el oceano mas grande?", "choices": ["Atlantico", "Indico", "Pacifico", "Artico"], "correct_answer": 2 }
+            { "question": "¿Cómo se llama el planeta donde vivimos?", "choices": [
+                { "text": "Marte", "image": "Materials/Pictures/Assets/marte.jpg" }, 
+                { "text": "Tierra", "image": "Materials/Pictures/Assets/tierra.jpg" }, 
+                { "text": "Saturno", "image": "Materials/Pictures/Assets/saturno.jpg" }, 
+                { "text": "Venus", "image": "Materials/Pictures/Assets/venus.jpg" }
+            ], "correct_answer": 1 },
+            { "question": "¿Qué usamos para ver dónde están los países y mares?", "choices": [
+                { "text": "Un mapa", "image": "Materials/Pictures/Assets/mapa.jpg" }, 
+                { "text": "Un reloj", "image": "Materials/Pictures/Assets/reloj.jpg" }, 
+                { "text": "Una lupa", "image": "Materials/Pictures/Assets/lupa.jpg" }, 
+                { "text": "Un termómetro", "image": "Materials/Pictures/Assets/termometro.jpg" }
+            ], "correct_answer": 0 },
+            { "question": "¿Cuál de estos no es un país de latinoamerica?", "choices": [
+                { "text": "Japon", "image": "Materials/Pictures/Assets/japon.jpg" }, 
+                { "text": "Venezuela", "image": "Materials/Pictures/Assets/venezuela.jpg" }, 
+                { "text": "Peru", "image": "Materials/Pictures/Assets/peru.jpg" }, 
+                { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }
+            ], "correct_answer": 0 },
+            { "question": "¿Cómo se llama al lugar donde hay mucha arena y casi no llueve?", "choices": [
+                { "text": "Montañas", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
+                { "text": "Ciudad", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
+                { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                { "text": "Selva", "image": "Materials/Pictures/Assets/selva.jpg" }
+            ], "correct_answer": 2 }
         ]
+        # ----------------------------------------------------------------------------------------------------------------------
 
         self.win_zone = pygame.Rect(420, 280, 65, 65)
 
@@ -287,7 +340,7 @@ class Level2:
                 self.target_state = "game"
                 self.fade_alpha = 0
                 if self.controls_music:
-                    self.controls_music.stop()
+                    self.controls_music.stop() # Detiene la música de control al pasar al juego
             return None
 
         if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_RETURN]):
@@ -299,7 +352,7 @@ class Level2:
                 
                 if self.state == "dialog":
                     self.timer.start()
-                    self.quiz_timer = Timer(10)
+                    self.quiz_timer = Timer(20)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False
@@ -326,11 +379,11 @@ class Level2:
 
             elif self.state == "quiz_floor" and self.quiz_game:
                 if self.quiz_game.is_answered and not self.quiz_game.finished and self.state != "loss_sound_state":
-                    self.quiz_timer = Timer(10)
+                    self.quiz_timer = Timer(20)
                     self.quiz_timer.start()
                     self.quiz_game.next_question()
                     return None
-                
+                    
                 if not self.quiz_game.is_answered:
                     quiz_result = self.quiz_game.handle_interaction_input(self.player.rect, self.Guardia.rect)
                     
@@ -362,6 +415,7 @@ class Level2:
                     self.is_fading = False
                     if self.level_music_loaded and not pygame.mixer.music.get_busy():
                         pygame.mixer.music.play(-1)
+                        print("DEBUG PLAY: Música de fondo de Level 2 iniciada.")
             return self.state
 
         if self.state == "controls_screen":
@@ -471,7 +525,7 @@ class Level2:
                 self.state = "game"
 
         elif self.state == "loss_sound_state":
-            if not pygame.mixer.get_busy() or (self.loss_sound and self.loss_sound.get_num_channels() == 0):
+            if not self.loss_sound or not pygame.mixer.get_busy() or (self.loss_sound and self.loss_sound.get_num_channels() == 0):
                 self.state = "game_over"
                 if self.game_over_music and not self.game_over_music_played:
                     self.game_over_music.play(-1)
@@ -522,9 +576,9 @@ class Level2:
                 self._draw_text_with_border(self.screen, text_to_render_title, font_to_use, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
                 font_to_use = self.font_dialog
-                text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1"
+                text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 2"
                 center_x = self.size[0] // 2
-                center_y = self.size[1] - 30
+                center_y = self.size[1] - 35
                 self._draw_text_with_border(self.screen, text_to_render, font_to_use, (0, 0, 0), (255, 128, 0), (center_x, center_y), border_size=2)
             else:
                 self.screen.fill((255, 255, 255))
@@ -574,14 +628,14 @@ class Level2:
                 
                 if self.quiz_game.carried_choice_index != -1:
                     drop_text = "Presiona ESPACIO/ENTER para ENTREGAR a la Prefecta."
-                    text_surface = self.font_question.render(drop_text, True, (255, 255, 255))
-                    text_rect = text_surface.get_rect(center=(self.size[0] // 2, self.Guardia.rect.top - 20))
-                    self.screen.blit(text_surface, text_rect)
+                    # **CAMBIO APLICADO: Se añade el borde**
+                    center_pos = (self.size[0] // 2, self.Guardia.rect.top - 40)
+                    self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
                 elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1:
                     drop_text = "MUEVETE CERCA DE UNA RESPUESTA para RECOGERLA."
-                    text_surface = self.font_question.render(drop_text, True, (255, 255, 255))
-                    text_rect = text_surface.get_rect(center=(self.size[0] // 2, self.size[1] - 250))
-                    self.screen.blit(text_surface, text_rect)
+                    # **CAMBIO APLICADO: Se añade el borde**
+                    center_pos = (self.size[0] // 2, self.size[1] - 150)
+                    self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
 
 
             if self.dialogo_active:

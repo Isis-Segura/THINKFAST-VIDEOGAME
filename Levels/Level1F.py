@@ -78,6 +78,53 @@ class Confetti:
 
 
 # ============================================================
+# CLASE ARROWSPRITE: controla la animación de la flecha
+# ============================================================
+class ArrowSprite:
+    def __init__(self, x, y):
+        self.images = []
+        for i in range(1, 5): # Carga flecha1.png, flecha2.png, flecha3.png, flecha4.png
+            try:
+                img = pygame.image.load(f'Materials/Pictures/Assets/flecha{i}.png').convert_alpha()
+                # Redimensiona la flecha a un tamaño apropiado (ej: 80x80)
+                # MODIFICACIÓN DE TAMAÑO (previo)
+                img = pygame.transform.scale(img, (80, 80)) 
+                self.images.append(img)
+            except pygame.error:
+                # Si las imágenes no cargan, usa un cuadrado rojo como fallback
+                print(f"Error cargando flecha{i}.png. Usando fallback.")
+                fallback = pygame.Surface((40, 40), pygame.SRCALPHA)
+                fallback.fill((255, 0, 0, 150))
+                self.images.append(fallback)
+
+        self.current_frame = 0
+        self.animation_speed = 0.15 # Velocidad de cambio de frame (más pequeño = más rápido)
+        self.image = self.images[self.current_frame]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.last_update = pygame.time.get_ticks()
+        self.active = False
+
+    def start(self):
+        self.active = True
+
+    def update(self):
+        if not self.active:
+            return
+
+        now = pygame.time.get_ticks()
+        # Calcula el tiempo en milisegundos para el cambio de frame
+        if now - self.last_update > self.animation_speed * 1000:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.images)
+            self.image = self.images[self.current_frame]
+
+    def draw(self, surface):
+        if self.active:
+            surface.blit(self.image, self.rect.topleft)
+
+
+# ============================================================
 # CLASE LEVEL1: controla todo el funcionamiento del nivel
 # ============================================================
 class Level1:
@@ -150,7 +197,7 @@ class Level1:
 
         # Cuadro de diálogo inferior (imagen)
         try:
-            img = pygame.image.load("Materials/Pictures/Assets/dialog_box.png").convert_alpha()
+            img = pygame.image.load("Materials/Pictures/Assets/fondo_preguntas.png").convert_alpha()
             self.dialog_box_img = pygame.transform.scale(img, (800, 120))
             self.dialog_box_rect = self.dialog_box_img.get_rect()
             self.dialog_box_rect.center = (self.size[0] // 2, self.size[1] - 70)
@@ -252,6 +299,11 @@ class Level1:
 
         # Zona de victoria (puerta)
         self.win_zone = pygame.Rect(420, 280, 65, 65)
+        
+        # --- NUEVO: Sprite de la flecha animada (Con posición modificada) ---
+        # Posición: Justo en el centro de la puerta (zona de victoria)
+        self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
+        # ------------------------------------------
 
         # Fuentes del texto (Simplificación para evitar "Error de dibujo de texto")
         # Usar la fuente del sistema si la custom falla
@@ -309,13 +361,18 @@ class Level1:
                     self.state = "quiz_floor"
                     self.dialogo_active = False
                     self.typewriter = None
-                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question)
+                    # MODIFICACIÓN 1: Añadir colores para el texto de la pregunta (Blanco con borde Negro)
+                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question, 
+                                               question_text_color=(255, 255, 255), 
+                                               question_border_color=(0, 0, 0))
                 elif self.state == "quiz_complete_dialog":
                     # Avanza los diálogos después del quiz
                     self.current_dialog_index += 1
                     if self.current_dialog_index < len(self.post_quiz_dialogs):
                         next_text = self.post_quiz_dialogs[self.current_dialog_index]
-                        self.typewriter = TypewriterText(next_text, self.font_dialog, (255,255,255), speed=25)
+                        # MODIFICACIÓN 2: Añadir colores para el texto del diálogo (Blanco con borde Negro)
+                        self.typewriter = TypewriterText(next_text, self.font_dialog, 
+                                                         (255, 255, 255), border_color=(0, 0, 0), speed=25)
                         self.dialogo_active = True
                     else:
                         self.dialogo_active = False
@@ -407,6 +464,10 @@ class Level1:
                 self.timer.update()
             barrier = self.guardia_collision_rect if not self.guard_interacted else None
             self.player.move(keys, self.size[0], self.size[1], barrier)
+            
+            # --- NUEVO: Actualizar la flecha aquí ---
+            self.arrow_sprite.update() 
+            # ---------------------------------------
 
             # Si el tiempo se acaba, pierde
             if self.timer.finished and self.state not in ["loss_sound_state", "game_over", "win_state"]:
@@ -430,7 +491,9 @@ class Level1:
             if not self.is_fading and self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
                 self.state = "dialog"
                 self.dialogo_active = True
-                self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
+                # MODIFICACIÓN 3: Llamada corregida con border_color
+                self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, 
+                                                 (255, 255, 255), border_color=(0, 0, 0), speed=25)
 
 
         # Estado del quiz (temporizador y respuestas)
@@ -489,7 +552,9 @@ class Level1:
                     "Ahora te abro el paso. Buena suerte en tu camino!"
                 ]
                 self.current_dialog_index = 0
-                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (255,255,255), speed=25)
+                # MODIFICACIÓN 4: Llamada corregida con border_color
+                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
+                                                 (255, 255, 255), border_color=(0, 0, 0), speed=25)
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
@@ -512,6 +577,9 @@ class Level1:
                 if not self.background_changed:
                     self.background_image = self.background_image_open
                     self.background_changed = True
+                    # --- NUEVO: Activar la flecha aquí ---
+                    self.arrow_sprite.start()
+                    # -------------------------------------
                 self.state = "game"
 
         # Estado de derrota (reproduce sonido y pasa a game_over)
@@ -528,6 +596,8 @@ class Level1:
         self.confetti.update()
         return self.state
     
+    # NOTA: La función _draw_text_with_border se mantiene porque se usa en 
+    # las pantallas de control/victoria/derrota.
     def _draw_text_with_border(self, surface, text, font, text_color, border_color, center_pos, border_size=2):
         # Función auxiliar para dibujar texto con borde (mejora la visibilidad)
         text_surface = font.render(text, True, text_color)
@@ -596,6 +666,33 @@ class Level1:
         # Dibujo principal del juego
         if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor", "loss_sound_state"]:
             self.screen.blit(self.background_image, (0, 0))
+            
+            # ----------------------------------------------------------------------
+            # --- CÓDIGO AÑADIDO: DIBUJAR SOMBRAS ---
+            # ----------------------------------------------------------------------
+            # MODIFICADO: Transparencia ajustada (el 100 es el valor Alfa)
+            shadow_surface = pygame.Surface(self.size, pygame.SRCALPHA)
+            SHADOW_COLOR_RGBA = (30, 30, 30, 100) # Gris oscuro para la sombra con transparencia
+            OFFSET_Y = 4 # Pequeño ajuste para centrar la sombra en los pies
+            
+            # 1. Sombra del Jugador
+            shadow_w_player = self.player.rect.width * 0.7   # 70% del ancho del sprite
+            shadow_h_player = self.player.rect.height * 0.15 # 15% de la altura del sprite
+            shadow_rect_player = pygame.Rect(0, 0, shadow_w_player, shadow_h_player)
+            # Posicionamiento: centrado horizontalmente y en la parte inferior del sprite
+            shadow_rect_player.midtop = (self.player.rect.centerx, self.player.rect.bottom - OFFSET_Y - 5) 
+            pygame.draw.ellipse(shadow_surface, SHADOW_COLOR_RGBA, shadow_rect_player)
+            
+            # 2. Sombra del Guardia (NPC)
+            shadow_w_guardia = self.Guardia.rect.width * 0.8  # Un poco más ancha
+            shadow_h_guardia = self.Guardia.rect.height * 0.18 # Un poco más alta
+            shadow_rect_guardia = pygame.Rect(0, 0, shadow_w_guardia, shadow_h_guardia)
+            # POSICIÓN MODIFICADA: Mueve la sombra 10 píxeles a la derecha
+            shadow_rect_guardia.midtop = (self.Guardia.rect.centerx , self.Guardia.rect.bottom - OFFSET_Y - 10)
+            pygame.draw.ellipse(shadow_surface, SHADOW_COLOR_RGBA, shadow_rect_guardia)
+            self.screen.blit(shadow_surface, (0, 0))
+            # ----------------------------------------------------------------------
+            
             self.Guardia.draw(self.screen)
             self.player.draw(self.screen)
 
@@ -620,6 +717,10 @@ class Level1:
 
             # Dibuja confetti
             self.confetti.draw(self.screen)
+            
+            # --- NUEVO: Dibujar la flecha aquí ---
+            self.arrow_sprite.draw(self.screen)
+            # -------------------------------------
 
             # Dibuja timers
             if self.state == "quiz_floor":
@@ -635,7 +736,8 @@ class Level1:
             if self.dialogo_active:
                 if self._dialog_img_loaded and self.dialog_box_img:
                     self.screen.blit(self.dialog_box_img, self.dialog_box_rect.topleft)
-                    pygame.draw.rect(self.screen, (255, 200, 0), self.dialog_box_rect, width=5, border_radius=20)
+                    
+                    # La clase TypewriterText ahora maneja el borde internamente
                     self.typewriter.draw(self.screen, (self.dialog_box_rect.x + 20, self.dialog_box_rect.y + 35))
                 else:
                     box_rect = pygame.Rect(50, 550, 800, 100)

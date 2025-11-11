@@ -128,8 +128,8 @@ class Level3:
         maestro_height = self.maestro.rect.height
         
         # Reducir significativamente el área de colisión (solo la parte inferior)
-        COL_WIDTH_FACTOR = 0.15-0.25 
-        COL_HEIGHT_PIXELS = 4  # Aumentado ligeramente para mejor detección
+        COL_WIDTH_FACTOR = 0.15-0.05
+        COL_HEIGHT_PIXELS = 3  # Aumentado ligeramente para mejor detección
         
         new_width = int(maestro_width * COL_WIDTH_FACTOR)
         new_height = COL_HEIGHT_PIXELS
@@ -142,21 +142,13 @@ class Level3:
         # NUEVO: Definir colisiones del entorno (obstáculos)
         self.obstacles = [
             # Bordes de la pantalla
-            pygame.Rect(0, 0, self.size[0], 10),  # Borde superior
+            pygame.Rect(0, 0, self.size[0], 0),  # Borde superior
             pygame.Rect(0, 0, 10, self.size[1]),  # Borde izquierdo
-            pygame.Rect(self.size[0]-10, 0, 10, self.size[1]),  # Borde derecho
+            pygame.Rect(self.size[0]-10, 0, 5, self.size[1]),  # Borde derecho
             pygame.Rect(0, self.size[1]-10, self.size[0], 10),  # Borde inferior 
             
-            # Obstáculos específicos del nivel 3
-            pygame.Rect(200, 150, 100, 20),   # Mesa superior izquierda
-            pygame.Rect(600, 150, 100, 20),   # Mesa superior derecha
-            pygame.Rect(300, 400, 150, 20),   # Mesa central
-            pygame.Rect(200, 550, 100, 20),   # Mesa inferior izquierda
-            pygame.Rect(600, 550, 100, 20),   # Mesa inferior derecha
             
-            # Paredes o columnas
-            pygame.Rect(0, 200, 50, 100),     # Columna izquierda
-            pygame.Rect(self.size[0]-50, 200, 50, 100),  # Columna derecha
+           
         ]
 
         # Fondos

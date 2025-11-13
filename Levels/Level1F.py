@@ -5,12 +5,14 @@ from Personajes.boy import Characterb
 from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpcg
 from Interacciones.Controldeobjetos.velotex import TypewriterText
-from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.Mecanicas.FloorQuiz import FloorQuiz # Asegúrate de que este archivo exista
+from Interacciones.Controldeobjetos.timer import Timer # CRÍTICO: Asegúrate de tener la clase Timer
+from Interacciones.Mecanicas.FloorQuiz import FloorQuiz 
 
 # Inicializa el mezclador de audio (para música y sonidos)
+MIXER_INITIALIZED = False
 try:
     pygame.mixer.init()
+    MIXER_INITIALIZED = True
 except pygame.error:
     pass
 
@@ -87,7 +89,6 @@ class ArrowSprite:
             try:
                 img = pygame.image.load(f'Materials/Pictures/Assets/flecha{i}.png').convert_alpha()
                 # Redimensiona la flecha a un tamaño apropiado (ej: 80x80)
-                # MODIFICACIÓN DE TAMAÑO (previo)
                 img = pygame.transform.scale(img, (80, 80)) 
                 self.images.append(img)
             except pygame.error:
@@ -149,11 +150,6 @@ class Level1:
         self.fade_out_speed = 10
         self.is_fading = True
         self.target_state = None
-        
-        # === IMPLEMENTACIÓN DEL TEMPORIZADOR DE CONTROL (5 segundos) ===
-        self.controls_timer = Timer(5) # 5 segundos de espera, igual que en Nivel 2
-        self.controls_timer.start()
-        # =========================================================
 
         # Estado inicial del juego
         if self.control_image:
@@ -200,7 +196,7 @@ class Level1:
             self.background_image_open = self.background_image_game
         self.background_changed = False
 
-        # === Cuadro de diálogo inferior (Mismo estilo que el Quiz) ===
+        # Cuadro de diálogo inferior
         self.DIALOG_BOX_BACKGROUND = (20, 30, 80)
         self.DIALOG_BOX_BORDER = (255, 200, 0)
         self.DIALOG_BOX_RADIUS = 10
@@ -215,8 +211,7 @@ class Level1:
         self.dialog_box_rect = pygame.Rect(dialog_x, dialog_y, dialog_width, dialog_height)
         self._dialog_img_loaded = False 
         self.dialog_box_img = None
-        # === FIN DE LA MODIFICACIÓN ===
-
+        
         # Pantallas de victoria y derrota
         try:
             img = pygame.image.load('Materials/Pictures/Assets/perdiste.png').convert()
@@ -264,21 +259,22 @@ class Level1:
         # Carga sonidos y música
         self.controls_music = None
         self.level_music_loaded = False
-        try:
-            self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
-            pygame.mixer.music.load('Materials/Music/Level1.wav')
-            self.level_music_loaded = True
-            self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
-            self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
-            self.win_music = pygame.mixer.Sound('Materials/Music/Ganar.wav')
-            self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
-            self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
-        except Exception:
-            self.loss_sound = None
-            self.game_over_music = None
-            self.win_music = None
-            self.correct_sound = None
-            self.incorrect_sound = None
+        if MIXER_INITIALIZED:
+            try:
+                self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
+                pygame.mixer.music.load('Materials/Music/Level1.wav')
+                self.level_music_loaded = True
+                self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
+                self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
+                self.win_music = pygame.mixer.Sound('Materials/Music/Ganar.wav')
+                self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
+                self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
+            except Exception:
+                self.loss_sound = None
+                self.game_over_music = None
+                self.win_music = None
+                self.correct_sound = None
+                self.incorrect_sound = None
 
         # Texto inicial del guardia
         self.dialogo_text = "Si quieres pasar, tendras que responder estas\n preguntas!!"
@@ -369,6 +365,12 @@ class Level1:
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
 
+        # --- AÑADIDO: Temporizador y Bandera para la Pantalla de Controles (5s) ---
+        self.control_timer = Timer(5) # 5 segundos
+        self.control_timer_started = False
+        self.can_skip_controls = False
+        # -------------------------------------------------------------------------
+
 
     # ============================================================
     # Maneja los eventos del teclado y las interacciones del jugador
@@ -389,13 +391,14 @@ class Level1:
 
         # Pantalla de controles (presionar espacio para continuar)
         if self.state == "controls_screen" and not self.is_fading:
-            if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
+            # --- MODIFICADO: Solo permite saltar si el temporizador terminó ---
+            if self.can_skip_controls and event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
                 self.is_fading = True
                 self.target_state = "game"
                 self.fade_alpha = 0
-                # Detenemos la música aquí también para evitar solapamiento si se salta el tiempo
                 if self.controls_music:
                     self.controls_music.stop()
+            # ------------------------------------------------------------------
             return None
 
         # Interacción con diálogos o quiz (espacio/enter)
@@ -426,7 +429,6 @@ class Level1:
             
             # LÓGICA DE AVANCE DEL QUIZ
             if self.state == "quiz_floor" and self.quiz_game:
-                # La lógica de next_question() ahora la maneja FloorQuiz si se pulsa espacio y ya está contestada
                 if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.state != "loss_sound_state":
                     self.quiz_timer = Timer(10)
                     self.quiz_timer.start()
@@ -460,8 +462,6 @@ class Level1:
                     if self.loss_sound:
                         self.loss_sound.play()
 
-            # La llamada a next_question() por ESPACIO se maneja arriba ahora.
-
         return None
 
     # ============================================================
@@ -477,13 +477,14 @@ class Level1:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                     if self.fade_alpha == 0:
                         self.is_fading = False
+                        # --- AÑADIDO: Iniciar el temporizador solo si no se ha iniciado ---
+                        if not self.control_timer_started:
+                            self.control_timer.start()
+                            self.control_timer_started = True
+                        # ---------------------------------------------------------------------
                 elif self.target_state == "game":
                     self.fade_alpha = min(255, self.fade_alpha + self.fade_out_speed)
                     if self.fade_alpha == 255:
-                        # Detiene la música de controles justo cuando la pantalla está completamente negra
-                        if self.controls_music:
-                            self.controls_music.stop()
-                            
                         self.state = self.target_state
                         self.target_state = None
                         self.is_fading = True
@@ -494,22 +495,14 @@ class Level1:
                     if self.level_music_loaded and not pygame.mixer.music.get_busy():
                         pygame.mixer.music.play(-1)
 
-        # Lógica para reproducir la música de controles y la transición automática
         if self.state == "controls_screen":
-            # 1. Actualiza el timer si no estamos en transición
-            if not self.is_fading:
-                self.controls_timer.update()
-                
-                # 2. Transición automática al terminar el tiempo
-                if self.controls_timer.finished:
-                    self.is_fading = True
-                    self.target_state = "game"
-                    self.fade_alpha = 0
+            # --- MODIFICADO: Actualizar el temporizador y habilitar el salto ---
+            if self.control_timer_started and self.control_timer.is_running():
+                self.control_timer.update()
             
-            # Si el sonido de control existe y no hay canales de sonido ocupados (o el sonido no está reproduciéndose)
-            if self.controls_music and self.controls_music.get_num_channels() == 0:
-                # Reproduce en bucle (-1) para la pantalla de controles
-                self.controls_music.play(-1) 
+            if self.control_timer.finished and not self.can_skip_controls:
+                self.can_skip_controls = True
+            # -----------------------------------------------------------------
             return self.state
 
         # Estados de juego y quiz
@@ -610,8 +603,7 @@ class Level1:
                 self.Guardia.rect.x -= 130
                 guardia_width = self.Guardia.rect.width
                 new_width = self.guardia_collision_rect.width
-                new_x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
-                self.guardia_collision_rect.x = new_x
+                self.guardia_collision_rect.x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
                 self.player.rect.x = 450
                 self.player.rect.y = 570
                 self.guard_interacted = True
@@ -673,30 +665,41 @@ class Level1:
                 self.screen.fill((255, 255, 255))
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
-                font_to_use = self.font_control_title
+                # TITULO DE CONTROLES
+                font_to_use_title = self.font_control_title
                 text_to_render_title = "CONTROLES"
                 center_x_title = self.size[0] // 2
                 center_y_title = 40 
-                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
+                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
+                # LÓGICA DE CARGA Y MENSAJE DE INICIO
                 font_to_use = self.font_dialog
-                text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1"
                 center_x = self.size[0] // 2
                 center_y = self.size[1] - 30
-                self._draw_text_with_border(self.screen, text_to_render, font_to_use, (0, 0, 0), (255, 128, 0), (center_x, center_y), border_size=2)
+                
+                # --- MODIFICADO: Lógica para mostrar "Cargando" o "Presiona ESPACIO" ---
+                if not self.can_skip_controls:
+                    text_to_render = "C A R G A N D O ,   E S P E R E . . ."
+                    # Estilo: Texto blanco con borde negro
+                    COLOR_TEXT = (255, 255, 255) 
+                    COLOR_BORDER = (0, 0, 0)
+                    BORDER_SIZE = 3
+                else:
+                    text_to_render = "P R E S I O N A   E S P A C I O   o   E N T E R   P A R A   C O M E N Z A R"
+                    # Estilo: Texto verde brillante con borde negro
+                    COLOR_TEXT = (0, 255, 0) 
+                    COLOR_BORDER = (0, 0, 0)
+                    BORDER_SIZE = 3
+                # ----------------------------------------------------------------------
+                
+                self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                            COLOR_TEXT, COLOR_BORDER, 
+                                            (center_x, center_y), border_size=BORDER_SIZE)
             else:
                 self.screen.fill((255, 255, 255))
                 font_to_use = self.font_dialog
                 text1 = font_to_use.render("Error cargando Controles. Presiona ESPACIO.", True, (0, 0, 0))
                 self.screen.blit(text1, text1.get_rect(center=(self.size[0] // 2, self.size[1] // 2)))
-
-            # === Dibuja el temporizador de la pantalla de controles (IDÉNTICO AL NIVEL 2) ===
-            if not self.is_fading and self.controls_timer.is_running():
-                # Esta llamada ahora funcionará si timer.py fue corregido en el Paso 1
-                self.controls_timer.draw(self.screen, self.font_timer, 
-                                        position=(self.size[0] // 2, self.size[1] - 80),
-                                        is_quiz_timer=False, color=(255, 200, 0))
-            # =================================================================
 
             # Dibuja efecto fundido
             if self.is_fading or self.fade_alpha > 0:
@@ -768,7 +771,7 @@ class Level1:
             if self.state == "quiz_floor" and self.quiz_game:
                 self.quiz_game.draw(self.screen)
 
-            # === Dibuja cuadro de diálogo con el estilo del quiz ===
+            # Dibuja cuadro de diálogo con el estilo del quiz
             if self.dialogo_active:
                 box_rect = self.dialog_box_rect
                 # Dibuja el fondo y el borde con los colores del cuadro de pregunta
@@ -777,7 +780,6 @@ class Level1:
                 
                 # Dibuja el texto
                 self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
-            # === FIN DE LA MODIFICACIÓN ===
 
         # Pantalla de derrota
         if self.state == "game_over":

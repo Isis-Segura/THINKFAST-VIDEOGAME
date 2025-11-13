@@ -11,7 +11,10 @@ class Timer:
         # --- LÓGICA DE PAUSA ---
         self.paused = False 
         self.pause_ticks = 0 
-        # ---------------------------------
+        
+        # --- MODIFICACIÓN: Nuevo atributo para almacenar el tiempo restante ---
+        self.time_remaining = total_seconds 
+        # ---------------------------------------------------------------------
         
         # --- COLORES --- 
         self.primary_orange = (0, 255, 255) 
@@ -46,6 +49,7 @@ class Timer:
         self.finished = False 
         self.paused = False 
         self.pause_ticks = 0
+        self.time_remaining = self.total_seconds # MODIFICACIÓN: Reiniciar al iniciar
 
     def is_running(self):
         """Retorna True si el temporizador está activo (iniciado, no pausado y no terminado)."""
@@ -54,11 +58,13 @@ class Timer:
     def update(self): 
         if self.start_ticks is None or self.paused: 
             if self.start_ticks is None: 
+                self.time_remaining = self.total_seconds # MODIFICACIÓN: Almacenar tiempo total
                 return self.total_seconds 
             
             elapsed_seconds = self.pause_ticks // 1000 
             remaining = self.total_seconds - elapsed_seconds 
-            return max(0, remaining) 
+            self.time_remaining = max(0, remaining) # MODIFICACIÓN: Almacenar tiempo restante
+            return self.time_remaining
 
         elapsed_ticks = pygame.time.get_ticks() - self.start_ticks 
         elapsed_seconds = elapsed_ticks // 1000 
@@ -66,7 +72,10 @@ class Timer:
         
         if remaining <= 0: 
             self.finished = True 
+            self.time_remaining = 0 # MODIFICACIÓN: Almacenar 0
             return 0 
+            
+        self.time_remaining = remaining # MODIFICACIÓN: Almacenar tiempo restante
         return remaining
 
     def reset(self):
@@ -75,41 +84,13 @@ class Timer:
         self.finished = False
         self.paused = False
         self.pause_ticks = 0
+        self.time_remaining = self.total_seconds # MODIFICACIÓN: Resetear time_remaining
 
     # ----------------------------------------------------------------------
     # MÉTODO DRAW (Dibuja el temporizador)
     # ----------------------------------------------------------------------
-    # 🚨 CORRECCIÓN DEFINITIVA: SE AGREGA 'color=None' A LA FIRMA 🚨
-    def draw(self, screen, font, is_quiz_timer=False, position=(560, 10), color=None): 
+    def draw(self, screen, font, is_quiz_timer=False, position=(560, 10)): 
         remaining = self.update() if not self.paused else self.total_seconds - (self.pause_ticks // 1000)
-
-        # ------------------------------------------------------------------
-        # LÓGICA DE DIBUJO SIMPLE PARA PANTALLA DE CONTROLES
-        # (Esto se activa si color se pasa, como en Level1F.py)
-        # ------------------------------------------------------------------
-        if not is_quiz_timer and color is not None:
-            # Formato M:SS
-            minutes = int(remaining // 60)
-            seconds = int(remaining % 60)
-            formatted_time = f"{minutes:01d}:{seconds:02d}"
-
-            text_color = color
-            
-            # Renderizado
-            text_surface = font.render(formatted_time, True, text_color)
-            text_rect = text_surface.get_rect(center=position)
-            
-            # Dibuja una sombra simple para mejorar la visibilidad
-            shadow_color = (0, 0, 0)
-            shadow_surface = font.render(formatted_time, True, shadow_color)
-            screen.blit(shadow_surface, text_rect.move(2, 2)) 
-            
-            screen.blit(text_surface, text_rect)
-            return
-        
-        # ------------------------------------------------------------------
-        # LÓGICA DE DIBUJO COMPLEJA PARA EL QUIZ (CÓDIGO ORIGINAL DEL USUARIO)
-        # ------------------------------------------------------------------
 
         # --- Calcular parámetros de dibujo ---
         timer_radius = 40 
@@ -186,7 +167,6 @@ class Timer:
         # Color del texto por defecto NEGRO
         tag_text_color = self.black 
 
-        # Si el control es el del quiz, aplica los colores de advertencia
         if is_quiz_timer:
             # Sobrescribe el color si es tiempo de advertencia (5, 4, 3, 2, 1)
             if remaining <= 3:
@@ -216,7 +196,7 @@ class Timer:
         tag_rect = pygame.Rect(tag_x, tag_y, tag_width, tag_height)
         
         shadow_offset = 5 
-        shadow_rect_tag = pygame.Rect(tag_rect.x + shadow_offset, tag_rect.y + shadow_offset, tag_rect.width, tag_height)
+        shadow_rect_tag = pygame.Rect(tag_rect.x + shadow_offset, tag_rect.y + shadow_offset, tag_rect.width, tag_rect.height)
         pygame.draw.rect(screen, self.dark_gray, shadow_rect_tag, border_radius=int(tag_height / 2))
         pygame.draw.rect(screen, self.primary_orange, tag_rect, border_radius=int(tag_height / 2))
 

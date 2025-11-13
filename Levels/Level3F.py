@@ -1,5 +1,7 @@
 import pygame
 import random
+import time
+import math
 from Personajes.boy import Characterb
 from Personajes.girl import Characterg
 from Personajes.Prefect import Characternpcp 
@@ -81,6 +83,52 @@ class Confetti:
             pygame.draw.circle(surface, (30, 30, 30), (int(x + 2), int(y + 3)), shadow_radius)
             pygame.draw.circle(surface, color, (int(x), int(y)), size)
 
+# CLASE MENSAJE FLOTANTE
+class FloatingMessage:
+    def __init__(self, text, font, duration=5):
+        self.text = text
+        self.font = font
+        self.duration = duration
+        self.start_time = time.time()
+        self.active = True
+        
+    def update(self):
+        if time.time() - self.start_time > self.duration:
+            self.active = False
+            
+    def draw(self, surface, position):
+        if not self.active:
+            return
+            
+        # Colores para el mensaje
+        LIGHT_BROWN = (160, 120, 80)  # Madera clara
+        BROWN = (139, 69, 19)         # Café para el marco
+        BLACK = (0, 0, 0)
+        
+        # Crear superficie para el mensaje con efecto de madera
+        text_surface = self.font.render(self.text, True, BLACK)
+        padding = 15  # Reducido de 20 a 15
+        rect_width = text_surface.get_width() + padding * 2
+        rect_height = text_surface.get_height() + padding * 2
+        
+        # Crear superficie para el mensaje
+        message_surface = pygame.Surface((rect_width, rect_height), pygame.SRCALPHA)
+        
+        # Dibujar fondo de madera
+        pygame.draw.rect(message_surface, LIGHT_BROWN, (0, 0, rect_width, rect_height), border_radius=12)  # Reducido de 15 a 12
+        pygame.draw.rect(message_surface, BROWN, (0, 0, rect_width, rect_height), 2, border_radius=12)  # Reducido grosor de 3 a 2
+        
+        # Añadir textura de madera (rayas)
+        for i in range(0, rect_width, 3):  # Reducido de 4 a 3
+            pygame.draw.line(message_surface, (120, 80, 40), (i, 0), (i, rect_height), 1)
+        
+        # Dibujar texto
+        text_rect = text_surface.get_rect(center=(rect_width // 2, rect_height // 2))
+        message_surface.blit(text_surface, text_rect)
+        
+        # Dibujar en la posición especificada
+        surface.blit(message_surface, position)
+
 
 # CLASE LEVEL3: implementa la mecánica de agarrar y entregar
 class Level3:
@@ -101,6 +149,12 @@ class Level3:
 
         # Controla qué mecánica usar (True = quiz con temporizador, False = pizarra de relaciones)
         self.use_quiz_timer = True
+
+        # Mensaje flotante
+        self.show_initial_message = True
+        self.message_start_time = time.time()
+        self.message_font = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 12)  # Reducido de 16 a 12
+        self.floating_message = FloatingMessage("Presiona ENTER o ESPACIO para interactuar con el profesor", self.message_font, 5)
 
         # Pantalla de controles
         try:
@@ -198,37 +252,6 @@ class Level3:
 
         # Temporizadores
         self.timer = Timer(150)  # Tiempo general del nivel
-        self.quiz_timer = Timer(10) # Tiempo para responder cada pregunta
-
-        # Cuadros de respuestas
-        self.answer_results = []
-        self.max_questions = 4 
-        self.current_question_index = 0
-        
-        # Carga imágenes para marcos y símbolos
-        try:
-            self.marco_img = pygame.image.load("Materials/Pictures/Assets/marco.png").convert_alpha()
-            self.palomita_img = pygame.image.load("Materials/Pictures/Assets/palomita.png").convert_alpha()
-            self.tache_img = pygame.image.load("Materials/Pictures/Assets/tache.png").convert_alpha()
-        except Exception:
-            # Imágenes de respaldo (fallback)
-            self.marco_img = pygame.Surface((48, 48), pygame.SRCALPHA)
-            pygame.draw.rect(self.marco_img, (255, 255, 255), self.marco_img.get_rect(), 3, border_radius=6)
-            self.palomita_img = pygame.Surface((36, 36), pygame.SRCALPHA)
-            self.tache_img = pygame.Surface((36, 36), pygame.SRCALPHA)
-            pygame.draw.line(self.palomita_img, (0, 200, 0), (4, 18), (14, 30), 4)
-            pygame.draw.line(self.palomita_img, (14, 30), (30, 6), (0, 200, 0), 4)
-            pygame.draw.line(self.tache_img, (200, 0, 0), (6, 6), (30, 30), 4)
-            pygame.draw.line(self.tache_img, (200, 0, 0), (30, 6), (6, 30), 4)
-            
-        # Escalar imágenes para UI
-        marco_w = 56
-        marco_h = 56
-        symbol_w = 40
-        symbol_h = 40
-        self.marco_img = pygame.transform.scale(self.marco_img, (marco_w, marco_h))
-        self.palomita_img = pygame.transform.scale(self.palomita_img, (symbol_w, symbol_h))
-        self.tache_img = pygame.transform.scale(self.tache_img, (symbol_w, symbol_h))
 
         # Carga sonidos y música
         self.controls_music = None
@@ -271,7 +294,7 @@ class Level3:
         self.held_answer = None
         self.answer_pickups = pygame.sprite.Group()
         
-        # Preguntas del minijuego
+        # Preguntas del minijuego (ya no se usan para el quiz con temporizador)
         self.questions = [
             { "image": "Materials/Pictures/Assets/imagen2.jpg", "question": "Relaciona cada lenguaje con su familia (ejemplo):", "choices": ["Python", "Java", "C", "Haskell"], "correct_answer": 1 },
             { "image": "Materials/Pictures/Assets/imagen2.jpg", "question": "Relaciona cada número con su potencia de 2:", "choices": ["32", "64", "16", "8"], "correct_answer": 1 }, 
@@ -434,6 +457,9 @@ class Level3:
 
         # Teclas de interacción (Espacio/Enter)
         if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_RETURN]):
+            # Ocultar mensaje inicial al interactuar
+            self.show_initial_message = False
+            
             # Si estamos en el juego y estamos en la zona del maestro, abrimos la mecánica seleccionada
             if self.state == "game" and not self.guard_interacted and self.both_at_teacher():
                 
@@ -441,10 +467,10 @@ class Level3:
                     # USAR EL QUIZ CON TEMPORIZADOR
                     try:
                         from quiz_timer_relaciones import run_quiz_with_timer
-                        score = run_quiz_with_timer(self.screen, "Materials/Pictures/Assets/fondon3-Isis_Segura.png")
+                        passed = run_quiz_with_timer(self.screen, "Materials/Pictures/Assets/fondon3-Isis_Segura.png")
                         
-                        # Procesar resultado del quiz (3 de 4 aciertos para pasar)
-                        if score >= 3:
+                        # Procesar resultado del quiz (ahora usa el return del quiz_timer_relaciones)
+                        if passed:
                             if self.correct_sound: 
                                 self.correct_sound.play()
                             # Mover al maestro y liberar el paso
@@ -461,15 +487,11 @@ class Level3:
                                 self.background_changed = True
                             self.confetti.start()
                         else:
-                            # Respuesta incorrecta
+                            # Respuesta incorrecta - mostrar pantalla de derrota
                             if self.incorrect_sound: 
                                 self.incorrect_sound.play()
-                            self.answer_results.append("incorrect")
-                            if self.answer_results.count("incorrect") >= 3:
-                                self.state = "loss_sound_state"
-                                pygame.mixer.music.stop()
-                                if self.loss_sound: 
-                                    self.loss_sound.play()
+                            self.state = "game_over"
+                            pygame.mixer.music.stop()
                     except ImportError:
                         # Fallback a la pizarra de relaciones si no se encuentra el quiz
                         self._use_relation_board()
@@ -487,18 +509,9 @@ class Level3:
                     self.typewriter.complete_text()
                 elif self.state == "dialog":
                     self.timer.start()
-                    self.quiz_timer = Timer(10)
-                    self.quiz_timer.start()
-                    self.state = "quiz_floor"
+                    self.state = "game"
                     self.dialogo_active = False
                     self.typewriter = None
-                    
-                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question)
-                    
-                    if self.quiz_game and hasattr(self.quiz_game, 'current_question_index'):
-                        self.quiz_game.current_question_index = self.current_question_index
-
-                    self._generate_answer_pickups()
                     
                 elif self.state == "quiz_complete_dialog":
                     self.current_dialog_index += 1
@@ -510,21 +523,10 @@ class Level3:
                         self.dialogo_active = False
                         self.typewriter = None
 
-            # Lógica de Recoger / Entregar (solo en estado QUIZ)
-            elif self.state == "quiz_floor":
-                if not self.held_answer:
-                    for answer_pickup in self.answer_pickups:
-                        if answer_pickup.visible and self.get_hitbox(self.player.rect).colliderect(answer_pickup.rect.inflate(10, 10)):
-                            self.held_answer = answer_pickup
-                            self.held_answer.is_held = True
-                            self.quiz_timer.pause()
-                            return None
-                        
-                elif self.held_answer:
-                    if self.get_hitbox(self.player.rect).colliderect(self.maestro_collision_rect.inflate(20, 20)):
-                        self._submit_answer(self.held_answer)
-                        return None
-                            
+        # Ocultar mensaje inicial al hacer clic
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            self.show_initial_message = False
+
         return None
 
     def _use_relation_board(self):
@@ -573,12 +575,8 @@ class Level3:
         else:
             if self.incorrect_sound: 
                 self.incorrect_sound.play()
-            self.answer_results.append("incorrect")
-            if self.answer_results.count("incorrect") >= 3:
-                self.state = "loss_sound_state"
-                pygame.mixer.music.stop()
-                if self.loss_sound: 
-                    self.loss_sound.play()
+            self.state = "game_over"
+            pygame.mixer.music.stop()
 
     # LÓGICA DE ACTUALIZACIÓN
     def update(self):
@@ -641,86 +639,6 @@ class Level3:
                     self.win_music.play()
                     self.win_music_played = True
 
-        # Estado del quiz (temporizador y avance)
-        elif self.state == "quiz_floor":
-            if self.quiz_timer.is_running() and not self.held_answer:
-                self.quiz_timer.update()
-                
-            if self.quiz_timer.finished:
-                if len(self.answer_results) < self.max_questions:
-                    if self.incorrect_sound: self.incorrect_sound.play()
-                    self.answer_results.append("incorrect")
-                    
-                for answer in self.answer_pickups: 
-                    answer.visible = False
-                if self.held_answer:
-                    self.held_answer.visible = False
-                    self.held_answer.is_held = False
-                    self.held_answer = None
-
-                if self.answer_results.count("incorrect") >= 3:
-                    self.state = "loss_sound_state"
-                    pygame.mixer.music.stop()
-                    if self.loss_sound: self.loss_sound.play()
-                    return self.state
-                
-                if len(self.answer_results) < self.max_questions:
-                    self.current_question_index += 1
-                    if self.current_question_index < self.max_questions:
-                        if self.quiz_game and hasattr(self.quiz_game, 'current_question_index'):
-                            self.quiz_game.current_question_index = self.current_question_index
-                        self._generate_answer_pickups()
-                        self.quiz_timer = Timer(10)
-                        self.quiz_timer.start()
-                    else:
-                        if self.quiz_game and hasattr(self.quiz_game, 'finished'):
-                            self.quiz_game.finished = True 
-                else:
-                    if self.quiz_game and hasattr(self.quiz_game, 'finished'):
-                        self.quiz_game.finished = True 
-
-            if self.quiz_game and (hasattr(self.quiz_game, 'finished') and self.quiz_game.finished):
-                self.state = "quiz_complete_dialog"
-                self.dialogo_active = True
-                score = self.answer_results.count("correct")
-                total = len(self.questions)
-
-                if score == total:
-                    dialog_text = "¡Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
-                elif score >= 2:
-                    dialog_text = "Buen trabajo. Tienes un buen nivel, sigue \npracticando."
-                else:
-                    dialog_text = "Puedes mejorar, sigue estudiando."
-
-                self.post_quiz_dialogs = [
-                    f"Has respondido correctamente {score} de {total} preguntas.",
-                    dialog_text,
-                    "Ahora te abro el paso. ¡Buena suerte en tu camino!"
-                ]
-                self.current_dialog_index = 0
-                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (255,255,255), speed=25)
-                self.quiz_game = None
-                self.timer.pause()
-                self.quiz_timer.reset()
-                if score >= 2:
-                    self.confetti.start()
-
-        # Diálogo final tras el quiz
-        elif self.state == "quiz_complete_dialog":
-            if not self.dialogo_active and self.current_dialog_index >= len(self.post_quiz_dialogs):
-                self.maestro.rect.x -= 130
-                maestro_width = self.maestro.rect.width
-                new_width = self.maestro_collision_rect.width
-                self.maestro_collision_rect.x = self.maestro.rect.x + int((maestro_width - new_width) / 2)
-                self.maestro.rect.y = 330
-                self.player.rect.x = 450
-                self.player.rect.y = 570
-                self.guard_interacted = True
-                if not self.background_changed:
-                    self.background_image = self.background_image_open
-                    self.background_changed = True
-                self.state = "game"
-
         # Estado de derrota (sonido)
         elif self.state == "loss_sound_state":
             if not pygame.mixer.get_busy() or (self.loss_sound and self.loss_sound.get_num_channels() == 0):
@@ -728,6 +646,13 @@ class Level3:
                 if self.game_over_music and not self.game_over_music_played:
                     self.game_over_music.play(-1)
                     self.game_over_music_played = True
+
+        # Actualizar mensaje flotante
+        if self.show_initial_message:
+            self.floating_message.update()
+            # Ocultar mensaje después de 5 segundos
+            if time.time() - self.message_start_time > 5:
+                self.show_initial_message = False
 
         # Actualiza texto y confeti
         if self.dialogo_active and self.typewriter:
@@ -800,31 +725,18 @@ class Level3:
             if self.held_answer:
                 self.held_answer.draw(self.screen)
             
-            # DIBUJAR TEMPORIZADOR GENERAL Y MARCADOR DE RESULTADOS
+            # DIBUJAR TEMPORIZADOR GENERAL
             if self.timer.is_running() or self.timer.paused:
                 self.timer.draw(self.screen, self.font_timer) 
                 
-            # DIBUJAR MARCADOR DE RESULTADOS
-            x_start = self.size[0] - (self.max_questions * 60) - 20
-            y_pos = 20
-            
-            for i in range(self.max_questions):
-                x = x_start + i * 60
-                
-                marco_rect = self.marco_img.get_rect(topleft=(x, y_pos))
-                self.screen.blit(self.marco_img, marco_rect)
-
-                if i < len(self.answer_results):
-                    symbol = self.palomita_img if self.answer_results[i] == "correct" else self.tache_img
-                    symbol_rect = symbol.get_rect(center=marco_rect.center)
-                    self.screen.blit(symbol, symbol_rect)
-
-            # DIBUJAR UI de QUIZ (pregunta y temporizador)
-            if self.state == "quiz_floor" and self.quiz_game:
-                self.quiz_game.draw(self.screen)
-                
-                if self.quiz_timer.is_running() or self.quiz_timer.paused:
-                    self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(self.size[0] // 2 - 80, 150))
+            # DIBUJAR MENSAJE FLOTANTE (si está activo) - MODIFICADO: esquina inferior derecha
+            if self.show_initial_message and self.state == "game":
+                # Calcular posición en esquina inferior derecha
+                message_width = self.message_font.size("Presiona ENTER o ESPACIO para interactuar con el profesor")[0] + 30  # + padding
+                message_height = self.message_font.get_height() + 30  # + padding
+                message_x = self.size[0] - message_width - 20  # 20px del borde derecho
+                message_y = self.size[1] - message_height - 20  # 20px del borde inferior
+                self.floating_message.draw(self.screen, (message_x, message_y))
 
             # DIBUJAR DIÁLOGO (si está activo)
             if self.dialogo_active and self.typewriter:

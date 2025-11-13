@@ -10,7 +10,6 @@ from Interacciones.Controldeobjetos.timer import Timer
 from Interacciones.Mecanicas.FloorQuiz import FloorQuiz 
 from Interacciones.Controldeobjetos.AnswerPickup import AnswerPickup 
 from Interacciones.Mecanicas.question_board import show_question_board
-import quiz_timer_relaciones
 
 # Inicializa el mezclador de audio (para música y sonidos)
 try:

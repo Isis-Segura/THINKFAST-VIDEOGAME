@@ -30,34 +30,53 @@ class Characterg:
                 pygame.image.load("Materials/Pictures/Characters/girl/chica_right4.png").convert_alpha()
             ]
         }
-
-
-        for direction, frames in self.animations.items():
-            self.animations[direction] = [
-                pygame.transform.scale(img, (60, 90)) for img in frames
-            ]
-
+        
         self.direction = "down"
         self.frame_index = 0
         self.image = self.animations[self.direction][self.frame_index]
-        self.rect = self.image.get_rect(center=(x, y))
-
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
         self.x_float = float(x)
         self.y_float = float(y)
-
-
+        
         self.frame_timer = 0
         self.frame_speed = 0.1
         
         self.fence_offset = 80
 
+    def update_animation(self):
+        self.frame_timer += self.frame_speed
+        if self.frame_timer >= 1:
+            self.frame_timer = 0
+            self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
+            self.image = self.animations[self.direction][self.frame_index]
 
-    # --- FUNCIÓN MOVE CORREGIDA ---
-    def move(self, keys, screen_width, screen_height, npc_rect=None, can_move=True):
+    def move_animation_only(self):
+        # Mantiene el personaje estático, solo muestra el primer frame
+        self.image = self.animations[self.direction][0]
+
+    # --- FUNCIÓN MOVE CON MÁRGENES POR NIVEL ---
+    def move(self, keys, screen_width, screen_height, npc_rect=None, level_id=2, can_move=True):
         
-        # ⬅ CORRECCIÓN: Si no puede moverse, salimos y evitamos toda la lógica de movimiento.
+        MARGINS = {
+            # ⬅️ Colisiones Nivel 1: (Ejemplo, ajusta los valores si el Nivel 1 tenía otros límites)
+            1: [100, 50, 0], 
+            
+            # ⬅️ Colisiones Nivel 2: (Usando tus valores anteriores: 340 superior, 100 lateral, 80 inferior)
+            2: [340, 215, 80], 
+            
+            # ⬅️ Colisiones Nivel 3: (Ejemplo de nuevos límites, AJUSTAR NECESARIAMENTE)
+            3: [200, 150, 100] 
+        }
+
+        # Aplicar el margen del nivel. Usa Nivel 2 por defecto si el ID no existe o no se pasa.
+        current_margins = MARGINS.get(level_id, MARGINS[2])
+        margin_top, margin_side, fence_offset = current_margins
+        
+        # ----------------------------------------------------
+        
         if not can_move:
-            # Asegura que la animación se detiene y muestra el primer frame
             self.image = self.animations[self.direction][0]
             return 
             
@@ -97,20 +116,17 @@ class Characterg:
                 self.rect.x = int(self.x_float)
                 self.rect.y = int(self.y_float)
 
-        # Lógica de límites de pantalla
-        margin = 340 
-        margin2 = 100 
-        
-        bottom_fence_limit = screen_height - self.fence_offset 
+        # 🟢 Lógica de límites de pantalla APLICADA POR NIVEL
+        bottom_fence_limit = screen_height - fence_offset 
 
-        if self.rect.left < margin2:
-            self.rect.left = margin2
+        if self.rect.left < margin_side:
+            self.rect.left = margin_side
             self.x_float = float(self.rect.x)
-        if self.rect.right > screen_width - margin2:
-            self.rect.right = screen_width - margin2
+        if self.rect.right > screen_width - margin_side:
+            self.rect.right = screen_width - margin_side
             self.x_float = float(self.rect.x)
-        if self.rect.top < margin:
-            self.rect.top = margin
+        if self.rect.top < margin_top:
+            self.rect.top = margin_top
             self.y_float = float(self.rect.y)
             
         if self.rect.bottom > bottom_fence_limit:
@@ -122,14 +138,6 @@ class Characterg:
             self.update_animation()
         else:
             self.image = self.animations[self.direction][0]
-
-    def update_animation(self):
-        self.frame_timer += self.frame_speed
-        if self.frame_timer >= 1:
-            self.frame_timer = 0
-            self.frame_index = (self.frame_index + 1) % len(self.animations[self.direction])
-            self.image = self.animations[self.direction][self.frame_index]
-
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)

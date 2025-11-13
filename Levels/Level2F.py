@@ -341,8 +341,11 @@ class Level2:
         self.font_title = pygame.font.Font(font_path, 15)
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
+        # --- MODIFICADO: Añadido font_control_text para el estilo unificado ---
+        self.font_control_text = pygame.font.Font(font_path, 18) 
+        # ----------------------------------------------------------------------
 
-        # --- AÑADIDO: Sprite de la flecha animada (COPIADA DE Level1F.py) ---
+        # --- AÑADIDO: Sprite de la flecha animada (COPIADO DE Level1F.py) ---
         # Posición: win_zone.centerx + 22, win_zone.centery (apunta a la puerta)
         self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
         # --------------------------------------------------------------------
@@ -676,33 +679,47 @@ class Level2:
                 self.screen.fill((255, 255, 255))
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
-                font_to_use = self.font_control_title
+                # TITULO DE CONTROLES
+                font_to_use_title = self.font_control_title
                 text_to_render_title = "CONTROLES"
                 center_x_title = self.size[0] // 2
                 center_y_title = 40 
-                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
+                # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
+                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
-                font_to_use = self.font_dialog
+                # --- MODIFICADO: Lógica para mostrar el temporizador con estilo unificado ---
+                # Definición de estilo unificado (igual que Level1F.py)
+                BORDER_SIZE = 3
+                COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                COLOR_TEXT = (0, 0, 0) # Negro (Texto)
+                
+                # Uso de la fuente de control unificada
+                font_to_use = self.font_control_text # Usamos la fuente de tamaño 18
                 center_x = self.size[0] // 2
                 center_y = self.size[1] - 35
                 
-                # --- CORREGIDO: Lógica para mostrar el temporizador y evitar el AttributeError ---
                 if self.can_skip_controls:
+                    # ✅ TEXTO LISTO PARA EMPEZAR
                     text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 2"
                 elif self.control_timer_started:
+                    # 🕒 TEXTO DEL TEMPORIZADOR
                     # Intenta acceder al atributo 'time_remaining'. Si falla, usa 0 (previniendo el AttributeError)
-                    remaining_time = max(0, int(getattr(self.control_timer, 'time_remaining', 0)))
+                    remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                    remaining_time = max(0, int(remaining_time_ms // 1000))
                     
                     if remaining_time == 0 and self.control_timer.is_running():
-                        # Si retorna 0 pero el temporizador aún corre, muestra un mensaje genérico.
                         text_to_render = "Espera un momento..."
                     else:
                         text_to_render = f"Esperando {remaining_time} segundos..."
                 else:
+                    # ⏳ TEXTO DE CARGA
                     text_to_render = "Cargando..."
-                # -----------------------------------------------------------------------------
                 
-                self._draw_text_with_border(self.screen, text_to_render, font_to_use, (0, 0, 0), (255, 128, 0), (center_x, center_y), border_size=2)
+                # Dibuja el texto con borde (utilizando los colores y tamaño de borde unificados)
+                self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                            COLOR_TEXT, COLOR_BORDER, 
+                                            (center_x, center_y), border_size=BORDER_SIZE)
+                # -----------------------------------------------------------------------------
             else:
                 self.screen.fill((255, 255, 255))
                 font_to_use = self.font_dialog

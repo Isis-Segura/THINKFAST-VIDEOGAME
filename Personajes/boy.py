@@ -63,7 +63,7 @@ class Characterb:
 
 
     # --- FUNCIÓN MOVE CON MÁRGENES POR NIVEL ---
-    def move(self, keys, screen_width, screen_height, npc_rect=None, level_id=2, can_move=True):
+    def move(self, keys, screen_width, screen_height, npc_rect=None, obstacles=None, level_id=2, can_move=True): # ⬅️ MODIFICADO: obstacles añadido
         
         MARGINS = {
             # ⬅️ Colisiones Nivel 1: (Ejemplo, ajusta los valores si el Nivel 1 tenía otros límites)
@@ -73,7 +73,7 @@ class Characterb:
             2: [340, 215, 80], 
             
             # ⬅️ Colisiones Nivel 3: (Ejemplo de nuevos límites, AJUSTAR NECESARIAMENTE)
-            3: [200, 150, 100] 
+            3: [200, 400, 100] 
         }
 
         # Aplicar el margen del nivel. Usa Nivel 2 por defecto si el ID no existe o no se pasa.
@@ -114,13 +114,23 @@ class Characterb:
         self.rect.x = int(self.x_float)
         self.rect.y = int(self.y_float)
         
-        # Lógica de Colisión con NPC
+        # Lógica de Colisión con NPC (barrera)
         if npc_rect is not None:
             if self.rect.colliderect(npc_rect):
                 self.x_float = previous_x
                 self.y_float = previous_y 
                 self.rect.x = int(self.x_float)
                 self.rect.y = int(self.y_float)
+        
+        # 🟢 Lógica de Colisión con Obstáculos (NUEVO)
+        if obstacles is not None:
+            for obstacle in obstacles:
+                if self.rect.colliderect(obstacle):
+                    self.x_float = previous_x
+                    self.y_float = previous_y 
+                    self.rect.x = int(self.x_float)
+                    self.rect.y = int(self.y_float)
+                    break # Detener al encontrar la primera colisión
 
         # 🟢 Lógica de límites de pantalla APLICADA POR NIVEL
         bottom_fence_limit = screen_height - fence_offset 

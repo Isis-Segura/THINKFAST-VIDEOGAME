@@ -57,7 +57,8 @@ class Characterg:
         self.image = self.animations[self.direction][0]
 
     # --- FUNCIÓN MOVE CON MÁRGENES POR NIVEL ---
-    def move(self, keys, screen_width, screen_height, npc_rect=None, level_id=2, can_move=True):
+    # ⬅️ MODIFICADO: obstacles añadido a la firma
+    def move(self, keys, screen_width, screen_height, npc_rect=None, obstacles=None, level_id=2, can_move=True): 
         
         MARGINS = {
             # ⬅️ Colisiones Nivel 1: (Ejemplo, ajusta los valores si el Nivel 1 tenía otros límites)
@@ -115,6 +116,16 @@ class Characterg:
                 self.y_float = previous_y
                 self.rect.x = int(self.x_float)
                 self.rect.y = int(self.y_float)
+
+        # 🟢 Lógica de Colisión con Obstáculos (AÑADIDA)
+        if obstacles is not None:
+            for obstacle in obstacles:
+                if self.rect.colliderect(obstacle):
+                    self.x_float = previous_x
+                    self.y_float = previous_y 
+                    self.rect.x = int(self.x_float)
+                    self.rect.y = int(self.y_float)
+                    break # Detener al encontrar la primera colisión
 
         # 🟢 Lógica de límites de pantalla APLICADA POR NIVEL
         bottom_fence_limit = screen_height - fence_offset 

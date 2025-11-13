@@ -649,7 +649,8 @@ class Level3:
             else:
                 barrier = self.maestro_collision_rect if not self.guard_interacted else None
             
-            self.player.move(keys, self.size[0], self.size[1], barrier, self.obstacles)
+            # 🟢 CORRECCIÓN CLAVE: Se pasa '3' como el sexto argumento posicional para 'level_id'.
+            self.player.move(keys, self.size[0], self.size[1], barrier, self.obstacles, 3) # Se elimina 'level_id='
 
             if self.timer.finished and self.state not in ["loss_sound_state", "game_over", "win_state"]:
                 self.state = "loss_sound_state"

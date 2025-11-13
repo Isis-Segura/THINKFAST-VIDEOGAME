@@ -23,27 +23,32 @@ ORANGE = (255, 165, 0)
 
 class Timer:
     def __init__(self, duration):
+
         self.duration = duration
-        self.start_time = 0
+        self.start_time = 0 
         self.paused = False
         self.pause_time = 0
         self.finished = False
         self.elapsed_pause_time = 0
 
     def start(self):
-        self.start_time = time.time()
+
+        self.start_time = time.time() 
         self.finished = False
         self.paused = False
         self.elapsed_pause_time = 0
 
     def pause(self):
+
         if not self.paused:
             self.pause_time = time.time()
             self.paused = True
 
     def resume(self):
         if self.paused:
+            
             self.elapsed_pause_time += time.time() - self.pause_time
+
             self.paused = False
 
     def update(self):

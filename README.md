@@ -14,7 +14,7 @@
 
 ### **Pantalla de Inicio**
 
-[<img width="1346" height="1122" alt="Image" src="https://github.com/user-attachments/assets/6358fb9b-2e66-42cd-95bc-089057db928e" />]
+<img width="1346" height="1122" alt="Image" src="https://github.com/user-attachments/assets/6358fb9b-2e66-42cd-95bc-089057db928e" />
 
 ### 👦👧 **Nuestros Personajes**
 <img width="257" height="506" alt="Image" src="https://github.com/user-attachments/assets/ed626324-0966-4a2d-a9e6-b50201781bcd" />
@@ -46,7 +46,7 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 ## ✏️ **Nivel 1 — [ENTRADA]**
 
-> *Espacio para tu dinámica del primer nivel.*
+> <img width="1352" height="1024" alt="Image" src="https://github.com/user-attachments/assets/6fd98bd2-6dd1-45e7-bd24-a0ec327da111" />
 
 📌 **Descripción:**
 
@@ -61,7 +61,14 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 ## 🧠 **Nivel 2 — [PASILLO]**
 
-> *Espacio para tu dinámica del segundo nivel.*
+> <img width="1343" height="1039" alt="Image" src="https://github.com/user-attachments/assets/8f746cfe-6e57-40ec-a3f2-162d383d306e" />
+
+
+
+
+
+><img width="1346" height="1031" alt="Image" src="https://github.com/user-attachments/assets/9779cf59-14f5-4af5-8648-ec8bca1b3cd0" />
+
 
 📌 **Descripción:**
 **-Interactúa con la prefecta para recibir preguntas de geografía.**
@@ -77,7 +84,7 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 ## 🏅 **Nivel 3 — [SALON]**
 
-> *Espacio para tu dinámica del tercer nivel.*
+> <img width="1333" height="1035" alt="Image" src="https://github.com/user-attachments/assets/2cc939f7-aedb-49f0-90c0-f4be5611eca2" />
 
 📌 **Descripción:**
 

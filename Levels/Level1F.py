@@ -6,7 +6,7 @@ from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpcg
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.Mecanicas.FloorQuiz import FloorQuiz
+from Interacciones.Mecanicas.FloorQuiz import FloorQuiz # Asegúrate de que este archivo exista
 
 # Inicializa el mezclador de audio (para música y sonidos)
 try:
@@ -75,6 +75,53 @@ class Confetti:
             shadow_radius = int(size * 1.4)
             pygame.draw.circle(surface, (30, 30, 30), (int(x + 2), int(y + 3)), shadow_radius)
             pygame.draw.circle(surface, color, (int(x), int(y)), size)
+
+
+# ============================================================
+# CLASE ARROWSPRITE: controla la animación de la flecha
+# ============================================================
+class ArrowSprite:
+    def __init__(self, x, y):
+        self.images = []
+        for i in range(1, 5): # Carga flecha1.png, flecha2.png, flecha3.png, flecha4.png
+            try:
+                img = pygame.image.load(f'Materials/Pictures/Assets/flecha{i}.png').convert_alpha()
+                # Redimensiona la flecha a un tamaño apropiado (ej: 80x80)
+                # MODIFICACIÓN DE TAMAÑO (previo)
+                img = pygame.transform.scale(img, (80, 80)) 
+                self.images.append(img)
+            except pygame.error:
+                # Si las imágenes no cargan, usa un cuadrado rojo como fallback
+                print(f"Error cargando flecha{i}.png. Usando fallback.")
+                fallback = pygame.Surface((40, 40), pygame.SRCALPHA)
+                fallback.fill((255, 0, 0, 150))
+                self.images.append(fallback)
+
+        self.current_frame = 0
+        self.animation_speed = 0.15 # Velocidad de cambio de frame (más pequeño = más rápido)
+        self.image = self.images[self.current_frame]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.last_update = pygame.time.get_ticks()
+        self.active = False
+
+    def start(self):
+        self.active = True
+
+    def update(self):
+        if not self.active:
+            return
+
+        now = pygame.time.get_ticks()
+        # Calcula el tiempo en milisegundos para el cambio de frame
+        if now - self.last_update > self.animation_speed * 1000:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.images)
+            self.image = self.images[self.current_frame]
+
+    def draw(self, surface):
+        if self.active:
+            surface.blit(self.image, self.rect.topleft)
 
 
 # ============================================================
@@ -148,17 +195,23 @@ class Level1:
             self.background_image_open = self.background_image_game
         self.background_changed = False
 
-        # Cuadro de diálogo inferior (imagen)
-        try:
-            img = pygame.image.load("Materials/Pictures/Assets/dialog_box.png").convert_alpha()
-            self.dialog_box_img = pygame.transform.scale(img, (800, 120))
-            self.dialog_box_rect = self.dialog_box_img.get_rect()
-            self.dialog_box_rect.center = (self.size[0] // 2, self.size[1] - 70)
-            self._dialog_img_loaded = True
-        except Exception:
-            self._dialog_img_loaded = False
-            self.dialog_box_img = None
-            self.dialog_box_rect = pygame.Rect(50, self.size[1] - 150, 800, 100)
+        # === MODIFICACIÓN SOLICITADA: Cuadro de diálogo inferior (Mismo estilo que el Quiz) ===
+        self.DIALOG_BOX_BACKGROUND = (20, 30, 80)
+        self.DIALOG_BOX_BORDER = (255, 200, 0)
+        self.DIALOG_BOX_RADIUS = 10
+        self.DIALOG_BOX_WIDTH = 800
+        self.DIALOG_BOX_HEIGHT = 100 # Altura consistente con el cuadro de pregunta
+        
+        dialog_width = self.DIALOG_BOX_WIDTH
+        dialog_height = self.DIALOG_BOX_HEIGHT
+        dialog_x = (self.size[0] - dialog_width) // 2
+        # Posición Y calculada para que el cuadro quede cerca de la parte inferior
+        dialog_y = self.size[1] - 130 
+        
+        self.dialog_box_rect = pygame.Rect(dialog_x, dialog_y, dialog_width, dialog_height)
+        self._dialog_img_loaded = False # Forzar a usar la lógica de dibujo con pygame.draw.rect
+        self.dialog_box_img = None
+        # === FIN DE LA MODIFICACIÓN ===
 
         # Pantallas de victoria y derrota
         try:
@@ -241,24 +294,68 @@ class Level1:
         # Confeti (efecto de victoria)
         self.confetti = Confetti(self.size[0], self.size[1])
 
-        # Preguntas del minijuego (4 preguntas)
-        # Nota: He cambiado la pregunta de la imagen1.jpg a una sin caracteres especiales para evitar "Error de dibujo de texto"
+        # =======================================================
+        # PREGUNTAS DEL MINIJUEGO (AHORA CON IMÁGENES POR OPCIÓN)
+        # =======================================================
         self.questions = [
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Como se llama nuestro pais?", "choices": ["Espana", "Mexico", "Roma", "Berlin"], "correct_answer": 1 },
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Cuanto es 6 + 2?", "choices": ["7", "8", "9", "10"], "correct_answer": 1 },
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Cual es el animal mas grande del mundo?", "choices": ["Ballena azul", "Elefante", "Tiburon", "Jirafa"], "correct_answer": 0 },
-            { "image": "Materials/Pictures/Assets/imagen1.jpg", "question": "Cual es el oceano mas grande?", "choices": ["Atlantico", "Indico", "Pacifico", "Artico"], "correct_answer": 2 }
+            {
+                "image": "Materials/Pictures/Assets/imagen1.jpg",  # Imagen principal de la pregunta
+                "question": "¿Qué órgano bombea sangre por el cuerpo?",
+                "choices": [
+                    {"text": "Cerebro", "image": "Materials/Pictures/Assets/cerebro.jpg"},
+                    {"text": "Corazón", "image": "Materials/Pictures/Assets/cora.jpg"},
+                    {"text": "Riñones", "image": "Materials/Pictures/Assets/rinones.jpg"},
+                    {"text": "Pulmones", "image": "Materials/Pictures/Assets/pulmones.jpg"}
+                ],
+                "correct_answer": 1 # Índice 1 es 'Corazón'
+            },
+            {
+                "image": "Materials/Pictures/Assets/imagen2.jpg",  # Imagen principal de la pregunta
+                "question": "¿Qué animales comen solo plantas?",
+                "choices": [
+                    {"text": "Carnívoros", "image": "Materials/Pictures/Assets/carnivoros.jpg"},
+                    {"text": "Herbívoros", "image": "Materials/Pictures/Assets/herbivoros.jpg"},
+                    {"text": "Omnívoros", "image": "Materials/Pictures/Assets/omnivoros.jpg"},
+                    {"text": "Detritívoros", "image": "Materials/Pictures/Assets/detritivoros.jpg"}
+                ],
+                "correct_answer": 1 # Índice 1 es 'Herbívoros'
+            },
+            {
+                "image": "Materials/Pictures/Assets/imagen3.jpg",
+                "question": "¿Cuál es el animal más grande del mundo?",
+                "choices": [
+                    {"text": "Ballena azul", "image": "Materials/Pictures/Assets/ballena_azul.jpg"},
+                    {"text": "Elefante", "image": "Materials/Pictures/Assets/elefante.jpg"},
+                    {"text": "Tiburón", "image": "Materials/Pictures/Assets/tiburon.jpg"},
+                    {"text": "Jirafa", "image": "Materials/Pictures/Assets/jirafa.jpg"}
+                ],
+                "correct_answer": 0 # Índice 0 es 'Ballena azul'
+            },
+            {
+                "image": "Materials/Pictures/Assets/imagen4.jpg",
+                "question": "¿Qué animales nacen de huevos?",
+                "choices": [
+                    {"text": "Perros", "image": "Materials/Pictures/Assets/perros.jpg"},
+                    {"text": "Gatos", "image": "Materials/Pictures/Assets/gatos.jpg"},
+                    {"text": "Iguanas", "image": "Materials/Pictures/Assets/iguanas.jpg"},
+                    {"text": "Vacas", "image": "Materials/Pictures/Assets/vacas.jpg"}
+                ],
+                "correct_answer": 2 # Índice 2 es 'Iguanas'
+            }
         ]
-
+        # =======================================================
+        
         # Zona de victoria (puerta)
         self.win_zone = pygame.Rect(420, 280, 65, 65)
+        
+        # Sprite de la flecha animada
+        self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
+        # ------------------------------------------
 
         # Fuentes del texto (Simplificación para evitar "Error de dibujo de texto")
-        # Usar la fuente del sistema si la custom falla
         if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf"):
             font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
         else:
-            # Fallback a una fuente por defecto del sistema
             font_path = None 
         
         self.font_base = pygame.font.Font(font_path, 18)
@@ -309,23 +406,25 @@ class Level1:
                     self.state = "quiz_floor"
                     self.dialogo_active = False
                     self.typewriter = None
-                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question)
+                    # LLAMADA CORREGIDA DEL ERROR ANTERIOR: Sin argumentos de color
+                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question) 
                 elif self.state == "quiz_complete_dialog":
                     # Avanza los diálogos después del quiz
                     self.current_dialog_index += 1
                     if self.current_dialog_index < len(self.post_quiz_dialogs):
                         next_text = self.post_quiz_dialogs[self.current_dialog_index]
-                        self.typewriter = TypewriterText(next_text, self.font_dialog, (255,255,255), speed=25)
+                        # LLAMADA CORREGIDA: Se eliminan argumentos de color no soportados por TypewriterText
+                        self.typewriter = TypewriterText(next_text, self.font_dialog, 
+                                                         (255, 255, 255), speed=25) 
                         self.dialogo_active = True
                     else:
                         self.dialogo_active = False
                         self.typewriter = None
             
-            # --- LÓGICA DE AVANCE DEL QUIZ (ESPERA POR ESPACIO) ---
-            # Si el usuario presiona ESPACIO/ENTER y ya se respondió, avanzar.
+            # LÓGICA DE AVANCE DEL QUIZ
             if self.state == "quiz_floor" and self.quiz_game:
+                # La lógica de next_question() ahora la maneja FloorQuiz si se pulsa espacio y ya está contestada
                 if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.state != "loss_sound_state":
-                    # Avanzar a la siguiente pregunta y reiniciar el temporizador a 10.
                     self.quiz_timer = Timer(10)
                     self.quiz_timer.start()
                     self.quiz_game.next_question()
@@ -333,20 +432,15 @@ class Level1:
 
         # Manejo del quiz
         if self.state == "quiz_floor" and self.quiz_game:
-            # handle_event maneja la colisión y la selección de respuesta
             result = self.quiz_game.handle_event(event)
 
-            # Si se obtiene un resultado (respuesta)
             if result in ["correct", "incorrect"]:
-
-                # 1. Detener el temporizador de la pregunta inmediatamente (REQUISITO CUMPLIDO)
                 self.quiz_timer.pause()
                 
-                # 2. **FIX DEL REQUISITO**: Forzar visualmente el tiempo restante a 10s durante el feedback.
+                # FIX DEL REQUISITO: Forzar visualmente el tiempo restante a 10s.
                 if hasattr(self.quiz_timer, 'time_remaining'):
                     self.quiz_timer.time_remaining = 10
                     
-                # 3. Registrar el resultado
                 if len(self.answer_results) < self.max_questions:
                     if result == "correct":
                         if self.correct_sound:
@@ -357,16 +451,13 @@ class Level1:
                             self.incorrect_sound.play()
                         self.answer_results.append("incorrect")
 
-                # 4. Verificar condición de derrota (3 fallos)
                 if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
                     pygame.mixer.music.stop()
                     if self.loss_sound:
                         self.loss_sound.play()
 
-            elif result == "finished":
-                # Si el quiz terminó (ya respondió la última pregunta)
-                self.quiz_timer.pause()
+            # La llamada a next_question() por ESPACIO se maneja arriba ahora.
 
         return None
 
@@ -378,7 +469,6 @@ class Level1:
 
         # Transiciones de fundido (fade in/out)
         if self.is_fading:
-            # ... (Lógica de fade omitida por brevedad, asumo que funciona)
             if self.state == "controls_screen":
                 if self.target_state is None:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
@@ -398,7 +488,6 @@ class Level1:
                         pygame.mixer.music.play(-1)
 
         if self.state == "controls_screen":
-            # ... (Lógica de música omitida por brevedad)
             return self.state
 
         # Estados de juego y quiz
@@ -407,6 +496,8 @@ class Level1:
                 self.timer.update()
             barrier = self.guardia_collision_rect if not self.guard_interacted else None
             self.player.move(keys, self.size[0], self.size[1], barrier)
+            
+            self.arrow_sprite.update() 
 
             # Si el tiempo se acaba, pierde
             if self.timer.finished and self.state not in ["loss_sound_state", "game_over", "win_state"]:
@@ -418,7 +509,6 @@ class Level1:
 
         # Interacción con el guardia
         if self.state == "game":
-            # ... (Lógica de interacción y zona de victoria omitida por brevedad)
             if self.guard_interacted and self.player.rect.colliderect(self.win_zone):
                 pygame.mixer.music.stop()
                 self.state = "win_state"
@@ -427,24 +517,23 @@ class Level1:
                     self.win_music.play()
                     self.win_music_played = True
 
+            # Inicia el diálogo (y por ende el quiz)
             if not self.is_fading and self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
                 self.state = "dialog"
                 self.dialogo_active = True
-                self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
+                # LLAMADA CORREGIDA: Se eliminan argumentos de color no soportados por TypewriterText
+                self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, 
+                                                 (255, 255, 255), speed=25)
 
 
         # Estado del quiz (temporizador y respuestas)
         elif self.state == "quiz_floor":
-            # Si el temporizador de la pregunta está corriendo y NO se ha respondido aún
             if not self.quiz_timer.paused and not getattr(self.quiz_game, "is_answered", False):
                 self.quiz_timer.update()
 
-            # Si el tiempo se agotó para la pregunta actual
             if self.quiz_timer.finished and not getattr(self.quiz_game, "is_answered", False):
-                # tiempo agotado = respuesta incorrecta
                 if self.incorrect_sound:
                     self.incorrect_sound.play()
-                # Registrar tache por tiempo agotado (si hay marco libre)
                 if len(self.answer_results) < self.max_questions:
                     self.answer_results.append("incorrect")
 
@@ -453,32 +542,29 @@ class Level1:
                 self.quiz_game.selected_choice_index = -1
                 self.quiz_timer.pause()
                 
-                # FIX DEL REQUISITO: Forzar visualmente el tiempo restante a 10s.
                 if hasattr(self.quiz_timer, 'time_remaining'):
                     self.quiz_timer.time_remaining = 10 
 
-                # Condición para terminar el juego si hay 3 taches
                 if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
                     pygame.mixer.music.stop()
                     if self.loss_sound:
                         self.loss_sound.play()
 
-            # Verifica colisión del jugador con los cuadros del quiz
             if self.quiz_game:
                 self.quiz_game.check_player_collision(self.player.rect)
 
             # Si termina el quiz, muestra diálogo final
-            if self.quiz_game and self.quiz_game.finished and getattr(self.quiz_game, 'is_answered', False):
+            # OJO: La condición se basa en que FloorQuiz.finished se pone a True internamente
+            if self.quiz_game and self.quiz_game.finished: 
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
-                score = self.answer_results.count("correct") # Usar answer_results para el puntaje final
+                score = self.answer_results.count("correct") 
                 total = len(self.questions)
 
-                # Determina mensaje según puntaje
                 if score == total:
                     dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
-                elif score >= 2: # Asumiendo 2 o más respuestas correctas es "buen trabajo"
+                elif score >= 2: 
                     dialog_text = "Buen trabajo. Tienes un buen nivel, sigue \npracticando."
                 else:
                     dialog_text = "Puedes mejorar, sigue estudiando."
@@ -489,15 +575,15 @@ class Level1:
                     "Ahora te abro el paso. Buena suerte en tu camino!"
                 ]
                 self.current_dialog_index = 0
-                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (255,255,255), speed=25)
+                # LLAMADA CORREGIDA: Se eliminan argumentos de color no soportados por TypewriterText
+                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
+                                                 (255, 255, 255), speed=25)
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
                 if score >= 2:
                     self.confetti.start()
         
-        # ... (Otros estados omitidos por brevedad)
-
         # Diálogo final tras el quiz
         elif self.state == "quiz_complete_dialog":
             if not self.dialogo_active and self.current_dialog_index >= len(self.post_quiz_dialogs):
@@ -512,6 +598,7 @@ class Level1:
                 if not self.background_changed:
                     self.background_image = self.background_image_open
                     self.background_changed = True
+                    self.arrow_sprite.start()
                 self.state = "game"
 
         # Estado de derrota (reproduce sonido y pasa a game_over)
@@ -549,7 +636,6 @@ class Level1:
     def draw(self):
         # Pantalla de controles
         if self.state == "controls_screen":
-            # ... (Lógica de dibujo de controles omitida por brevedad)
             if self.control_image:
                 screen_width, screen_height = self.size
                 image_orig_width, image_orig_height = self.control_image.get_size()
@@ -567,7 +653,6 @@ class Level1:
                 self.screen.fill((255, 255, 255))
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
-                # Renderizado de texto sin acentos y caracteres especiales para evitar errores de fuente
                 font_to_use = self.font_control_title
                 text_to_render_title = "CONTROLES"
                 center_x_title = self.size[0] // 2
@@ -596,10 +681,31 @@ class Level1:
         # Dibujo principal del juego
         if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor", "loss_sound_state"]:
             self.screen.blit(self.background_image, (0, 0))
+            
+            # DIBUJAR SOMBRAS
+            shadow_surface = pygame.Surface(self.size, pygame.SRCALPHA)
+            SHADOW_COLOR_RGBA = (30, 30, 30, 100)
+            OFFSET_Y = 4
+            
+            # 1. Sombra del Jugador
+            shadow_w_player = self.player.rect.width * 0.7 
+            shadow_h_player = self.player.rect.height * 0.15
+            shadow_rect_player = pygame.Rect(0, 0, shadow_w_player, shadow_h_player)
+            shadow_rect_player.midtop = (self.player.rect.centerx, self.player.rect.bottom - OFFSET_Y - 5) 
+            pygame.draw.ellipse(shadow_surface, SHADOW_COLOR_RGBA, shadow_rect_player)
+            
+            # 2. Sombra del Guardia (NPC)
+            shadow_w_guardia = self.Guardia.rect.width * 0.8  
+            shadow_h_guardia = self.Guardia.rect.height * 0.18
+            shadow_rect_guardia = pygame.Rect(0, 0, shadow_w_guardia, shadow_h_guardia)
+            shadow_rect_guardia.midtop = (self.Guardia.rect.centerx , self.Guardia.rect.bottom - OFFSET_Y - 10)
+            pygame.draw.ellipse(shadow_surface, SHADOW_COLOR_RGBA, shadow_rect_guardia)
+            self.screen.blit(shadow_surface, (0, 0))
+            
             self.Guardia.draw(self.screen)
             self.player.draw(self.screen)
 
-            # --- DIBUJAR MARCOS (IMAGENES) EN LA PARTE SUPERIOR ---
+            # DIBUJAR MARCOS EN LA PARTE SUPERIOR
             spacing = 18
             marco_w, marco_h = self.marco_img.get_size()
             total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
@@ -620,7 +726,10 @@ class Level1:
 
             # Dibuja confetti
             self.confetti.draw(self.screen)
-
+            
+            # Dibuja la flecha
+            self.arrow_sprite.draw(self.screen)
+            
             # Dibuja timers
             if self.state == "quiz_floor":
                 self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
@@ -631,17 +740,16 @@ class Level1:
             if self.state == "quiz_floor" and self.quiz_game:
                 self.quiz_game.draw(self.screen)
 
-            # Dibuja cuadro de diálogo
+            # === MODIFICACIÓN SOLICITADA: Dibuja cuadro de diálogo con el estilo del quiz ===
             if self.dialogo_active:
-                if self._dialog_img_loaded and self.dialog_box_img:
-                    self.screen.blit(self.dialog_box_img, self.dialog_box_rect.topleft)
-                    pygame.draw.rect(self.screen, (255, 200, 0), self.dialog_box_rect, width=5, border_radius=20)
-                    self.typewriter.draw(self.screen, (self.dialog_box_rect.x + 20, self.dialog_box_rect.y + 35))
-                else:
-                    box_rect = pygame.Rect(50, 550, 800, 100)
-                    pygame.draw.rect(self.screen, (20, 30, 80), box_rect, border_radius=10)
-                    pygame.draw.rect(self.screen, (255, 200, 0), box_rect, 5, border_radius=10)
-                    self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
+                box_rect = self.dialog_box_rect
+                # Dibuja el fondo y el borde con los colores del cuadro de pregunta
+                pygame.draw.rect(self.screen, self.DIALOG_BOX_BACKGROUND, box_rect, border_radius=self.DIALOG_BOX_RADIUS)
+                pygame.draw.rect(self.screen, self.DIALOG_BOX_BORDER, box_rect, 5, border_radius=self.DIALOG_BOX_RADIUS)
+                
+                # Dibuja el texto
+                self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
+            # === FIN DE LA MODIFICACIÓN ===
 
         # Pantalla de derrota
         if self.state == "game_over":

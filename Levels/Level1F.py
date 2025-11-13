@@ -5,7 +5,7 @@ from Personajes.boy import Characterb
 from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpcg
 from Interacciones.Controldeobjetos.velotex import TypewriterText
-from Interacciones.Controldeobjetos.timer import Timer # CRÍTICO: Asegúrate de tener la clase Timer
+from Interacciones.Controldeobjetos.timer import Timer
 from Interacciones.Mecanicas.FloorQuiz import FloorQuiz 
 
 # Inicializa el mezclador de audio (para música y sonidos)
@@ -352,7 +352,7 @@ class Level1:
         self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
         # ------------------------------------------
 
-        # Fuentes del texto (Simplificación para evitar "Error de dibujo de texto")
+        # Fuentes del texto
         if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf"):
             font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
         else:
@@ -364,12 +364,14 @@ class Level1:
         self.font_title = pygame.font.Font(font_path, 15)
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
-
-        # --- AÑADIDO: Temporizador y Bandera para la Pantalla de Controles (5s) ---
-        self.control_timer = Timer(5) # 5 segundos
+        # Fuente para el texto inferior de controles
+        self.font_control_text = pygame.font.Font(font_path, 18) 
+        
+        # --- CÓDIGO INTEGRADO DE LEVEL 2: Temporizador de Controles ---
+        self.control_timer = Timer(5) # Ajustado a 5 segundos
         self.control_timer_started = False
         self.can_skip_controls = False
-        # -------------------------------------------------------------------------
+        # -------------------------------------------------------------
 
 
     # ============================================================
@@ -391,14 +393,14 @@ class Level1:
 
         # Pantalla de controles (presionar espacio para continuar)
         if self.state == "controls_screen" and not self.is_fading:
-            # --- MODIFICADO: Solo permite saltar si el temporizador terminó ---
+            # --- CÓDIGO INTEGRADO DE LEVEL 2: Solo permite saltar si la espera de 5 segundos ha terminado ---
             if self.can_skip_controls and event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
                 self.is_fading = True
                 self.target_state = "game"
                 self.fade_alpha = 0
                 if self.controls_music:
-                    self.controls_music.stop()
-            # ------------------------------------------------------------------
+                    self.controls_music.stop() # Detiene la música de control al pasar al juego
+            # ----------------------------------------------------------------------------------------------
             return None
 
         # Interacción con diálogos o quiz (espacio/enter)
@@ -477,11 +479,6 @@ class Level1:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                     if self.fade_alpha == 0:
                         self.is_fading = False
-                        # --- AÑADIDO: Iniciar el temporizador solo si no se ha iniciado ---
-                        if not self.control_timer_started:
-                            self.control_timer.start()
-                            self.control_timer_started = True
-                        # ---------------------------------------------------------------------
                 elif self.target_state == "game":
                     self.fade_alpha = min(255, self.fade_alpha + self.fade_out_speed)
                     if self.fade_alpha == 255:
@@ -495,14 +492,17 @@ class Level1:
                     if self.level_music_loaded and not pygame.mixer.music.get_busy():
                         pygame.mixer.music.play(-1)
 
-        if self.state == "controls_screen":
-            # --- MODIFICADO: Actualizar el temporizador y habilitar el salto ---
-            if self.control_timer_started and self.control_timer.is_running():
+        if self.state == "controls_screen" and not self.is_fading:
+            # --- CÓDIGO INTEGRADO DE LEVEL 2: Lógica de inicio y actualización del temporizador de controles ---
+            if not self.control_timer_started:
+                self.control_timer.start()
+                self.control_timer_started = True
+
+            if self.control_timer.is_running():
                 self.control_timer.update()
-            
-            if self.control_timer.finished and not self.can_skip_controls:
-                self.can_skip_controls = True
-            # -----------------------------------------------------------------
+                if self.control_timer.finished and not self.can_skip_controls:
+                    self.can_skip_controls = True
+            # ------------------------------------------------------------------------------------
             return self.state
 
         # Estados de juego y quiz
@@ -670,36 +670,52 @@ class Level1:
                 text_to_render_title = "CONTROLES"
                 center_x_title = self.size[0] // 2
                 center_y_title = 40 
+                # (0, 0, 0) es texto negro, (255, 128, 0) es borde naranja (estilo original)
                 self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
-                # LÓGICA DE CARGA Y MENSAJE DE INICIO
-                font_to_use = self.font_dialog
+                # --- LÓGICA DE MENSAJE DE INICIO CON TEMPORIZADOR Y ESTILO UNIFICADO ---
+                font_to_use = self.font_control_text
                 center_x = self.size[0] // 2
-                center_y = self.size[1] - 30
-                
-                # --- MODIFICADO: Lógica para mostrar "Cargando" o "Presiona ESPACIO" ---
-                if not self.can_skip_controls:
-                    text_to_render = "C A R G A N D O ,   E S P E R E . . ."
-                    # Estilo: Texto blanco con borde negro
-                    COLOR_TEXT = (255, 255, 255) 
-                    COLOR_BORDER = (0, 0, 0)
-                    BORDER_SIZE = 3
+                center_y = self.size[1] - 30 
+
+                BORDER_SIZE = 3
+
+                if self.can_skip_controls:
+                    # ✅ TEXTO LISTO PARA EMPEZAR (Mismo estilo que el título: Texto negro, Borde naranja)
+                    text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1" 
+                    COLOR_BORDER = (255, 128, 0) # Naranja
+                    COLOR_TEXT = (0, 0, 0) # Negro
+                elif self.control_timer_started:
+                    # 🕒 TEXTO DEL TEMPORIZADOR (Estilo de espera: Texto blanco, Borde negro)
+                    remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                    remaining_time = max(0, int(remaining_time_ms // 1000))
+                    
+                    if remaining_time == 0 and self.control_timer.is_running():
+                        text_to_render = "Espera un momento..."
+                    else:
+                        text_to_render = f"Esperando {remaining_time} segundos..."
+                    
+                    COLOR_BORDER = (0, 0, 0) # Negro
+                    COLOR_TEXT = (255, 255, 255) # Blanco
                 else:
-                    text_to_render = "P R E S I O N A   E S P A C I O   o   E N T E R   P A R A   C O M E N Z A R"
-                    # Estilo: Texto verde brillante con borde negro
-                    COLOR_TEXT = (0, 255, 0) 
-                    COLOR_BORDER = (0, 0, 0)
-                    BORDER_SIZE = 3
-                # ----------------------------------------------------------------------
+                    # ⏳ TEXTO DE CARGA (Estilo de espera: Texto blanco, Borde negro)
+                    text_to_render = "Cargando..."
+                    COLOR_BORDER = (0, 0, 0) # Negro
+                    COLOR_TEXT = (255, 255, 255) # Blanco
                 
+                # Dibuja el texto con borde
                 self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
                                             COLOR_TEXT, COLOR_BORDER, 
                                             (center_x, center_y), border_size=BORDER_SIZE)
+                # ------------------------------------------------------------------------------------
+
             else:
-                self.screen.fill((255, 255, 255))
-                font_to_use = self.font_dialog
-                text1 = font_to_use.render("Error cargando Controles. Presiona ESPACIO.", True, (0, 0, 0))
-                self.screen.blit(text1, text1.get_rect(center=(self.size[0] // 2, self.size[1] // 2)))
+                self.screen.fill((0, 0, 0))
+                font_to_use = self.font_control_text 
+                text_to_render = "Error cargando Controles. Presiona ESPACIO."
+                center_x = self.size[0] // 2
+                center_y = self.size[1] // 2
+                self._draw_text_with_border(self.screen, text_to_render, font_to_use, (255, 255, 255), (255, 128, 0), (center_x, center_y), border_size=3)
 
             # Dibuja efecto fundido
             if self.is_fading or self.fade_alpha > 0:

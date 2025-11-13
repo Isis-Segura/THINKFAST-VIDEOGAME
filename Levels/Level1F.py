@@ -670,7 +670,7 @@ class Level1:
                 text_to_render_title = "CONTROLES"
                 center_x_title = self.size[0] // 2
                 center_y_title = 40 
-                # (0, 0, 0) es texto negro, (255, 128, 0) es borde naranja (estilo original)
+                # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
                 self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
                 # --- LÓGICA DE MENSAJE DE INICIO CON TEMPORIZADOR Y ESTILO UNIFICADO ---
@@ -679,14 +679,15 @@ class Level1:
                 center_y = self.size[1] - 30 
 
                 BORDER_SIZE = 3
+                # Colores base unificados para el texto de abajo: Negro con Borde Naranja
+                COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                COLOR_TEXT = (0, 0, 0) # Negro (Texto)
 
                 if self.can_skip_controls:
-                    # ✅ TEXTO LISTO PARA EMPEZAR (Mismo estilo que el título: Texto negro, Borde naranja)
+                    # ✅ TEXTO LISTO PARA EMPEZAR
                     text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1" 
-                    COLOR_BORDER = (255, 128, 0) # Naranja
-                    COLOR_TEXT = (0, 0, 0) # Negro
                 elif self.control_timer_started:
-                    # 🕒 TEXTO DEL TEMPORIZADOR (Estilo de espera: Texto blanco, Borde negro)
+                    # 🕒 TEXTO DEL TEMPORIZADOR
                     remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
                     remaining_time = max(0, int(remaining_time_ms // 1000))
                     
@@ -694,16 +695,11 @@ class Level1:
                         text_to_render = "Espera un momento..."
                     else:
                         text_to_render = f"Esperando {remaining_time} segundos..."
-                    
-                    COLOR_BORDER = (0, 0, 0) # Negro
-                    COLOR_TEXT = (255, 255, 255) # Blanco
                 else:
-                    # ⏳ TEXTO DE CARGA (Estilo de espera: Texto blanco, Borde negro)
+                    # ⏳ TEXTO DE CARGA
                     text_to_render = "Cargando..."
-                    COLOR_BORDER = (0, 0, 0) # Negro
-                    COLOR_TEXT = (255, 255, 255) # Blanco
                 
-                # Dibuja el texto con borde
+                # Dibuja el texto con borde (utilizando los colores unificados)
                 self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
                                             COLOR_TEXT, COLOR_BORDER, 
                                             (center_x, center_y), border_size=BORDER_SIZE)

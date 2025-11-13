@@ -46,7 +46,7 @@ class Timer:
 
     def resume(self):
         if self.paused:
-            
+
             self.elapsed_pause_time += time.time() - self.pause_time
 
             self.paused = False
@@ -113,11 +113,18 @@ class Timer:
         
         # Dibujar marcas del reloj (más visibles)
         for i in range(12):
+            
             mark_angle = 2 * math.pi * i / 12 - math.pi / 2
+
             inner_x = clock_center[0] + (clock_radius - 15) * math.cos(mark_angle)
+
             inner_y = clock_center[1] + (clock_radius - 15) * math.sin(mark_angle)
+
+
             outer_x = clock_center[0] + (clock_radius - 5) * math.cos(mark_angle)
+
             outer_y = clock_center[1] + (clock_radius - 5) * math.sin(mark_angle)
+
             pygame.draw.line(surface, BLACK, (inner_x, inner_y), (outer_x, outer_y), 2)
         
         # Dibujar el texto del tiempo DENTRO del reloj (más grande)

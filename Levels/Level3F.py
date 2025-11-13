@@ -212,7 +212,7 @@ class Level3:
 
         # Fondos
         try:
-            self.background_image_game = pygame.image.load('Materials/Pictures/Assets/fondon3-Isis_Segura.png').convert() 
+            self.background_image_game = pygame.image.load('Materials/Pictures/Assets/fondo_nivel_3.png').convert() 
             self.background_image_game = pygame.transform.scale(self.background_image_game, self.size)
         except pygame.error:
             self.background_image_game = pygame.Surface(self.size)
@@ -220,7 +220,7 @@ class Level3:
         self.background_image = self.background_image_game
 
         try:
-            self.background_image_open = pygame.image.load('Materials/Pictures/Assets/fondon3-Isis_Segura.png').convert() 
+            self.background_image_open = pygame.image.load('Materials/Pictures/Assets/fondo_nivel_3.png').convert() 
             self.background_image_open = pygame.transform.scale(self.background_image_open, self.size)
         except pygame.error:
             self.background_image_open = self.background_image_game
@@ -252,12 +252,20 @@ class Level3:
 
         # Temporizadores
         self.timer = Timer(150)  # Tiempo general del nivel
+        
+        # --- Temporizador y Bandera para la Pantalla de Controles (10s) ---
+        self.control_timer = Timer(10) # 10 segundos
+        self.control_timer_started = False
+        self.can_skip_controls = False
+        # -------------------------------------------------------------------------
 
         # Carga sonidos y música
         self.controls_music = None
         self.level_music_loaded = False
         try:
+            # Música de controles unificada
             self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
+            # Música de nivel unificada
             pygame.mixer.music.load('Materials/Music/Level3.wav')
             self.level_music_loaded = True
             self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
@@ -306,12 +314,15 @@ class Level3:
         self.win_zone = pygame.Rect(420, 280, 65, 65)
 
         # Fuentes del texto
-        self.font_base = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 18)
-        self.font_dialog = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
-        self.font_question = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 13)
-        self.font_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 15)
-        self.font_timer = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 24)
-        self.font_control_title = pygame.font.Font("Materials/Fonts/PressStart2P-Regular.ttf", 36)
+        font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
+        
+        self.font_base = pygame.font.Font(font_path, 18)
+        self.font_dialog = pygame.font.Font(font_path, 15)
+        self.font_question = pygame.font.Font(font_path, 13)
+        self.font_title = pygame.font.Font(font_path, 15)
+        self.font_timer = pygame.font.Font(font_path, 24)
+        self.font_control_title = pygame.font.Font(font_path, 36)
+        self.font_control_text = pygame.font.Font(font_path, 18) 
     
     # FUNCIONES AUXILIARES
     
@@ -447,7 +458,7 @@ class Level3:
 
         # Pantalla de controles
         if self.state == "controls_screen" and not self.is_fading:
-            if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
+            if self.can_skip_controls and event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
                 self.is_fading = True
                 self.target_state = "game"
                 self.fade_alpha = 0
@@ -467,7 +478,7 @@ class Level3:
                     # USAR EL QUIZ CON TEMPORIZADOR
                     try:
                         from quiz_timer_relaciones import run_quiz_with_timer
-                        passed = run_quiz_with_timer(self.screen, "Materials/Pictures/Assets/fondon3-Isis_Segura.png")
+                        passed = run_quiz_with_timer(self.screen, "Materials/Pictures/Assets/fondo_nivel_3.png")
                         
                         # Procesar resultado del quiz (ahora usa el return del quiz_timer_relaciones)
                         if passed:
@@ -589,6 +600,11 @@ class Level3:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                     if self.fade_alpha == 0:
                         self.is_fading = False
+                        # --- Iniciar el temporizador solo si no se ha iniciado ---
+                        if not self.control_timer_started:
+                            self.control_timer.start()
+                            self.control_timer_started = True
+                        # ---------------------------------------------------------------------
                 elif self.target_state == "game":
                     self.fade_alpha = min(255, self.fade_alpha + self.fade_out_speed)
                     if self.fade_alpha == 255:
@@ -606,8 +622,20 @@ class Level3:
         # Pantalla de controles
         if self.state == "controls_screen":
             if not self.is_fading and self.controls_music:
-                if not pygame.mixer.get_busy() or self.controls_music.get_num_channels() == 0:
+                # CORRECCIÓN DE MÚSICA DE CONTROL: 
+                # 1. DETENER la música de fondo (menú/nivel) para evitar interferencia.
+                pygame.mixer.music.stop() 
+                # 2. Verifica si la música de control no está sonando para reproducirla en bucle.
+                if self.controls_music.get_num_channels() == 0:
                     self.controls_music.play(-1)
+            
+            # Actualizar el temporizador y habilitar el salto
+            if self.control_timer_started and self.control_timer.is_running():
+                self.control_timer.update()
+            
+            if self.control_timer.finished and not self.can_skip_controls:
+                self.can_skip_controls = True
+
             return self.state
 
         # Estados de juego y quiz
@@ -681,22 +709,44 @@ class Level3:
                 self.screen.fill((255, 255, 255))
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
-                try:
-                    text_to_render_title = "CONTROLES"
-                    center_x_title = self.size[0] // 2
-                    center_y_title = 40 
-                    self._draw_text_with_border(self.screen, text_to_render_title, self.font_control_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4)
-                except Exception:
-                    pass
+                # TITULO DE CONTROLES
+                font_to_use_title = self.font_control_title
+                text_to_render_title = "CONTROLES"
+                center_x_title = self.size[0] // 2
+                center_y_title = 40 
+                # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
+                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4)
                 
-                font_to_use = self.font_dialog
-                try:
+                # Lógica para mostrar el temporizador con estilo unificado
+                BORDER_SIZE = 3
+                COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                COLOR_TEXT = (0, 0, 0) # Negro (Texto)
+                
+                font_to_use = self.font_control_text
+                center_x = self.size[0] // 2
+                center_y = self.size[1] - 35
+                
+                if self.can_skip_controls:
+                    # ✅ TEXTO LISTO PARA EMPEZAR
                     text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 3"
-                    center_x = self.size[0] // 2
-                    center_y = self.size[1] - 30
-                    self._draw_text_with_border(self.screen, text_to_render, font_to_use, (0, 0, 0), (255, 128, 0), (center_x, center_y), border_size=2)
-                except Exception:
-                    pass
+                elif self.control_timer_started:
+                    # 🕒 TEXTO DEL TEMPORIZADOR
+                    # Intenta acceder al atributo 'time_remaining'. Si falla, usa 0
+                    remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                    remaining_time = max(0, int(remaining_time_ms // 1000))
+                    
+                    if remaining_time == 0 and self.control_timer.is_running():
+                        text_to_render = "Espera un momento..."
+                    else:
+                        text_to_render = f"Esperando {remaining_time} segundos..."
+                else:
+                    # ⏳ TEXTO DE CARGA
+                    text_to_render = "Cargando..."
+                
+                # Dibuja el texto con borde
+                self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                            COLOR_TEXT, COLOR_BORDER, 
+                                            (center_x, center_y), border_size=BORDER_SIZE)
             else:
                 self.screen.fill((255, 255, 255))
                 font_to_use = self.font_dialog

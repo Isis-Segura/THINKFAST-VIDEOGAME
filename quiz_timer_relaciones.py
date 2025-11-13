@@ -23,7 +23,6 @@ ORANGE = (255, 165, 0)
 
 class Timer:
     def __init__(self, duration):
-
         self.duration = duration
         self.start_time = 0 
         self.paused = False
@@ -32,23 +31,19 @@ class Timer:
         self.elapsed_pause_time = 0
 
     def start(self):
-
         self.start_time = time.time() 
         self.finished = False
         self.paused = False
         self.elapsed_pause_time = 0
 
     def pause(self):
-
         if not self.paused:
             self.pause_time = time.time()
             self.paused = True
 
     def resume(self):
         if self.paused:
-
             self.elapsed_pause_time += time.time() - self.pause_time
-
             self.paused = False
 
     def update(self):
@@ -113,18 +108,11 @@ class Timer:
         
         # Dibujar marcas del reloj (más visibles)
         for i in range(12):
-            
             mark_angle = 2 * math.pi * i / 12 - math.pi / 2
-
             inner_x = clock_center[0] + (clock_radius - 15) * math.cos(mark_angle)
-
             inner_y = clock_center[1] + (clock_radius - 15) * math.sin(mark_angle)
-
-
             outer_x = clock_center[0] + (clock_radius - 5) * math.cos(mark_angle)
-
             outer_y = clock_center[1] + (clock_radius - 5) * math.sin(mark_angle)
-
             pygame.draw.line(surface, BLACK, (inner_x, inner_y), (outer_x, outer_y), 2)
         
         # Dibujar el texto del tiempo DENTRO del reloj (más grande)
@@ -279,8 +267,8 @@ def run_quiz_with_timer(screen, fondo_path):
         }
     ]
     
-    # Inicializar timer (20 segundos por pregunta)
-    quiz_timer = Timer(20)
+    # Inicializar timer (35 segundos por pregunta)
+    quiz_timer = Timer(35)
     quiz_timer.start()
     
     score = 0
@@ -346,8 +334,8 @@ def run_quiz_with_timer(screen, fondo_path):
         question_finished = False
         answer_given = False
         
-        # Reiniciar timer para nueva pregunta (20 segundos)
-        quiz_timer = Timer(20)
+        # Reiniciar timer para nueva pregunta (35 segundos)
+        quiz_timer = Timer(35)
         quiz_timer.start()
         
         # Bucle principal de la pregunta actual
@@ -525,7 +513,7 @@ def show_final_screen(screen, background, score, total, passed, screen_width, sc
     
     if passed:
         # Pantalla de victoria
-        win_text = large_font.render("¡GANASTE! 🎉", True, GREEN)
+        win_text = large_font.render("¡GANASTE!!", True, GREEN)
         win_rect = win_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
         screen.blit(win_text, win_rect)
         
@@ -538,7 +526,7 @@ def show_final_screen(screen, background, score, total, passed, screen_width, sc
         screen.blit(message_text, message_rect)
     else:
         # Pantalla de derrota
-        lose_text = large_font.render("¡PERDISTE! 💔", True, RED)
+        lose_text = large_font.render("¡PERDISTE!!", True, RED)
         lose_rect = lose_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
         screen.blit(lose_text, lose_rect)
         
@@ -550,7 +538,7 @@ def show_final_screen(screen, background, score, total, passed, screen_width, sc
         message_rect = message_text.get_rect(center=(screen_width // 2, screen_height // 2 + 70))
         screen.blit(message_text, message_rect)
     
-    # Botón para continuar (fondo blanco, letras negras)
+    # Botón para continuar (fondo blanco, letras negras) - Texto adaptado al botón
     continue_rect = pygame.Rect(
         screen_width // 2 - 150,
         screen_height - 120,
@@ -559,9 +547,14 @@ def show_final_screen(screen, background, score, total, passed, screen_width, sc
     pygame.draw.rect(screen, WHITE, continue_rect, border_radius=15)
     pygame.draw.rect(screen, BLACK, continue_rect, 3, border_radius=15)
     
-    continue_text = small_font.render("Presiona cualquier tecla para continuar", True, BLACK)
-    continue_text_rect = continue_text.get_rect(center=continue_rect.center)
+    # Texto que se adapta al tamaño del botón
+    continue_text = small_font.render("Presiona cualquier tecla", True, BLACK)
+    continue_text_rect = continue_text.get_rect(center=(continue_rect.centerx, continue_rect.centery - 10))
     screen.blit(continue_text, continue_text_rect)
+    
+    continue_text2 = small_font.render("para continuar", True, BLACK)
+    continue_text_rect2 = continue_text2.get_rect(center=(continue_rect.centerx, continue_rect.centery + 10))
+    screen.blit(continue_text2, continue_text_rect2)
     
     pygame.display.flip()
     

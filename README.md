@@ -57,6 +57,8 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 **-Presiona [Espacio] para seleccionarla. Tienes solo 10 segundos.**
 
 **-Objetivo: Responde correctamente 2 de 4 preguntas para avanzar.**
+
+
 ---
 
 ## 🧠 **Nivel 2 — [PASILLO]**
@@ -77,7 +79,8 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 **-Llévale la respuesta a la prefecta para que cuente como un acierto.**
 
-**-Objetivo: Acertar 3 de 5 preguntas para pasar al siguiente nivel.**
+**-Objetivo: Acertar 2 de 4 preguntas para pasar al siguiente nivel.**
+
 
 
 ---
@@ -94,7 +97,8 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 **-El profesor te dejará pasar si demuestras tu conocimiento.**
 
-**-Objetivo: Contestar 5 de 6 preguntas correctamente. ¡Si lo logras, GANAS EL JUEGO!**
+**-Objetivo: Contestar 3 de 4 preguntas correctamente. ¡Si lo logras, GANAS EL JUEGO!**
+
 
 
 ---
@@ -108,27 +112,38 @@ Tres niveles. Tres retos. Un solo objetivo: ¡aprender mientras juegas!
 
 💻 **Requisitos:**
 
-* Python 3.x
-* Librería pygame instalada
+* Python 3.12.0.
+* Librería pygame instalada.
+* Librerias para video y audio.
 
 ---
 
 # ▶️ **Guía para Ejecutar el Juego**
 
-### 1️⃣ **Clona el repositorio:**
+### 1️ **Clona el repositorio:**
 
 ```bash
 git clone https://github.com/Isis-Segura/THINKFAST-VIDEOGAME.git
 cd THINKFAST-VIDEOGAME
 ```
 
-### 2️⃣ **Instala pygame:**
+### 2️ **Instala pygame:**
 
 ```bash
 pip install pygame
 ```
 
-### 3️⃣ **Ejecuta el juego:**
+### 3 **Instala ffplayer:**
+
+```bash
+pip install ffplayer
+```
+### 4 **Instala MediaInfo:**
+
+```bash
+pip install MediaInfo
+```
+### 5 **Ejecuta el juego:**
 
 ```bash
 python menu.py

@@ -479,6 +479,10 @@ class Level1:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                     if self.fade_alpha == 0:
                         self.is_fading = False
+                        # --- INICIO DE LA MÚSICA DE CONTROLES (SOLUCIÓN AÑADIDA) ---
+                        if self.controls_music and not self.controls_music.get_num_channels():
+                            self.controls_music.play(-1) # -1 para reproducción en bucle
+                        # -------------------------------------------------------------
                 elif self.target_state == "game":
                     self.fade_alpha = min(255, self.fade_alpha + self.fade_out_speed)
                     if self.fade_alpha == 255:

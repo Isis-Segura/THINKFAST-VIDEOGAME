@@ -20,6 +20,11 @@ class FloorQuiz_KeyAndCarry:
         self.dialog_box_rect_template = dialog_box_rect
         self._dialog_img_loaded = dialog_img_loaded
 
+        # --- PROPIEDADES PARA EL TEMPORIZADOR (2 SEGUNDOS) ---
+        self.DELAY_DURATION = 2000 # 2 segundos en milisegundos
+        self.delay_timer = 0       # Almacena el tiempo de inicio del retraso
+        # -----------------------------------------------
+
         # Propiedades para la caja de la pregunta
         self.question_box_img = None
         self.question_box_rect = None
@@ -30,13 +35,15 @@ class FloorQuiz_KeyAndCarry:
         self.carried_choice_box_rect = pygame.Rect(0, 0, 150, 40)
 
         # Configuración visual de las opciones en el suelo
-        # ------------------- CAMBIO AQUÍ -------------------
-        # Se define Blanco Puro (255, 255, 255) para las 4 opciones
         self.choice_colors = [(255, 255, 255), (255, 255, 255), (255, 255, 255), (255, 255, 255)]
-        # ---------------------------------------------------
         self.highlight_color = (255, 255, 0)
-        self.choice_font_color = (0, 0, 0) # El texto sigue siendo negro para contraste
+        self.choice_font_color = (0, 0, 0) 
+        # Color de texto de la pregunta: Blanco/Tiza
         self.question_font_color = (255, 255, 255)
+        
+        # Nuevos colores para los bordes de retroalimentación
+        self.CORRECT_COLOR = (0, 200, 0) # Verde
+        self.INCORRECT_COLOR = (200, 0, 0) # Rojo
 
         self.choice_images = []
         self._load_choice_images()
@@ -45,7 +52,7 @@ class FloorQuiz_KeyAndCarry:
 
     def _load_choice_images(self):
         """Carga solo las imágenes de las opciones al inicio."""
-        C_IMG_SIZE = (80, 80)
+        C_IMG_SIZE = (80, 80) 
         self.choice_images = []
 
         for q_index, question_data in enumerate(self.questions):
@@ -71,10 +78,24 @@ class FloorQuiz_KeyAndCarry:
             self.question_box_img = pygame.transform.scale(self.dialog_box_img_template, (desired_width, desired_height))
             self.question_box_rect = self.question_box_img.get_rect(center=(self.size[0] // 2, 150))
         else:
-            self.question_box_img = pygame.Surface((600, 80), pygame.SRCALPHA)
-            self.question_box_img.fill((20, 30, 80, 180)) 
-            pygame.draw.rect(self.question_box_img, (255, 200, 0), self.question_box_img.get_rect(), 3, border_radius=10)
+            # --- CÓDIGO DE RECIBO ANTERIOR (Estilos) ---
+            self.question_box_img = pygame.Surface((600, 80), 0) 
+            self.question_box_img.set_colorkey((0, 0, 0))
+            
+            # Colores y parámetros
+            BACKGROUND_COLOR = (0, 100, 0) 
+            BORDER_COLOR = (101, 67, 33) 
+            BORDER_THICKNESS = 7   
+            BORDER_RADIUS = 20     
+            
+            # 1. DIBUJAR EL RELLENO VERDE CON BORDER_RADIUS 
+            pygame.draw.rect(self.question_box_img, BACKGROUND_COLOR, self.question_box_img.get_rect(), 0, border_radius=BORDER_RADIUS)
+            
+            # 2. DIBUJAR EL BORDE MARRÓN CON MAYOR GROSOR
+            pygame.draw.rect(self.question_box_img, BORDER_COLOR, self.question_box_img.get_rect(), BORDER_THICKNESS, border_radius=BORDER_RADIUS)
+            
             self.question_box_rect = self.question_box_img.get_rect(center=(self.size[0] // 2, 150))
+            # -----------------------------------------------------------------------
 
     def _setup_question_layout(self):
         self.choice_rects = []
@@ -84,13 +105,11 @@ class FloorQuiz_KeyAndCarry:
         start_y = self.size[1] - 130
         choice_box_height = 100
         
-        max_choice_width = 0
-        choice_text_surfaces = [self.font_question.render(choice["text"], True, self.choice_font_color) for choice in choices]
-        for surf in choice_text_surfaces:
-            max_choice_width = max(max_choice_width, surf.get_width(), 90)
-
-        choice_box_width = max_choice_width + 40
+        # Se mantiene el ancho fijo para uniformidad
+        C_BOX_UNIFORM_WIDTH = 180 
+        choice_box_width = C_BOX_UNIFORM_WIDTH 
         
+
         total_width = len(choices) * choice_box_width + (len(choices) - 1) * 20 
         x_start = (self.size[0] - total_width) // 2
 
@@ -103,6 +122,8 @@ class FloorQuiz_KeyAndCarry:
         self.carried_choice_index = -1
         self.is_answered = False
         self.answer_result = None
+        self.delay_timer = 0 # Reiniciar el timer
+        
 
     def check_player_collision(self, player_rect):
         if self.is_answered or self.carried_choice_index != -1:
@@ -121,11 +142,27 @@ class FloorQuiz_KeyAndCarry:
             self.current_question_index += 1
             self._setup_question_layout()
         else:
-            self.finished = True
+            # Aunque no se llama aquí en la nueva lógica, se mantiene
+            self.finished = True 
         
     def update_carried_choice_position(self, player_center_x, player_top_y):
         self.carried_choice_box_rect.centerx = player_center_x + self.carried_choice_box_rect.width // 2 + 10
         self.carried_choice_box_rect.centery = player_top_y + (self.carried_choice_box_rect.height // 2) + 20
+
+    # --- MÉTODO UPDATE CRUCIAL PARA EL AVANCE AUTOMÁTICO (CORREGIDO) ---
+    def update(self):
+        """Maneja la lógica de avance automático después de la respuesta."""
+        if self.is_answered and self.delay_timer > 0:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.delay_timer >= self.DELAY_DURATION:
+                # Si es la última pregunta
+                if self.current_question_index == self.max_questions - 1:
+                    # Al pasar el delay, se marca como terminado para Level2F.py
+                    self.finished = True 
+                    self.is_answered = False # Se desactiva la respuesta para detener el dibujo del mensaje
+                    self.delay_timer = 0
+                else:
+                    self.next_question() # Pasa a la siguiente pregunta
         
     def handle_interaction_input(self, player_rect, npc_rect):
         if self.finished or self.is_answered:
@@ -141,11 +178,13 @@ class FloorQuiz_KeyAndCarry:
                 self.answer_result = "correct" if is_correct else "incorrect"
                 self.carried_choice_index = -1
                 self.highlighted_choice_index = -1
+                
+                # --- INICIAR EL TEMPORIZADOR AL RESPONDER (PARA TODAS LAS PREGUNTAS) ---
+                self.delay_timer = pygame.time.get_ticks() 
+                # ------------------------------------------
 
-                if self.current_question_index == self.max_questions - 1:
-                    return "finished"
-                else:
-                    return self.answer_result
+                # Se retorna el resultado, Level2F.py lo registra y espera que update() marque el final.
+                return self.answer_result
 
         # 2. RECOGER (PICK UP)
         elif self.highlighted_choice_index != -1:
@@ -209,23 +248,38 @@ class FloorQuiz_KeyAndCarry:
                 surface.blit(text_surface, text_rect)
                 current_y += line_height
 
-        # 2. DIBUJAR OPCIONES EN EL SUELO (Incluyendo imágenes)
+        # 2. DIBUJAR OPCIONES EN EL SUELO 
         if self.carried_choice_index == -1: 
+            current_q_data = self.questions[self.current_question_index]
             current_choice_images = self.choice_images[self.current_question_index]
+            correct_index = current_q_data["correct_answer"]
             
             for i, rect in enumerate(self.choice_rects):
                 
-                choice_text = self.questions[self.current_question_index]["choices"][i]["text"]
+                choice_text = current_q_data["choices"][i]["text"]
                 
-                # Se utiliza el color blanco definido en __init__
-                color = self.choice_colors[i]
+                # --- LÓGICA DE BORDE DE RETROALIMENTACIÓN ---
+                border_color = None
+                border_width = 3 # Grosor del borde
                 
-                # Resaltar (se mantiene amarillo)
-                if i == self.highlighted_choice_index:
-                    pygame.draw.rect(surface, self.highlight_color, rect.inflate(10, 10), border_radius=5)
-                    
-                # Dibujar recuadro de opción
-                pygame.draw.rect(surface, color, rect, border_radius=5)
+                if self.is_answered:
+                    if i == correct_index:
+                        border_color = self.CORRECT_COLOR  # Verde para la correcta
+                    else:
+                        border_color = self.INCORRECT_COLOR # Rojo para las incorrectas
+                elif i == self.highlighted_choice_index:
+                    border_color = self.highlight_color # Amarillo si está resaltada para recoger
+                    border_width = 5 
+                
+                # --- DIBUJAR RECUADRO Y BORDE ---
+                # Se dibuja el recuadro blanco de fondo
+                pygame.draw.rect(surface, self.choice_colors[i], rect, border_radius=5)
+                
+                # Se dibuja el borde (si aplica)
+                if border_color:
+                    # El borde se dibuja SOBRE el recuadro
+                    pygame.draw.rect(surface, border_color, rect, border_width, border_radius=5)
+
                 
                 # DIBUJAR IMAGEN DE OPCIÓN
                 choice_img = current_choice_images[i]
@@ -238,7 +292,7 @@ class FloorQuiz_KeyAndCarry:
                 text_rect = text_surface.get_rect(centerx=rect.centerx, bottom=rect.bottom - 5)
                 surface.blit(text_surface, text_rect)
                 
-                # DIBUJAR MENSAJE DE RECOGER CON BORDE
+                # DIBUJAR MENSAJE DE RECOGER
                 if i == self.highlighted_choice_index and not self.is_answered:
                     prompt_text = "Presiona ESPACIO/ENTER para RECOGER."
                     
@@ -256,13 +310,14 @@ class FloorQuiz_KeyAndCarry:
 
         # 3. DIBUJAR RESULTADO TEMPORAL CON BORDE 
         if self.is_answered:
-            if self.answer_result == "correct":
-                message = "¡CORRECTO! Pulsa ESPACIO para seguir."
-                msg_color = (0, 255, 0) 
-            else:
-                message = "INCORRECTO. Pulsa ESPACIO para seguir."
-                msg_color = (255, 0, 0) 
-            
+            # Ahora el mensaje de "CORRECTO/INCORRECTO" es uniforme para todas las preguntas
+            if self.answer_result == "correct": 
+                message = "¡CORRECTO!"
+                msg_color = self.CORRECT_COLOR 
+            else: # incorrect
+                message = "INCORRECTO."
+                msg_color = self.INCORRECT_COLOR
+
             msg_center_pos = (self.size[0] // 2, self.size[1] - 150)
             
             self._draw_text_with_border(

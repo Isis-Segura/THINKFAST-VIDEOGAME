@@ -76,6 +76,53 @@ class Confetti:
             pygame.draw.circle(surface, (30, 30, 30), (int(x + 2), int(y + 3)), shadow_radius)
             pygame.draw.circle(surface, color, (int(x), int(y)), size)
 
+
+# ============================================================
+# CLASE ARROWSPRITE: controla la animación de la flecha (COPIADA DE Level1F.py)
+# ============================================================
+class ArrowSprite:
+    def __init__(self, x, y):
+        self.images = []
+        for i in range(1, 5): # Carga flecha1.png, flecha2.png, flecha3.png, flecha4.png
+            try:
+                img = pygame.image.load(f'Materials/Pictures/Assets/flecha{i}.png').convert_alpha()
+                # Redimensiona la flecha a un tamaño apropiado (ej: 80x80)
+                img = pygame.transform.scale(img, (80, 80)) 
+                self.images.append(img)
+            except pygame.error:
+                # Si las imágenes no cargan, usa un cuadrado rojo como fallback
+                print(f"Error cargando flecha{i}.png. Usando fallback.")
+                fallback = pygame.Surface((40, 40), pygame.SRCALPHA)
+                fallback.fill((255, 0, 0, 150))
+                self.images.append(fallback)
+
+        self.current_frame = 0
+        self.animation_speed = 0.15 # Velocidad de cambio de frame (0.15s por frame)
+        self.image = self.images[self.current_frame]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.last_update = pygame.time.get_ticks()
+        self.active = False # Inicialmente inactivo
+
+    def start(self):
+        self.active = True
+
+    def update(self):
+        if not self.active:
+            return
+
+        now = pygame.time.get_ticks()
+        # Control de animación basado en tiempo
+        if now - self.last_update > self.animation_speed * 1000:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.images)
+            self.image = self.images[self.current_frame]
+
+    def draw(self, surface):
+        if self.active:
+            surface.blit(self.image, self.rect.topleft)
+
+
 class Level2:
     def __init__(self, screen, size, font, character_choice):
         global MIXER_INITIALIZED
@@ -88,7 +135,7 @@ class Level2:
         self.character_choice = character_choice
 
         try:
-            self.control_image = pygame.image.load('Materials/Pictures/Assets/Control.jpg').convert()
+            self.control_image = pygame.image.load('Materials/Pictures/Assets/Control2.jpg').convert()
         except pygame.error:
             self.control_image = None
 
@@ -225,9 +272,7 @@ class Level2:
                 print(f"Verifica que los archivos .wav estén en la ruta: 'Materials/Music/'")
                 print(f"Error detallado: {e}")
                 print("---------------------------------------------------------------")
-        # ---------------------------------------------------------------------------------------------
         
-        # -------------------- SOLUCIÓN FALTANTE: REPRODUCCIÓN DE MÚSICA DE CONTROL --------------------
         # Reproduce la música de control al iniciar la pantalla de controles
         if self.state == "controls_screen" and self.controls_music:
             self.controls_music.play(-1) # El -1 indica reproducción en bucle
@@ -247,6 +292,12 @@ class Level2:
         self.win_music_played = False
 
         self.confetti = Confetti(self.size[0], self.size[1])
+
+        # --- AÑADIDO: Temporizador y Bandera para la Pantalla de Controles (10s) ---
+        self.control_timer = Timer(10) # 10 segundos
+        self.control_timer_started = False
+        self.can_skip_controls = False
+        # -------------------------------------------------------------------------
 
         # -------------------- CORRECCIÓN DE ESTRUCTURA DE PREGUNTAS (Sin imagen de pregunta principal) --------------------
         self.questions = [
@@ -286,17 +337,26 @@ class Level2:
         
         self.font_base = pygame.font.Font(font_path, 18)
         self.font_dialog = pygame.font.Font(font_path, 15)
-        self.font_question = pygame.font.Font(font_path, 13)
+        self.font_question = pygame.font.Font(font_path, 14)
         self.font_title = pygame.font.Font(font_path, 15)
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
 
+        # --- AÑADIDO: Sprite de la flecha animada (COPIADA DE Level1F.py) ---
+        # Posición: win_zone.centerx + 22, win_zone.centery (apunta a la puerta)
+        self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
+        # --------------------------------------------------------------------
+
+
     def _process_quiz_result(self, quiz_result):
         if quiz_result == "finished":
+            # Esta rama ya no debería ser necesaria con la nueva lógica de FloorQuiz_KeyAndCarry.py, 
+            # pero se mantiene para robustez.
             result_string = self.quiz_game.answer_result
         else:
             result_string = quiz_result
         
+        # Pausa el temporizador de 20s durante el delay de 2s
         self.quiz_timer.pause() 
         
         if len(self.answer_results) < self.max_questions:
@@ -326,8 +386,9 @@ class Level2:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
                     pygame.mixer.stop()
-                    self.__init__(self.screen, self.size, self.font, self.character_choice)
-                    self.answer_results.clear()
+                    # Utilizar la reinicialización con __init__ para mantener la lógica de reinicio del juego.
+                    new_level = Level2(self.screen, self.size, self.font, self.character_choice)
+                    self.__dict__.update(new_level.__dict__)
                     return "restart"
                 if event.key == pygame.K_ESCAPE:
                     pygame.mixer.stop()
@@ -335,12 +396,14 @@ class Level2:
             return None
 
         if self.state == "controls_screen" and not self.is_fading:
-            if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
+            # --- CORREGIDO: Solo permite saltar si la bandera self.can_skip_controls es True (después de 10 segundos) ---
+            if self.can_skip_controls and event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
                 self.is_fading = True
                 self.target_state = "game"
                 self.fade_alpha = 0
                 if self.controls_music:
                     self.controls_music.stop() # Detiene la música de control al pasar al juego
+            # --------------------------------------------------------------------------------------------------------------
             return None
 
         if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_RETURN]):
@@ -378,11 +441,10 @@ class Level2:
                     return None
 
             elif self.state == "quiz_floor" and self.quiz_game:
+                # La siguiente lógica se elimina para evitar que el jugador salte el avance automático de 2s
+                # con ESPACIO/ENTER después de responder. El avance lo maneja FloorQuiz_KeyAndCarry.update().
                 if self.quiz_game.is_answered and not self.quiz_game.finished and self.state != "loss_sound_state":
-                    self.quiz_timer = Timer(20)
-                    self.quiz_timer.start()
-                    self.quiz_game.next_question()
-                    return None
+                    return None 
                     
                 if not self.quiz_game.is_answered:
                     quiz_result = self.quiz_game.handle_interaction_input(self.player.rect, self.Guardia.rect)
@@ -403,6 +465,11 @@ class Level2:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                     if self.fade_alpha == 0:
                         self.is_fading = False
+                        # --- AÑADIDO: Iniciar el temporizador solo si no se ha iniciado ---
+                        if not self.control_timer_started:
+                            self.control_timer.start()
+                            self.control_timer_started = True
+                        # ---------------------------------------------------------------------
                 elif self.target_state == "game":
                     self.fade_alpha = min(255, self.fade_alpha + self.fade_out_speed)
                     if self.fade_alpha == 255:
@@ -419,9 +486,26 @@ class Level2:
             return self.state
 
         if self.state == "controls_screen":
+            # --- AÑADIDO: Actualizar el temporizador y habilitar el salto ---
+            if self.control_timer_started and self.control_timer.is_running():
+                self.control_timer.update()
+            
+            if self.control_timer.finished and not self.can_skip_controls:
+                self.can_skip_controls = True
+                print("DEBUG TIEMPO: Han pasado 10 segundos. El jugador puede saltar la pantalla de controles.")
+            # -----------------------------------------------------------------
             return self.state
 
         if self.state in ["game", "quiz_floor"]:
+            
+            # --- REMOVIDO: Lógica de animación manual de la flecha ---
+            # Ahora usamos self.arrow_sprite.update()
+            # --------------------------------------------------------
+            
+            # --- AÑADIDO: Actualización de la flecha (COPIADO DE Level1F.py) ---
+            self.arrow_sprite.update() 
+            # -------------------------------------------------------------------
+
             if self.timer.is_running():
                 self.timer.update()
             
@@ -455,6 +539,23 @@ class Level2:
                     self.win_music_played = True
             
         elif self.state == "quiz_floor":
+            # CRÍTICO: Llama a update() para manejar el avance automático de 2 segundos.
+            if self.quiz_game:
+                self.quiz_game.update() 
+            
+            # === CORRECCIÓN SOLICITADA: Reiniciar el temporizador para la nueva pregunta ===
+            # Verifica si el quiz no ha terminado (finished=False), si ya no está en estado de respuesta (is_answered=False)
+            # y si el temporizador aún está pausado (lo que sucede inmediatamente después de pasar el delay de 2s).
+            if (self.quiz_game and 
+                not self.quiz_game.finished and 
+                not self.quiz_game.is_answered and 
+                self.quiz_timer.paused): 
+                
+                self.quiz_timer.reset() # Lo pone de nuevo a 20 segundos
+                self.quiz_timer.start() # Lo inicia
+            # ==============================================================================
+
+            # La actualización del timer debe ir después de la lógica de reinicio
             if not self.quiz_timer.paused and not getattr(self.quiz_game, "is_answered", False):
                 self.quiz_timer.update()
 
@@ -469,6 +570,7 @@ class Level2:
                 self.quiz_game.carried_choice_index = -1
                 self.quiz_timer.pause()
                 
+                # Se mantiene esta lógica si FloorQuiz_KeyAndCarry no avanza automáticamente
                 if hasattr(self.quiz_timer, 'time_remaining'):
                     self.quiz_timer.time_remaining = 10 
 
@@ -478,7 +580,9 @@ class Level2:
                     if self.loss_sound:
                         self.loss_sound.play()
 
-            if self.quiz_game and self.quiz_game.finished and getattr(self.quiz_game, 'is_answered', False):
+            # === LÓGICA DE TRANSICIÓN AL DIÁLOGO FINAL (Versión limpia) ===
+            # La bandera .finished se activa SÓLO después del delay de 2s en la ÚLTIMA pregunta.
+            if self.quiz_game and self.quiz_game.finished: 
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
                 score = self.answer_results.count("correct")
@@ -487,9 +591,9 @@ class Level2:
                 if score == total:
                     dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
                 elif score >= 2:
-                    dialog_text = "Buen trabajo. Tienes un buen nivel, sigue \npracticando."
+                    dialog_text = "Buen trabajo. Te has esforzado bastante, sigue \npracticando."
                 else:
-                    dialog_text = "Puedes mejorar, sigue estudiando."
+                    dialog_text = "Puedes mejorar, nunca dejes de estudiar."
 
                 self.post_quiz_dialogs = [
                     f"Has respondido correctamente {score} de {total} preguntas.",
@@ -522,6 +626,9 @@ class Level2:
                 if not self.background_changed:
                     self.background_image = self.background_image_open
                     self.background_changed = True
+                    # --- CRÍTICO: Activación de la flecha de la puerta final ---
+                    self.arrow_sprite.start()
+                    # ----------------------------------------------------------
                 self.state = "game"
 
         elif self.state == "loss_sound_state":
@@ -576,9 +683,25 @@ class Level2:
                 self._draw_text_with_border(self.screen, text_to_render_title, font_to_use, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
                 font_to_use = self.font_dialog
-                text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 2"
                 center_x = self.size[0] // 2
                 center_y = self.size[1] - 35
+                
+                # --- CORREGIDO: Lógica para mostrar el temporizador y evitar el AttributeError ---
+                if self.can_skip_controls:
+                    text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 2"
+                elif self.control_timer_started:
+                    # Intenta acceder al atributo 'time_remaining'. Si falla, usa 0 (previniendo el AttributeError)
+                    remaining_time = max(0, int(getattr(self.control_timer, 'time_remaining', 0)))
+                    
+                    if remaining_time == 0 and self.control_timer.is_running():
+                        # Si retorna 0 pero el temporizador aún corre, muestra un mensaje genérico.
+                        text_to_render = "Espera un momento..."
+                    else:
+                        text_to_render = f"Esperando {remaining_time} segundos..."
+                else:
+                    text_to_render = "Cargando..."
+                # -----------------------------------------------------------------------------
+                
                 self._draw_text_with_border(self.screen, text_to_render, font_to_use, (0, 0, 0), (255, 128, 0), (center_x, center_y), border_size=2)
             else:
                 self.screen.fill((255, 255, 255))
@@ -595,9 +718,33 @@ class Level2:
 
         if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor", "loss_sound_state"]:
             self.screen.blit(self.background_image, (0, 0))
+            
+            # --- COPIADO DE Level1F.py: DIBUJAR SOMBRAS DETALLADAS ---
+            shadow_surface = pygame.Surface(self.size, pygame.SRCALPHA)
+            SHADOW_COLOR_RGBA = (30, 30, 30, 100)
+            OFFSET_Y = 4
+            
+            # 1. Sombra del Jugador
+            shadow_w_player = self.player.rect.width * 0.7 
+            shadow_h_player = self.player.rect.height * 0.15
+            shadow_rect_player = pygame.Rect(0, 0, shadow_w_player, shadow_h_player)
+            shadow_rect_player.midtop = (self.player.rect.centerx, self.player.rect.bottom - OFFSET_Y - 5) 
+            pygame.draw.ellipse(shadow_surface, SHADOW_COLOR_RGBA, shadow_rect_player)
+            
+            # 2. Sombra de la Prefecta (NPC)
+            shadow_w_guardia = self.Guardia.rect.width * 0.8  
+            shadow_h_guardia = self.Guardia.rect.height * 0.18
+            shadow_rect_guardia = pygame.Rect(0, 0, shadow_w_guardia, shadow_h_guardia)
+            shadow_rect_guardia.midtop = (self.Guardia.rect.centerx , self.Guardia.rect.bottom - OFFSET_Y - 10)
+            pygame.draw.ellipse(shadow_surface, SHADOW_COLOR_RGBA, shadow_rect_guardia)
+            self.screen.blit(shadow_surface, (0, 0))
+            # -----------------------------------------------------------
+            
             self.Guardia.draw(self.screen)
             self.player.draw(self.screen)
 
+            # --- REMOVIDO: Lógica manual de dibujo de flecha. ---
+            
             spacing = 18
             marco_w, marco_h = self.marco_img.get_size()
             total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
@@ -617,6 +764,12 @@ class Level2:
                     self.screen.blit(symbol_img, (sym_x, sym_y))
 
             self.confetti.draw(self.screen)
+            
+            # --- AÑADIDO: Dibuja la flecha (COPIADO DE Level1F.py) ---
+            # La clase ArrowSprite se encarga de dibujar solo si está activa (después del quiz exitoso)
+            self.arrow_sprite.draw(self.screen)
+            # ---------------------------------------------------------
+
 
             if self.state == "quiz_floor":
                 self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
@@ -628,12 +781,10 @@ class Level2:
                 
                 if self.quiz_game.carried_choice_index != -1:
                     drop_text = "Presiona ESPACIO/ENTER para ENTREGAR a la Prefecta."
-                    # **CAMBIO APLICADO: Se añade el borde**
                     center_pos = (self.size[0] // 2, self.Guardia.rect.top - 40)
                     self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
                 elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1:
                     drop_text = "MUEVETE CERCA DE UNA RESPUESTA para RECOGERLA."
-                    # **CAMBIO APLICADO: Se añade el borde**
                     center_pos = (self.size[0] // 2, self.size[1] - 150)
                     self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
 

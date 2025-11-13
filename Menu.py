@@ -640,17 +640,24 @@ while running:
             elif button_pressed == "lang_en" and language_en_rect.collidepoint(event.pos):
                 language = "en"
             elif button_pressed == "vol_down" and volume_down_rect.collidepoint(event.pos):
+
                 volume_level = max(0.0, volume_level - 0.1); pygame.mixer.music.set_volume(volume_level)
             elif button_pressed == "vol_up" and volume_up_rect.collidepoint(event.pos):
+
                 volume_level = min(1.0, volume_level + 0.1); pygame.mixer.music.set_volume(volume_level)
                 
             dragging_volume = False
+
             button_pressed = None # Limpiar el estado 'clicked'
             
         elif event.type == pygame.MOUSEMOTION and dragging_volume:
+
             if volume_slider_rect:
+
                 relative_x = event.pos[0] - volume_slider_rect.left
+
                 volume_level = max(0.0, min(1.0, relative_x / volume_slider_rect.width))
+                
                 pygame.mixer.music.set_volume(volume_level)
 
     # ACTUALIZACIÓN DEL MOVIMIENTO DINÁMICO (en todas las pantallas de menú)

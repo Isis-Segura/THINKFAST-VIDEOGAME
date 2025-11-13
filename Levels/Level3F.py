@@ -477,7 +477,7 @@ class Level3:
                 if self.use_quiz_timer:
                     # USAR EL QUIZ CON TEMPORIZADOR
                     try:
-                        from quiz_timer_relaciones import run_quiz_with_timer
+                        from Interacciones.Mecanicas.quiz_timer_relaciones import run_quiz_with_timer
                         passed = run_quiz_with_timer(self.screen, "Materials/Pictures/Assets/fondo_nivel_3.png")
                         
                         # Procesar resultado del quiz (ahora usa el return del quiz_timer_relaciones)

@@ -371,7 +371,7 @@ class Level1:
         self.control_timer = Timer(5) # Ajustado a 5 segundos
         self.control_timer_started = False
         self.can_skip_controls = False
-        # -------------------------------------------------------------
+        # ------------------------------------------------------------
 
 
     # ============================================================

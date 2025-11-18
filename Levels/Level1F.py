@@ -226,7 +226,7 @@ class Level1:
             self.win_image = None
 
         # Temporizadores
-        self.timer = Timer(120)      # tiempo general del nivel
+        self.timer = Timer(5000)      # tiempo general del nivel
         self.quiz_timer = Timer(10)  # tiempo para responder cada pregunta
 
         # palomitas y taches -> ahora con imágenes
@@ -411,7 +411,7 @@ class Level1:
                 elif self.state == "dialog":
                     # Inicia el quiz
                     self.timer.start()
-                    self.quiz_timer = Timer(10)
+                    self.quiz_timer = Timer(60)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False
@@ -432,7 +432,7 @@ class Level1:
             # LÓGICA DE AVANCE DEL QUIZ
             if self.state == "quiz_floor" and self.quiz_game:
                 if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.state != "loss_sound_state":
-                    self.quiz_timer = Timer(10)
+                    self.quiz_timer = Timer(60)
                     self.quiz_timer.start()
                     self.quiz_game.next_question()
                     return None

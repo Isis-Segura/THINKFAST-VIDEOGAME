@@ -211,8 +211,8 @@ class Level2:
         except pygame.error:
             self.win_image = None
 
-        self.timer = Timer(120)
-        self.quiz_timer = Timer(20)
+        self.timer = Timer(5000)
+        self.quiz_timer = Timer(60)
 
         self.answer_results = []
         self.max_questions = 4
@@ -418,7 +418,7 @@ class Level2:
                 
                 if self.state == "dialog":
                     self.timer.start()
-                    self.quiz_timer = Timer(20)
+                    self.quiz_timer = Timer(60)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False

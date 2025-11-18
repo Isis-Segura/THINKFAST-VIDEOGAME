@@ -141,6 +141,7 @@ class Level1:
         # PANTALLA DE TUTORIAL
         self.tuto_image = None
         self.tuto_image_2 = None 
+        self.tuto_image_3 = None # <--- NUEVA VARIABLE
         self.tuto_alpha = 0  
         self.tuto_max_alpha = 255
         self.tuto_fade_speed = 8  
@@ -150,7 +151,7 @@ class Level1:
         self.tuto_fade_out_started = False
         self.tuto_finished = False # Indica si el Tuto 1 ha terminado su ciclo automático (se usa para bloqueo permanente)
 
-        # Control del tutorial actual (1 = tuto1, 2 = tuto2, 0 = finalizado)
+        # Control del tutorial actual (1 = tuto1, 2 = tuto2, 3 = tuto3, 0 = finalizado)
         self.current_tuto_index = 1 
         self.tuto_2_active = False 
 
@@ -170,9 +171,14 @@ class Level1:
             img2 = pygame.image.load('Materials/Pictures/Assets/tuto2.jpg').convert_alpha()
             self.tuto_image_2 = pygame.transform.scale(img2, (250, 180))
             
+            # 3. Cargar y redimensionar la imagen de tutorial 3 (Diálogo/Quiz) <--- NUEVO
+            img3 = pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha()
+            self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
+            
         except pygame.error as e:
             self.tuto_image = None
             self.tuto_image_2 = None
+            self.tuto_image_3 = None # <--- Manejo de error para Tuto 3
             self.current_tuto_index = 0
             print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
@@ -455,9 +461,20 @@ class Level1:
                     self.dialogo_active = False
                     self.typewriter = None
                     self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question) 
-                    # Al iniciar el quiz, el tutorial debe desaparecer por completo
-                    self.current_tuto_index = 0 
-                    self.tuto_finished = True 
+                    
+                    # *** LÓGICA DE TRANSICIÓN TUTO 3 -> FINAL ***
+                    # Tuto 3 debe desaparecer cuando el quiz empieza.
+                    if self.current_tuto_index == 3:
+                        # Forzamos la salida de Tuto 3. La lógica de update lo terminará.
+                        self.tuto_fade_out_started = True 
+                        # Asegura que el slide-out no se bloquee por un timer activo si lo tuviera.
+                        if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                            self.tuto_visible_timer.time_remaining = 0 
+                    else:
+                        # Si no hay Tuto 3, terminamos la secuencia (caso error)
+                        self.current_tuto_index = 0 
+                        self.tuto_finished = True 
+                        
                 elif self.state == "quiz_complete_dialog":
                     # Avanza los diálogos después del quiz
                     self.current_dialog_index += 1
@@ -515,6 +532,7 @@ class Level1:
 
         # Transiciones de fundido (fade in/out)
         if self.is_fading:
+            # ... (código de fade-in/out para controls_screen)
             if self.state == "controls_screen":
                 if self.target_state is None:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
@@ -537,11 +555,11 @@ class Level1:
                     if self.level_music_loaded and not pygame.mixer.music.get_busy():
                         pygame.mixer.music.play(-1)
                     # CAMBIO: Inicia el tutorial 1 si no ha terminado
-                    if (self.tuto_image or self.tuto_image_2) and self.current_tuto_index > 0 and not self.tuto_fade_in_started:
+                    if (self.tuto_image or self.tuto_image_2 or self.tuto_image_3) and self.current_tuto_index > 0 and not self.tuto_fade_in_started:
                         self.tuto_fade_in_started = True
 
         if self.state == "controls_screen" and not self.is_fading:
-            # --- CÓDIGO INTEGRADO DE LEVEL 2: Lógica de inicio y actualización del temporizador de controles ---
+            # ... (código del temporizador de controles)
             if not self.control_timer_started:
                 self.control_timer.start()
                 self.control_timer_started = True
@@ -550,11 +568,11 @@ class Level1:
                 self.control_timer.update()
                 if self.control_timer.finished and not self.can_skip_controls:
                     self.can_skip_controls = True
-            # ------------------------------------------------------------------------------------
+            
             return self.state
 
         # Lógica de la animación del tutorial (MODIFICADA PARA ACTIVACIÓN DINÁMICA DE TUTO 2)
-        if self.current_tuto_index > 0 and (self.tuto_image or self.tuto_image_2):
+        if self.current_tuto_index > 0 and (self.tuto_image or self.tuto_image_2 or self.tuto_image_3): # AÑADIDO TUTO 3
             
             # Determinar si el jugador está cerca del guardia (AUMENTAR EL RECT DE COLISIÓN PARA CERCANÍA)
             is_near_guard = self.player.rect.colliderect(self.guardia_collision_rect.inflate(100, 100))
@@ -577,7 +595,7 @@ class Level1:
 
 
             # ---------------------------------------------------
-            # Animation State 1: SLIDE-IN (tuto1 or tuto2)
+            # Animation State 1: SLIDE-IN (tuto1 or tuto2 or tuto3)
             # ---------------------------------------------------
             if self.tuto_fade_in_started and not self.tuto_fade_out_started:
                 # 1. Fade-in (Opacidad)
@@ -594,9 +612,11 @@ class Level1:
                 is_slide_finished = (self.tuto_current_x >= self.tuto_target_x)
                 is_fade_in_finished = (self.tuto_alpha == self.tuto_max_alpha)
 
-                # If slide-in is complete, start the timer for visibility
+                # If slide-in is complete, start the timer for visibility (Solo para Tuto 1/2 si es necesario)
                 if is_slide_finished and is_fade_in_finished and not self.tuto_visible_timer.is_running():
-                    self.tuto_visible_timer.start()
+                    if self.current_tuto_index in [1, 2]:
+                         self.tuto_visible_timer.start()
+                    
                     # Tuto 1 solo debe iniciar su timer la primera vez
                     if self.current_tuto_index == 1 and not self.tuto_finished:
                         self.tuto_finished = True # Marcar Tuto 1 como "visto por primera vez"
@@ -617,10 +637,14 @@ class Level1:
                     elif self.current_tuto_index == 2:
                         # Tuto 2: solo debe desaparecer si me alejo o interactúo. Si el timer termina, se mantiene visible hasta que ocurra algo.
                         pass
+                    
+                    elif self.current_tuto_index == 3:
+                        # Tuto 3: No tiene timer de desaparición automática, solo desaparece al iniciar el quiz.
+                        pass
 
 
             # ---------------------------------------------------
-            # Animation State 3: SLIDE-OUT (tuto1 or tuto2)
+            # Animation State 3: SLIDE-OUT (tuto1 or tuto2 or tuto3)
             # ---------------------------------------------------
             if self.tuto_fade_out_started and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
                 # 1. Fade-out (Opacidad)
@@ -669,19 +693,28 @@ class Level1:
                         else:
                             # Finaliza la secuencia de tutoriales (solo si ya interactuó o si Tuto 1 terminó permanentemente)
                             self.current_tuto_index = 0
-                            # Marcar como finalizado solo si hubo interacción para que no se reactive
                             if self.guard_interacted:
                                 self.tuto_finished = True 
                             self.tuto_fade_in_started = False
                             self.tuto_fade_out_started = False
                             self.tuto_visible_timer.reset()
+                            
+                    elif self.current_tuto_index == 3: # <--- LÓGICA AÑADIDA PARA TUTO 3
+                        # TUTO 3 FINISHED -> FINALIZA la secuencia DE MODO PERMANENTE
+                        self.current_tuto_index = 0
+                        self.tuto_finished = True
+                        self.tuto_fade_in_started = False
+                        self.tuto_fade_out_started = False
+                        self.tuto_visible_timer.reset()
             # FIN CÓDIGO MODIFICADO
 
 
         # Estados de juego y quiz
-        if self.state in ["game", "quiz_floor"]:
+        if self.state in ["game", "quiz_floor", "dialog"]: # Añadido "dialog" para movimiento
             if self.timer.is_running():
                 self.timer.update()
+            
+            # El jugador puede moverse durante el diálogo, pero el guardia sigue siendo barrera
             barrier = self.guardia_collision_rect if not self.guard_interacted else None
             self.player.move(keys, self.size[0], self.size[1], barrier)
             
@@ -711,9 +744,20 @@ class Level1:
                 self.dialogo_active = True
                 self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, 
                                                  (255, 255, 255), speed=25)
-                # Al iniciar la interacción, el tutorial se marca como terminado permanentemente.
-                self.current_tuto_index = 0 
-                self.tuto_finished = True 
+                
+                # *** LÓGICA DE TRANSICIÓN A TUTO 3 ***
+                # Tuto 2 termina y Tuto 3 empieza su fade-in/slide-in
+                if self.tuto_image_3:
+                    self.current_tuto_index = 3 
+                    self.tuto_fade_in_started = True
+                    self.tuto_fade_out_started = False
+                    self.tuto_visible_timer.reset()
+                    self.tuto_alpha = 0 
+                    self.tuto_current_x = self.tuto_exit_x 
+                else:
+                    # Si no hay tuto3, simplemente lo terminamos como antes
+                    self.current_tuto_index = 0 
+                    self.tuto_finished = True 
 
         # Estado del quiz (temporizador y respuestas)
         elif self.state == "quiz_floor":
@@ -721,6 +765,7 @@ class Level1:
                 self.quiz_timer.update()
 
             if self.quiz_timer.finished and not getattr(self.quiz_game, "is_answered", False):
+                # ... (resto de lógica de finalización de tiempo en quiz)
                 if self.incorrect_sound:
                     self.incorrect_sound.play()
                 if len(self.answer_results) < self.max_questions:
@@ -778,7 +823,8 @@ class Level1:
                 self.Guardia.rect.x -= 130
                 guardia_width = self.Guardia.rect.width
                 new_width = self.guardia_collision_rect.width
-                self.guardia_collision_rect.x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
+                new_x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
+                self.guardia_collision_rect.x = new_x
                 self.player.rect.x = 450
                 self.player.rect.y = 570
                 self.guard_interacted = True
@@ -787,9 +833,6 @@ class Level1:
                     self.background_changed = True
                     self.arrow_sprite.start()
                 self.state = "game"
-                # El tutorial ya se marcó como finalizado en el estado "game" antes de iniciar el quiz
-                # self.current_tuto_index = 0
-                # self.tuto_finished = True
 
         # Estado de derrota (reproduce sonido y pasa a game_over)
         elif self.state == "loss_sound_state":
@@ -826,6 +869,7 @@ class Level1:
     def draw(self):
         # Pantalla de controles
         if self.state == "controls_screen":
+            # ... (código de draw para controls_screen)
             if self.control_image:
                 screen_width, screen_height = self.size
                 image_orig_width, image_orig_height = self.control_image.get_size()
@@ -881,7 +925,6 @@ class Level1:
                 self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
                                             COLOR_TEXT, COLOR_BORDER, 
                                             (center_x, center_y), border_size=BORDER_SIZE)
-                # ------------------------------------------------------------------------------------
 
             else:
                 self.screen.fill((0, 0, 0))
@@ -904,6 +947,7 @@ class Level1:
             self.screen.blit(self.background_image, (0, 0))
             
             # DIBUJAR SOMBRAS
+            # ... (código de sombras)
             shadow_surface = pygame.Surface(self.size, pygame.SRCALPHA)
             SHADOW_COLOR_RGBA = (30, 30, 30, 100)
             OFFSET_Y = 4
@@ -927,6 +971,7 @@ class Level1:
             self.player.draw(self.screen)
 
             # DIBUJAR MARCOS EN LA PARTE SUPERIOR
+            # ... (código de marcadores de quiz)
             spacing = 18
             marco_w, marco_h = self.marco_img.get_size()
             total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
@@ -978,6 +1023,8 @@ class Level1:
                 current_image = self.tuto_image 
                 if self.current_tuto_index == 2:
                     current_image = self.tuto_image_2
+                elif self.current_tuto_index == 3: # <--- LÓGICA AÑADIDA PARA TUTO 3
+                    current_image = self.tuto_image_3
                 
                 if current_image:
                     # Aplica la opacidad actual
@@ -991,6 +1038,7 @@ class Level1:
 
         # Pantalla de derrota
         if self.state == "game_over":
+            # ... (código de draw para game_over)
             self.screen.fill((0, 0, 0))
             if self.game_over_image:
                 self.screen.blit(self.game_over_image, (0, 0))
@@ -1002,6 +1050,7 @@ class Level1:
 
         # Pantalla de victoria
         elif self.state == "win_state":
+            # ... (código de draw para win_state)
             self.screen.fill((0, 0, 0))
             if self.win_image:
                 self.screen.blit(self.win_image, (0, 0))

@@ -150,6 +150,7 @@ class Level1:
         self.tuto_fade_in_started = False
         self.tuto_fade_out_started = False
         self.tuto_finished = False # Indica si el Tuto 1 ha terminado su ciclo automático (se usa para bloqueo permanente)
+        self.tuto_3_has_appeared = False # NUEVA BANDERA: Indica si Tuto 3 ya apareció alguna vez.
 
         # Control del tutorial actual (1 = tuto1, 2 = tuto2, 3 = tuto3, 0 = finalizado)
         self.current_tuto_index = 1 
@@ -462,16 +463,14 @@ class Level1:
                     self.typewriter = None
                     self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question) 
                     
-                    # *** LÓGICA DE TRANSICIÓN TUTO 3 -> FINAL ***
-                    # Tuto 3 debe desaparecer cuando el quiz empieza.
+                    # *** INICIO DE TUTO 3 (PRIMERA APARICIÓN) TERMINA SU SLIDE-OUT AQUÍ ***
+                    # Lo forzamos a salir ya que el quiz cubre la pantalla.
                     if self.current_tuto_index == 3:
-                        # Forzamos la salida de Tuto 3. La lógica de update lo terminará.
                         self.tuto_fade_out_started = True 
-                        # Asegura que el slide-out no se bloquee por un timer activo si lo tuviera.
                         if hasattr(self.tuto_visible_timer, 'time_remaining'):
                             self.tuto_visible_timer.time_remaining = 0 
                     else:
-                        # Si no hay Tuto 3, terminamos la secuencia (caso error)
+                        # Finalizamos el tutorial si el flujo normal terminó
                         self.current_tuto_index = 0 
                         self.tuto_finished = True 
                         
@@ -484,8 +483,19 @@ class Level1:
                                                          (255, 255, 255), speed=25) 
                         self.dialogo_active = True
                     else:
+                        # Diálogo post-quiz ha terminado
                         self.dialogo_active = False
                         self.typewriter = None
+                        
+                        # --- MODIFICACIÓN: Desactiva Tuto 3 al final del diálogo post-quiz (SEGUNDA APARICIÓN) ---
+                        # Inicia el slide-out forzado de Tuto 3.
+                        if self.current_tuto_index == 3:
+                            self.tuto_fade_out_started = True 
+                            if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                                self.tuto_visible_timer.time_remaining = 0 
+                            # NO SE MARCA COMO 'tuto_finished = True' AQUÍ, ya que el tutorial 3 es el último
+                            # y se marca como finalizado en el SLIDE-OUT de la función update.
+                        # -------------------------------------------------------------------
             
             # LÓGICA DE AVANCE DEL QUIZ
             if self.state == "quiz_floor" and self.quiz_game:
@@ -571,8 +581,8 @@ class Level1:
             
             return self.state
 
-        # Lógica de la animación del tutorial (MODIFICADA PARA ACTIVACIÓN DINÁMICA DE TUTO 2)
-        if self.current_tuto_index > 0 and (self.tuto_image or self.tuto_image_2 or self.tuto_image_3): # AÑADIDO TUTO 3
+        # Lógica de la animación del tutorial (MODIFICADA PARA ACTIVACIÓN DINÁMICA DE TUTO 2/3)
+        if self.current_tuto_index > 0 and (self.tuto_image or self.tuto_image_2 or self.tuto_image_3): 
             
             # Determinar si el jugador está cerca del guardia (AUMENTAR EL RECT DE COLISIÓN PARA CERCANÍA)
             is_near_guard = self.player.rect.colliderect(self.guardia_collision_rect.inflate(100, 100))
@@ -619,7 +629,8 @@ class Level1:
                     
                     # Tuto 1 solo debe iniciar su timer la primera vez
                     if self.current_tuto_index == 1 and not self.tuto_finished:
-                        self.tuto_finished = True # Marcar Tuto 1 como "visto por primera vez"
+                        # La bandera tuto_finished ahora indica que ya corrió el ciclo de timer una vez (para controlar la repetición)
+                        self.tuto_finished = True 
 
             # ---------------------------------------------------
             # Animation State 2: VISIBLE
@@ -639,7 +650,7 @@ class Level1:
                         pass
                     
                     elif self.current_tuto_index == 3:
-                        # Tuto 3: No tiene timer de desaparición automática, solo desaparece al iniciar el quiz.
+                        # Tuto 3: No tiene timer de desaparición automática.
                         pass
 
 
@@ -662,7 +673,7 @@ class Level1:
                 if is_slide_out_finished and self.tuto_alpha == 0:
                     
                     if self.current_tuto_index == 1:
-                        # TUTO 1 FINISHED -> START TUTO 2 (ACTIVADO POR PROXIMIDAD) O FINALIZAR
+                        # TUTO 1 FINISHED -> START TUTO 2 (ACTIVADO POR PROXIMIDAD) O REPETIR/FINALIZAR (por timer)
                         if is_near_guard: # Si salió por proximidad, vamos a Tuto 2
                             self.current_tuto_index = 2
                             self.tuto_fade_in_started = True
@@ -670,39 +681,60 @@ class Level1:
                             self.tuto_visible_timer.reset() 
                             self.tuto_alpha = 0 
                             self.tuto_current_x = self.tuto_exit_x
+                            self.tuto_finished = True # Si se acerca al guardia, ya no debe volver a Tuto 1 por tiempo.
                         else:
-                            # Finaliza permanentemente si salió por timer y no estaba cerca
-                            self.current_tuto_index = 0
-                            self.tuto_finished = True
-                            self.tuto_fade_in_started = False
-                            self.tuto_fade_out_started = False
-                            self.tuto_visible_timer.reset()
+                            # Si salió por timer y no estaba cerca
+                            if not self.tuto_finished:
+                                # Primera vez que el timer termina: Repite Tuto 1 para la segunda aparición.
+                                # La bandera tuto_finished ahora indica que ya corrió el ciclo de timer una vez.
+                                self.tuto_finished = True 
+                                self.current_tuto_index = 1 # Se queda en 1
+                                self.tuto_fade_in_started = True
+                                self.tuto_fade_out_started = False
+                                self.tuto_visible_timer.reset() 
+                                self.tuto_alpha = 0 
+                                self.tuto_current_x = self.tuto_exit_x
+                            else:
+                                # Segunda vez que el timer termina: Finaliza permanentemente.
+                                self.current_tuto_index = 0
+                                # La bandera self.tuto_finished ya está en True
+                                self.tuto_fade_in_started = False
+                                self.tuto_fade_out_started = False
+                                self.tuto_visible_timer.reset()
                         
                     elif self.current_tuto_index == 2:
                         # TUTO 2 FINISHED -> VUELVE A TUTO 1 o FINALIZA
 
                         # Si se aleja (y aún no ha interactuado), vuelve a Tuto 1 para permitir el re-trigger de Tuto 2
-                        if not self.guard_interacted and not is_near_guard and self.tuto_image: 
+                        if not self.guard_interacted and not is_near_guard and self.tuto_image and self.tuto_finished: 
                             self.current_tuto_index = 1
                             self.tuto_fade_in_started = True
                             self.tuto_fade_out_started = False
                             self.tuto_visible_timer.reset() 
                             self.tuto_alpha = 0 
                             self.tuto_current_x = self.tuto_exit_x
+                            self.tuto_finished = True # Mantiene el estado de "ya ha aparecido la primera vez"
                             
                         else:
                             # Finaliza la secuencia de tutoriales (solo si ya interactuó o si Tuto 1 terminó permanentemente)
                             self.current_tuto_index = 0
-                            if self.guard_interacted:
-                                self.tuto_finished = True 
+                            self.tuto_finished = True 
                             self.tuto_fade_in_started = False
                             self.tuto_fade_out_started = False
                             self.tuto_visible_timer.reset()
                             
-                    elif self.current_tuto_index == 3: # <--- LÓGICA AÑADIDA PARA TUTO 3
-                        # TUTO 3 FINISHED -> FINALIZA la secuencia DE MODO PERMANENTE
-                        self.current_tuto_index = 0
-                        self.tuto_finished = True
+                    elif self.current_tuto_index == 3: 
+                        # TUTO 3 FINISHED -> Vuelve al estado de juego (Permite la re-aparición con Confeti si es la primera vez)
+                        
+                        # Si es la primera aparición (al iniciar el diálogo), no finalizamos la secuencia.
+                        if not self.tuto_3_has_appeared:
+                            self.tuto_3_has_appeared = True
+                            self.current_tuto_index = 0 # Temporalmente 0 para no interferir con el quiz
+                        else:
+                            # Si es la segunda aparición (con el Confeti), finaliza la secuencia permanentemente.
+                            self.current_tuto_index = 0
+                            self.tuto_finished = True
+                        
                         self.tuto_fade_in_started = False
                         self.tuto_fade_out_started = False
                         self.tuto_visible_timer.reset()
@@ -710,7 +742,7 @@ class Level1:
 
 
         # Estados de juego y quiz
-        if self.state in ["game", "quiz_floor", "dialog"]: # Añadido "dialog" para movimiento
+        if self.state in ["game", "quiz_floor", "dialog", "quiz_complete_dialog"]: # Añadido "quiz_complete_dialog" para movimiento
             if self.timer.is_running():
                 self.timer.update()
             
@@ -745,19 +777,23 @@ class Level1:
                 self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, 
                                                  (255, 255, 255), speed=25)
                 
-                # *** LÓGICA DE TRANSICIÓN A TUTO 3 ***
+                # *** MODIFICACIÓN: Lógica de PRIMERA APARICIÓN DE TUTO 3 ***
                 # Tuto 2 termina y Tuto 3 empieza su fade-in/slide-in
-                if self.tuto_image_3:
+                if self.tuto_image_3 and not self.tuto_3_has_appeared:
                     self.current_tuto_index = 3 
                     self.tuto_fade_in_started = True
                     self.tuto_fade_out_started = False
-                    self.tuto_visible_timer.reset()
+                    self.tuto_visible_timer.reset() 
                     self.tuto_alpha = 0 
-                    self.tuto_current_x = self.tuto_exit_x 
+                    self.tuto_current_x = self.tuto_exit_x
                 else:
-                    # Si no hay tuto3, simplemente lo terminamos como antes
+                    # Finalizamos la secuencia Tuto 1/2. Si ya apareció Tuto 3, no hacemos nada.
                     self.current_tuto_index = 0 
                     self.tuto_finished = True 
+                
+                # Aseguramos que la secuencia de Tuto 1/2 esté marcada como terminada si llegamos a interactuar
+                self.tuto_finished = True
+
 
         # Estado del quiz (temporizador y respuestas)
         elif self.state == "quiz_floor":
@@ -813,8 +849,23 @@ class Level1:
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
+                
+                # --- MODIFICACIÓN: Inicia Confeti y Tuto 3 (SEGUNDA APARICIÓN) aquí ---
                 if score >= 2:
                     self.confetti.start()
+                    
+                    # ACTIVA TUTO 3 PARA QUE APAREZCA CON EL CONFETI (AUNQUE HAYA APARECIDO ANTES)
+                    if self.tuto_image_3:
+                        self.current_tuto_index = 3 
+                        self.tuto_fade_in_started = True
+                        self.tuto_fade_out_started = False
+                        self.tuto_visible_timer.reset()
+                        self.tuto_alpha = 0 
+                        self.tuto_current_x = self.tuto_exit_x
+                    else:
+                        self.current_tuto_index = 0
+                        self.tuto_finished = True
+                # --- FIN MODIFICACIÓN ---
         
         # Diálogo final tras el quiz
         elif self.state == "quiz_complete_dialog":
@@ -833,6 +884,7 @@ class Level1:
                     self.background_changed = True
                     self.arrow_sprite.start()
                 self.state = "game"
+                # El Tuto 3 ya fue marcado para desaparecer en handle_events
 
         # Estado de derrota (reproduce sonido y pasa a game_over)
         elif self.state == "loss_sound_state":

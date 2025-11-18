@@ -142,6 +142,10 @@ class Level1:
         self.tuto_image = None
         self.tuto_image_2 = None 
         self.tuto_image_3 = None # <--- NUEVA VARIABLE
+        # === AÑADIDO PARA TUTO 4 ===
+        self.tuto_image_4 = None # <--- NUEVA VARIABLE PARA TUTO 4
+        self.tuto_4_active = False # Bandera de control para Tuto 4
+        # ===========================
         self.tuto_alpha = 0  
         self.tuto_max_alpha = 255
         self.tuto_fade_speed = 8  
@@ -176,10 +180,15 @@ class Level1:
             img3 = pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha()
             self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
             
+            # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria) <--- NUEVO PARA TUTO 4
+            img4 = pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha() # <--- IMAGEN DE TUTO 4
+            self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) # <--- TUTO 4
+            
         except pygame.error as e:
             self.tuto_image = None
             self.tuto_image_2 = None
             self.tuto_image_3 = None # <--- Manejo de error para Tuto 3
+            self.tuto_image_4 = None # <--- Manejo de error para Tuto 4
             self.current_tuto_index = 0
             print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
@@ -582,7 +591,8 @@ class Level1:
             return self.state
 
         # Lógica de la animación del tutorial (MODIFICADA PARA ACTIVACIÓN DINÁMICA DE TUTO 2/3)
-        if self.current_tuto_index > 0 and (self.tuto_image or self.tuto_image_2 or self.tuto_image_3): 
+        # Se asegura de que si Tuto 4 está activo, los otros tutoriales no interfieran.
+        if self.current_tuto_index > 0 and not self.tuto_4_active and (self.tuto_image or self.tuto_image_2 or self.tuto_image_3): 
             
             # Determinar si el jugador está cerca del guardia (AUMENTAR EL RECT DE COLISIÓN PARA CERCANÍA)
             is_near_guard = self.player.rect.colliderect(self.guardia_collision_rect.inflate(100, 100))
@@ -738,11 +748,66 @@ class Level1:
                         self.tuto_fade_in_started = False
                         self.tuto_fade_out_started = False
                         self.tuto_visible_timer.reset()
-            # FIN CÓDIGO MODIFICADO
+            # FIN CÓDIGO MODIFICADO PARA TUTO 1/2/3
+
+
+        # LÓGICA DE ANIMACIÓN DE TUTO 4 (NUEVO)
+        if self.tuto_4_active and self.tuto_image_4:
+            # Estado 1: SLIDE-IN
+            if self.tuto_fade_in_started and not self.tuto_fade_out_started:
+                # 1. Fade-in (Opacidad)
+                if self.tuto_alpha < self.tuto_max_alpha:
+                    self.tuto_alpha = min(self.tuto_max_alpha, self.tuto_alpha + self.tuto_fade_speed)
+
+                # 2. Slide-in (Posición: de exit_x a target_x)
+                if self.tuto_current_x < self.tuto_target_x:
+                    self.tuto_current_x = min(self.tuto_target_x, self.tuto_current_x + self.tuto_slide_speed)
+                
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+
+                # Si el slide-in está completo, inicia el timer de visibilidad
+                is_slide_finished = (self.tuto_current_x >= self.tuto_target_x)
+                is_fade_in_finished = (self.tuto_alpha == self.tuto_max_alpha)
+
+                if is_slide_finished and is_fade_in_finished and not self.tuto_visible_timer.is_running():
+                    # === CORRECCIÓN DEL ERROR 'AttributeError: 'Timer' object has no attribute 'set_timer'' ===
+                    # Reemplazamos self.tuto_visible_timer.set_timer(8) por una nueva instancia del Timer.
+                    self.tuto_visible_timer = Timer(8) # Tuto 4 visible por 8 segundos
+                    # =========================================================================================
+                    self.tuto_visible_timer.start()
+
+            # Estado 2: VISIBLE (Controlado por timer)
+            if self.tuto_visible_timer.is_running():
+                self.tuto_visible_timer.update()
+                
+                if self.tuto_visible_timer.finished and not self.tuto_fade_out_started:
+                    self.tuto_fade_out_started = True # Inicia el fade-out
+
+            # Estado 3: SLIDE-OUT
+            if self.tuto_fade_out_started and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
+                # 1. Fade-out (Opacidad)
+                self.tuto_alpha = max(0, self.tuto_alpha - self.tuto_fade_speed)
+
+                # 2. Slide-out (Posición: de target_x a exit_x)
+                if self.tuto_current_x > self.tuto_exit_x:
+                    self.tuto_current_x = max(self.tuto_exit_x, self.tuto_current_x - self.tuto_slide_speed)
+                
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+
+                # Check if slide-out is complete
+                is_slide_out_finished = (self.tuto_current_x <= self.tuto_exit_x)
+
+                if is_slide_out_finished and self.tuto_alpha == 0:
+                    # TUTO 4 TERMINADO PERMANENTEMENTE
+                    self.tuto_4_active = False 
+                    self.tuto_fade_in_started = False
+                    self.tuto_fade_out_started = False
+                    self.tuto_visible_timer.reset()
+                    self.tuto_finished = True # Asegura que la secuencia completa de tutoriales termine
 
 
         # Estados de juego y quiz
-        if self.state in ["game", "quiz_floor", "dialog", "quiz_complete_dialog"]: # Añadido "quiz_complete_dialog" para movimiento
+        if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor", "loss_sound_state"]: # Añadido "quiz_complete_dialog" para movimiento
             if self.timer.is_running():
                 self.timer.update()
             
@@ -766,6 +831,12 @@ class Level1:
                 pygame.mixer.music.stop()
                 self.state = "win_state"
                 self.confetti.reset()
+                # --- MODIFICACIÓN: Desactiva Tuto 4 al entrar a la zona de victoria ---
+                if self.tuto_4_active:
+                    self.tuto_fade_out_started = True 
+                    if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                        self.tuto_visible_timer.time_remaining = 0 
+                # ---------------------------------------------------------------------
                 if self.win_music and not self.win_music_played:
                     self.win_music.play()
                     self.win_music_played = True
@@ -883,6 +954,18 @@ class Level1:
                     self.background_image = self.background_image_open
                     self.background_changed = True
                     self.arrow_sprite.start()
+                    
+                    # === INICIA LA APARICIÓN DE TUTO 4 AQUÍ ===
+                    if self.tuto_image_4:
+                        # Reinicia las banderas de animación para Tuto 4
+                        self.tuto_4_active = True
+                        self.tuto_fade_in_started = True
+                        self.tuto_fade_out_started = False
+                        self.tuto_visible_timer.reset()
+                        self.tuto_alpha = 0 
+                        self.tuto_current_x = self.tuto_exit_x
+                    # ==========================================
+                    
                 self.state = "game"
                 # El Tuto 3 ya fue marcado para desaparecer en handle_events
 
@@ -1068,9 +1151,9 @@ class Level1:
                 # Dibuja el texto
                 self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
 
-            # DIBUJA LA IMAGEN DE TUTORIAL
+            # DIBUJA LA IMAGEN DE TUTORIAL (TUTO 1, 2, 3)
             # Dibuja la imagen usando la posición y opacidad actuales
-            if self.current_tuto_index > 0 and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
+            if self.current_tuto_index > 0 and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x) and not self.tuto_4_active:
                 # Selecciona la imagen correcta
                 current_image = self.tuto_image 
                 if self.current_tuto_index == 2:
@@ -1087,6 +1170,21 @@ class Level1:
                     
                     # Dibuja
                     self.screen.blit(current_image, self.tuto_rect.topleft)
+
+            # DIBUJA LA IMAGEN DE TUTORIAL 4 (NUEVO)
+            if self.tuto_4_active and self.tuto_image_4 and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
+                # Selecciona la imagen de Tuto 4
+                current_image = self.tuto_image_4
+                
+                # Aplica la opacidad actual
+                current_image.set_alpha(self.tuto_alpha) 
+                
+                # Actualiza el rectángulo con la posición actual (slide)
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+                
+                # Dibuja
+                self.screen.blit(current_image, self.tuto_rect.topleft)
+
 
         # Pantalla de derrota
         if self.state == "game_over":

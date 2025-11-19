@@ -215,7 +215,7 @@ class Level2:
         self.quiz_timer = Timer(60)
 
         self.answer_results = []
-        self.max_questions = 4
+        self.max_questions = 7
 
         try:
             self.marco_img = pygame.image.load("Materials/Pictures/Assets/marco.png").convert_alpha()
@@ -324,6 +324,24 @@ class Level2:
                 { "text": "Ciudad", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
                 { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
                 { "text": "Selva", "image": "Materials/Pictures/Assets/selva.jpg" }
+            ], "correct_answer": 2 },
+            { "question": "¿Qué línea imaginaria divide la Tierra en norte y sur?", "choices": [
+                { "text": "Polo norte", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
+                { "text": "Trópico", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
+                { "text": "Meridiano", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                { "text": "Ecuador", "image": "Materials/Pictures/Assets/selva.jpg" }
+            ], "correct_answer": 3 },
+            { "question": "¿Cómo se llama el país más grande del mundo?", "choices": [
+                { "text": "México", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
+                { "text": "Rusia", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
+                { "text": "China", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                { "text": "Canadá", "image": "Materials/Pictures/Assets/selva.jpg" }
+            ], "correct_answer": 1 },
+            { "question": "¿Cómo se llama el cuerpo de agua más pequeño que un mar?", "choices": [
+                { "text": "Desierto", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
+                { "text": "Océano", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
+                { "text": "Lago", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                { "text": "Glaciar", "image": "Materials/Pictures/Assets/selva.jpg" }
             ], "correct_answer": 2 }
         ]
         # ----------------------------------------------------------------------------------------------------------------------
@@ -372,7 +390,7 @@ class Level2:
                     self.incorrect_sound.play()
                 self.answer_results.append("incorrect")
 
-        if self.answer_results.count("incorrect") >= 3:
+        if self.answer_results.count("incorrect") >= 4: # <-- CONDICIÓN DE GAME OVER MODIFICADA A 4
             self.state = "loss_sound_state"
             pygame.mixer.music.stop()
             if self.loss_sound:
@@ -501,10 +519,6 @@ class Level2:
 
         if self.state in ["game", "quiz_floor"]:
             
-            # --- REMOVIDO: Lógica de animación manual de la flecha ---
-            # Ahora usamos self.arrow_sprite.update()
-            # --------------------------------------------------------
-            
             # --- AÑADIDO: Actualización de la flecha (COPIADO DE Level1F.py) ---
             self.arrow_sprite.update() 
             # -------------------------------------------------------------------
@@ -546,9 +560,7 @@ class Level2:
             if self.quiz_game:
                 self.quiz_game.update() 
             
-            # === CORRECCIÓN SOLICITADA: Reiniciar el temporizador para la nueva pregunta ===
-            # Verifica si el quiz no ha terminado (finished=False), si ya no está en estado de respuesta (is_answered=False)
-            # y si el temporizador aún está pausado (lo que sucede inmediatamente después de pasar el delay de 2s).
+            # === Reiniciar el temporizador para la nueva pregunta ===
             if (self.quiz_game and 
                 not self.quiz_game.finished and 
                 not self.quiz_game.is_answered and 
@@ -556,7 +568,6 @@ class Level2:
                 
                 self.quiz_timer.reset() # Lo pone de nuevo a 20 segundos
                 self.quiz_timer.start() # Lo inicia
-            # ==============================================================================
 
             # La actualización del timer debe ir después de la lógica de reinicio
             if not self.quiz_timer.paused and not getattr(self.quiz_game, "is_answered", False):
@@ -577,7 +588,7 @@ class Level2:
                 if hasattr(self.quiz_timer, 'time_remaining'):
                     self.quiz_timer.time_remaining = 10 
 
-                if self.answer_results.count("incorrect") >= 3:
+                if self.answer_results.count("incorrect") >= 4: # <-- CONDICIÓN DE GAME OVER MODIFICADA A 4
                     self.state = "loss_sound_state"
                     pygame.mixer.music.stop()
                     if self.loss_sound:
@@ -593,7 +604,7 @@ class Level2:
 
                 if score == total:
                     dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
-                elif score >= 2:
+                elif score >= 4: # <-- CONDICIÓN DE VICTORIA DE 4
                     dialog_text = "Buen trabajo. Te has esforzado bastante, sigue \npracticando."
                 else:
                     dialog_text = "Puedes mejorar, nunca dejes de estudiar."
@@ -608,7 +619,7 @@ class Level2:
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
-                if score >= 2:
+                if score >= 4: # <-- CONDICIÓN DE VICTORIA DE 4
                     self.confetti.start()
         
         elif self.state == "quiz_complete_dialog":
@@ -760,12 +771,17 @@ class Level2:
             self.Guardia.draw(self.screen)
             self.player.draw(self.screen)
 
-            # --- REMOVIDO: Lógica manual de dibujo de flecha. ---
-            
+            # --- DIBUJO DE RECUADROS DE RESULTADO (Puntos) ---
             spacing = 18
             marco_w, marco_h = self.marco_img.get_size()
+            
             total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
-            x_start = (self.size[0] - total_width) // 2
+            
+            # === MODIFICACIÓN SOLICITADA: Desplazar 50 píxeles a la izquierda ===
+            OFFSET_LEFT = 50 
+            x_start = ((self.size[0] - total_width) // 2) - OFFSET_LEFT 
+            # =================================================================
+            
             y = 18
 
             for i in range(self.max_questions):
@@ -782,12 +798,11 @@ class Level2:
 
             self.confetti.draw(self.screen)
             
-            # --- AÑADIDO: Dibuja la flecha (COPIADO DE Level1F.py) ---
-            # La clase ArrowSprite se encarga de dibujar solo si está activa (después del quiz exitoso)
+            # --- Dibuja la flecha ---
             self.arrow_sprite.draw(self.screen)
-            # ---------------------------------------------------------
 
 
+            # --- DIBUJO DEL TEMPORIZADOR ---
             if self.state == "quiz_floor":
                 self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
             elif self.timer.is_running():

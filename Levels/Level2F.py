@@ -150,7 +150,8 @@ class Level2:
         self.tuto_fade_in_started = False
         self.tuto_fade_out_started = False
         self.tuto_finished = False # Indica si el Tuto 1 ha terminado su ciclo automático (se usa para bloqueo permanente)
-        self.tuto_3_has_appeared = False # NUEVA BANDERA: Indica si Tuto 3 ya apareció alguna vez.
+        self.tuto_3_has_appeared = False # NUEVA BANDERA: Indica si Tuto 3 ya apareció alguna vez. (SE MANTIENE, PERO CON MENOS USO)
+        self.tuto_pending_index = 0 # <--- AÑADIDO: Indice del Tuto esperando a que el anterior se desvanezca.
 
         # Control del tutorial actual (1 = tuto1, 2 = tuto2, 3 = tuto3, 0 = finalizado)
         self.current_tuto_index = 1 
@@ -497,7 +498,8 @@ class Level2:
                     self.typewriter = None
                     self.quiz_game = FloorQuiz_KeyAndCarry(self.size, self.questions, self.font_question, self.dialog_box_img, self.dialog_box_rect, self._dialog_img_loaded)
                     
-                    # === [INSERCIÓN] LÓGICA DE DESAPARICIÓN DE TUTO 3 (Inicio de Quiz) ===
+                    # === [MODIFICACIÓN] LÓGICA DE DESAPARICIÓN DE TUTO 3 (Inicio de Quiz) ===
+                    # Tuto 3 desaparece para que el jugador se concentre en el quiz
                     if self.current_tuto_index == 3 and not self.tuto_fade_out_started:
                         self.tuto_fade_out_started = True
                     # =========================================================
@@ -519,10 +521,11 @@ class Level2:
                     self.dialogo_active = True
                     self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
                     
-                    # === [INSERCIÓN] INICIO DE TUTO 3 (PRIMERA APARICIÓN) ===
-                    if self.tuto_image_3 and not self.tuto_3_has_appeared:
-                        self.current_tuto_index = 3 # <-- Inicia Tuto 3 aquí
-                        # Al iniciar diálogo, Tuto 2 debe desaparecer inmediatamente
+                    # === [MODIFICACIÓN] INICIO DE TUTO 3 (USANDO PENDING INDEX) ===
+                    # El tutorial 3 se activa al iniciar el diálogo SIEMPRE.
+                    if self.tuto_image_3: # <--- CONDICIÓN MODIFICADA (eliminada 'not self.tuto_3_has_appeared')
+                        self.tuto_pending_index = 3 # <-- Tuto 3 está pendiente
+                        # Asegura que el Tuto actual (1 o 2) empiece a desaparecer inmediatamente
                         self.tuto_fade_out_started = True 
                         self.tuto_visible_timer.pause()
                     # ============================================
@@ -585,7 +588,7 @@ class Level2:
             return self.state
 
         # =======================================================
-        # [INSERCIÓN] CONTROL DE ANIMACIÓN Y ESTADO DEL TUTORIAL (TUTO 1-4)
+        # [MODIFICACIÓN] CONTROL DE ANIMACIÓN Y ESTADO DEL TUTORIAL (TUTO 1-4)
         # =======================================================
         if self.state != "controls_screen" and self.fade_alpha == 0 and not self.is_fading and self.current_tuto_index > 0:
             
@@ -630,6 +633,17 @@ class Level2:
                     self.tuto_fade_out_started = False
                     self.tuto_visible_timer.reset()
                     
+                    # === [NUEVA LÓGICA] TRANSICIÓN DE ÍNDICE PENDIENTE ===
+                    if self.tuto_pending_index != 0:
+                        self.current_tuto_index = self.tuto_pending_index
+                        self.tuto_pending_index = 0
+                        
+                        # Marcamos Tuto 3 como aparecido si es el que se está cargando
+                        if self.current_tuto_index == 3:
+                            self.tuto_3_has_appeared = True
+                    # ==================================================
+                    
+                    # Lógica de transición de Tuto 1
                     if self.current_tuto_index == 1:
                         if is_near_guard and not self.guard_interacted:
                             # Transición Tuto 1 -> Tuto 2 (por proximidad)
@@ -642,7 +656,7 @@ class Level2:
                             
                     elif self.current_tuto_index == 2:
                         if self.guard_interacted:
-                            # Tuto 2 finaliza por interacción (se asumirá que Tuto 3 ya tomó control)
+                            # Tuto 2 finaliza por interacción (se asumirá que Tuto 3 ya tomó control via pending index)
                             self.current_tuto_index = 0
                         else:
                             # Transición Tuto 2 -> Tuto 1 (por alejamiento)
@@ -650,19 +664,15 @@ class Level2:
                             self.tuto_current_x = self.tuto_exit_x # Reinicia posición para Slide In
                             
                     elif self.current_tuto_index == 3:
-                        # Tuto 3 desapareció (ya sea por inicio de quiz o fin de diálogo post-quiz)
+                        # Tuto 3 desapareció. Pudo ser por inicio de quiz o fin de diálogo post-quiz.
                         if self.state == "quiz_complete_dialog":
-                            # Salió por fin de diálogo post-quiz, y el guardia se movió, activamos Tuto 4
-                            self.current_tuto_index = 4
-                            self.tuto_4_active = True
-                            self.tuto_current_x = self.tuto_exit_x # Reinicia posición para Slide In
-                            self.tuto_visible_timer = Timer(8) # Tuto 4 tiene 8s de visibilidad
-                            self.tuto_visible_timer.start()
+                            # Salió por fin de diálogo post-quiz, pero el cambio a Tuto 4 se manejará
+                            # al cambiar el estado a "game" (más abajo)
+                            pass # Mantener Tuto 3 activo si el estado sigue en diálogo
                         else:
                              # Salió por inicio de quiz
                             self.current_tuto_index = 0
-                            self.tuto_3_has_appeared = True
-                    
+                            
                     elif self.current_tuto_index == 4: # Tuto 4 desapareció (por tiempo o por entrar a la zona)
                         self.tuto_4_active = False
                         self.current_tuto_index = 0
@@ -672,7 +682,6 @@ class Level2:
                     
             # --- Lógica de Inicio de Tuto 1 ---
             # Si el control terminó y no hay otro tutorial corriendo, iniciar Tuto 1
-            # === [FIX] CORREGIDO SyntaxError: 'elif' se cambió a 'if' ===
             if self.state == "game" and not self.is_fading and self.fade_alpha == 0 and self.current_tuto_index == 1 and not self.tuto_fade_in_started and not self.tuto_finished:
                 self.tuto_fade_in_started = True
                 self.tuto_visible_timer.start()
@@ -763,6 +772,17 @@ class Level2:
 
             # === LÓGICA DE TRANSICIÓN AL DIÁLOGO FINAL (Versión limpia) ===
             if self.quiz_game and self.quiz_game.finished: 
+                
+                # === [MODIFICACIÓN] INICIO DE TUTO 3 PARA EL DIÁLOGO POST-QUIZ ===
+                if self.tuto_image_3:
+                    self.current_tuto_index = 3 # Cambia el índice directamente
+                    self.tuto_fade_out_started = False # Asegura que no está desvaneciéndose
+                    self.tuto_fade_in_started = True # Fuerza el inicio de la animación de entrada
+                    self.tuto_current_x = self.tuto_exit_x # Posiciona fuera para el slide-in
+                    self.tuto_3_has_appeared = True # Mantiene la bandera para evitar que Tuto 1/2 lo reemplace
+                    self.tuto_visible_timer.reset() # Reinicia el timer para que entre
+                # ==============================================================
+                
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
                 score = self.answer_results.count("correct")
@@ -787,17 +807,18 @@ class Level2:
                 self.quiz_timer.reset()
                 if score >= 4: # <-- CONDICIÓN DE VICTORIA DE 4
                     self.confetti.start()
-                    
-                    # === [INSERCIÓN] REACTIVACIÓN DE TUTO 3 (APARICIÓN DE CONFETI) ===
-                    if self.tuto_image_3:
-                        self.current_tuto_index = 3 
-                        self.tuto_current_x = self.tuto_exit_x
-                        self.tuto_fade_out_started = False
-                        self.tuto_visible_timer.reset()
-                    # ====================================================
         
         elif self.state == "quiz_complete_dialog":
             if not self.dialogo_active and self.current_dialog_index >= len(self.post_quiz_dialogs):
+                
+                # === [MODIFICACIÓN] INICIA LA DESAPARICIÓN DE TUTO 3 (Transición a Tuto 4) ===
+                # Si el diálogo de resultados finaliza, Tuto 3 desaparece para dar paso al Tuto 4
+                if self.current_tuto_index == 3 and not self.tuto_fade_out_started:
+                    self.tuto_pending_index = 4 # Tuto 4 está pendiente
+                    self.tuto_fade_out_started = True 
+                    self.tuto_visible_timer.pause()
+                # ===========================================================
+                
                 self.Guardia.rect.x -= 130
                 guardia_width = self.Guardia.rect.width
                 new_width = self.guardia_collision_rect.width
@@ -817,12 +838,6 @@ class Level2:
                     # --- CRÍTICO: Activación de la flecha de la puerta final ---
                     self.arrow_sprite.start()
                     # ----------------------------------------------------------
-                
-                # === [INSERCIÓN] INICIA LA DESAPARICIÓN DE TUTO 3 (Si estaba activo) ===
-                if self.current_tuto_index == 3 and not self.tuto_fade_out_started:
-                    self.tuto_fade_out_started = True 
-                    self.tuto_visible_timer.pause()
-                # ===========================================================
                 
                 self.state = "game"
 
@@ -1003,6 +1018,7 @@ class Level2:
                     self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y) # Aplica posición
                     self.screen.blit(current_image, self.tuto_rect.topleft) # Dibuja
             # =======================================================
+
 
             # --- DIBUJO DEL TEMPORIZADOR ---
             if self.state == "quiz_floor":

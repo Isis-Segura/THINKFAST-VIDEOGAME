@@ -284,19 +284,26 @@ class FloorQuiz_KeyAndCarry:
                 # DIBUJAR IMAGEN DE OPCIÓN
                 choice_img = current_choice_images[i]
                 if choice_img:
-                    img_rect = choice_img.get_rect(centerx=rect.centerx, top=rect.top + 5)
+                    # --- MODIFICACIÓN CLAVE: Se ajusta el 'top' a 0 para subir la imagen 5 píxeles ---
+                    img_rect = choice_img.get_rect(centerx=rect.centerx, top=rect.top + 0) 
+                    # ----------------------------------------------------------------------------------
                     surface.blit(choice_img, img_rect.topleft)
                 
                 # DIBUJAR TEXTO DE OPCIÓN
                 text_surface = self.font_question.render(choice_text, True, self.choice_font_color)
-                text_rect = text_surface.get_rect(centerx=rect.centerx, bottom=rect.bottom - 5)
+                
+                # Se mantiene el 'bottom - 2' para que el texto siga un poco más abajo de lo usual
+                text_rect = text_surface.get_rect(centerx=rect.centerx, bottom=rect.bottom - 2) 
+                
                 surface.blit(text_surface, text_rect)
                 
                 # DIBUJAR MENSAJE DE RECOGER
                 if i == self.highlighted_choice_index and not self.is_answered:
                     prompt_text = "Presiona ESPACIO/ENTER para RECOGER."
                     
-                    prompt_center_pos = (rect.centerx, rect.top - 35) 
+                    # Ajustar la posición Y del mensaje para que no se superponga
+                    # Ahora se posiciona 40 píxeles por encima del borde superior del recuadro de opción.
+                    prompt_center_pos = (rect.centerx, rect.top - 40) 
                     
                     self._draw_text_with_border(
                         surface, 

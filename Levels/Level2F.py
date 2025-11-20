@@ -1050,10 +1050,15 @@ class Level2:
                     drop_text = "Presiona ESPACIO/ENTER para ENTREGAR a la Prefecta."
                     center_pos = (self.size[0] // 2, self.Guardia.rect.top - 40)
                     self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
-                elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1:
-                    drop_text = "MUEVETE CERCA DE UNA RESPUESTA para RECOGERLA."
+                # =========================================================================================
+                # MODIFICACIÓN SOLICITADA:
+                # 1. Se añade la condición 'self.quiz_game._answers_visible' para que solo aparezca cuando el fade-in haya terminado.
+                # 2. Se cambia el texto a la frase que indicó el usuario: "¡Muevete hacia la respuesta!"
+                elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1 and self.quiz_game._answers_visible:
+                    drop_text = "¡MUEVETE CERCA DE UNA RESPUESTA PARA RESPONDERLA!"
                     center_pos = (self.size[0] // 2, self.size[1] - 150)
                     self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
+                # =========================================================================================
 
 
             if self.dialogo_active:

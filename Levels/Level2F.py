@@ -165,7 +165,9 @@ class Level2:
         # Posición X inicial/final de salida (fuera de la pantalla a la izquierda)
         self.tuto_exit_x = -250 
         self.tuto_current_x = self.tuto_exit_x # Inicializa fuera de pantalla
-        self.tuto_y = 20 # Posición Y fija cerca de la parte superior
+        # === CAMBIO SOLICITADO AQUÍ: Ajustar la posición Y de 20 a 80 ===
+        self.tuto_y = 80 # Posición Y fija cerca de la parte superior (Originalmente 20)
+        # ================================================================
 
         try:
             # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)

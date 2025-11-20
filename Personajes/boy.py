@@ -66,13 +66,16 @@ class Characterb:
     def move(self, keys, screen_width, screen_height, npc_rect=None, obstacles=None, level_id=2, can_move=True):
         
         MARGINS = {
-            # Colisiones Nivel 1: [Superior, Lateral, Inferior] (Estructura antigua)
+            # Colisiones Nivel 1: [Superior, Lateral(Izquierda/Derecha), Inferior]
+            # (Se mantendra la estructura antigua)
             1: [100, 50, 0], 
             
-            # Colisiones Nivel 2: [Superior, Lateral, Inferior] (Estructura antigua)
-            2: [340, 215, 80], 
+            # Colisiones Nivel 2: [Superior, Izquierda, Derecha, Inferior] <- ¡ESTO SE CAMBIA!
+            # Antes: [340, 215, 80]
+            # Ahora: [340, 215, 215, 80] - Usa 215 para ambos lados por defecto
+            2: [340, 215, 190, 80], 
             
-            # 🟢 Colisiones Nivel 3: [Superior, Izquierda, Derecha, Inferior] (Estructura nueva)
+            # 🟢 Colisiones Nivel 3: [Superior, Izquierda, Derecha, Inferior]
             3: [200, 295, 300, 100] # 50px a la izquierda, 300px a la derecha
         }
 
@@ -80,11 +83,13 @@ class Characterb:
         current_margins = MARGINS.get(level_id, MARGINS[2])
         
         # 🟢 VERIFICAR SI USAR LA ESTRUCTURA VIEJA O LA NUEVA
-        if level_id == 3:
+        if level_id in [2, 3]:
+            # NUEVA ESTRUCTURA (Niveles 2 y 3)
             margin_top, margin_left, margin_right, fence_offset = current_margins
             margin_side_left = margin_left
             margin_side_right = margin_right
         else:
+            # ESTRUCTURA VIEJA (Nivel 1)
             margin_top, margin_side, fence_offset = current_margins
             margin_side_left = margin_side
             margin_side_right = margin_side

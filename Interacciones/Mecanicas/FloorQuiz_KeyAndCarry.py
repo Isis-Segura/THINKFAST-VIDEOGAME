@@ -1,5 +1,6 @@
 import pygame
 import os
+import random # <--- CAMBIO 1: Importar el módulo random
 
 class FloorQuiz_KeyAndCarry:
     def __init__(self, size, questions, font_question, dialog_box_img=None, dialog_box_rect=None, dialog_img_loaded=False):
@@ -45,18 +46,17 @@ class FloorQuiz_KeyAndCarry:
         self.CORRECT_COLOR = (0, 200, 0) # Verde
         self.INCORRECT_COLOR = (200, 0, 0) # Rojo
 
-        self.choice_images = []
+        # self.choice_images = [] # Se elimina/comenta porque la imagen se adjuntará al diccionario de la opción
         self._load_choice_images()
         
         self._setup_question_layout() 
 
     def _load_choice_images(self):
-        """Carga solo las imágenes de las opciones al inicio."""
+        """Carga las imágenes de las opciones al inicio y las adjunta a los datos de la opción."""
         C_IMG_SIZE = (80, 80) 
-        self.choice_images = []
-
+        # self.choice_images ya no es necesaria
+        
         for q_index, question_data in enumerate(self.questions):
-            current_q_images = []
             for choice_data in question_data["choices"]:
                 c_path = choice_data.get("image")
                 loaded_img = None
@@ -68,8 +68,9 @@ class FloorQuiz_KeyAndCarry:
                     except pygame.error as e:
                         print(f"Error al cargar imagen de la opción '{c_path}': {e}")
                 
-                current_q_images.append(loaded_img)
-            self.choice_images.append(current_q_images)
+                # <--- CAMBIO 2: ALMACENAR LA IMAGEN DIRECTAMENTE EN EL DICCIONARIO DE LA OPCIÓN
+                choice_data["loaded_image"] = loaded_img 
+                # --------------------------------------------------------------------------
 
     def _setup_question_box_display(self):
         if self._dialog_img_loaded and self.dialog_box_img_template:
@@ -101,6 +102,24 @@ class FloorQuiz_KeyAndCarry:
         self.choice_rects = []
         current_q = self.questions[self.current_question_index]
         choices = current_q["choices"]
+        
+        # --- CAMBIO 3: LÓGICA PARA BARAJAR RESPUESTAS ---
+        # 1. Obtener el objeto de la respuesta correcta antes de barajar
+        correct_choice_data = choices[current_q["correct_answer"]]
+        
+        # 2. Barajar las opciones en su lugar (in-place)
+        random.shuffle(choices) 
+        
+        # 3. Encontrar el nuevo índice de la respuesta correcta en la lista barajada
+        try:
+            new_correct_index = choices.index(correct_choice_data)
+        except ValueError:
+            new_correct_index = current_q["correct_answer"] 
+
+        # 4. Actualizar la propiedad 'correct_answer' con el nuevo índice.
+        # Esto asegura que el chequeo de respuesta se haga contra la nueva posición.
+        current_q["correct_answer"] = new_correct_index
+        # ---------------------------------------------
         
         start_y = self.size[1] - 130
         choice_box_height = 100
@@ -251,12 +270,13 @@ class FloorQuiz_KeyAndCarry:
         # 2. DIBUJAR OPCIONES EN EL SUELO 
         if self.carried_choice_index == -1: 
             current_q_data = self.questions[self.current_question_index]
-            current_choice_images = self.choice_images[self.current_question_index]
+            # current_choice_images = self.choice_images[self.current_question_index] # <--- ELIMINADO
             correct_index = current_q_data["correct_answer"]
             
             for i, rect in enumerate(self.choice_rects):
                 
-                choice_text = current_q_data["choices"][i]["text"]
+                current_choice_data = current_q_data["choices"][i] # <--- NUEVA REFERENCIA: Usa la lista barajada
+                choice_text = current_choice_data["text"]
                 
                 # --- LÓGICA DE BORDE DE RETROALIMENTACIÓN ---
                 border_color = None
@@ -282,7 +302,8 @@ class FloorQuiz_KeyAndCarry:
 
                 
                 # DIBUJAR IMAGEN DE OPCIÓN
-                choice_img = current_choice_images[i]
+                # <--- CAMBIO 4: USAR LA IMAGEN ADJUNTADA AL DICCIONARIO DE LA OPCIÓN
+                choice_img = current_choice_data.get("loaded_image") 
                 if choice_img:
                     # --- MODIFICACIÓN CLAVE: Se ajusta el 'top' a 0 para subir la imagen 5 píxeles ---
                     img_rect = choice_img.get_rect(centerx=rect.centerx, top=rect.top + 0) 

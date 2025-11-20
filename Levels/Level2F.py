@@ -138,6 +138,14 @@ class Level2:
         self.tuto_image = None
         self.tuto_image_2 = None 
         self.tuto_image_3 = None # <--- NUEVA VARIABLE
+        # === AÑADIDO PARA TUTO 3 ALTERNATIVO (NUEVO) ===
+        self.tuto_image_3_alt = None  # <--- NUEVA VARIABLE PARA LA SEGUNDA INSTANCIA
+        self.tuto_3_alt_alpha = 0     # Opacidad de la segunda instancia
+        self.tuto_3_alt_target_x = self.size[0] - 270 # Posición X final (esquina superior derecha)
+        self.tuto_3_alt_x = self.size[0] + 50 # Posición X inicial (fuera de pantalla, a la derecha)
+        self.tuto_3_alt_y = 20        # Posición Y fija
+        self.tuto_3_alt_active = False # Bandera para controlar la animación
+        # =======================================
         # === AÑADIDO PARA TUTO 4 ===
         self.tuto_image_4 = None # <--- NUEVA VARIABLE PARA TUTO 4
         self.tuto_4_active = False # Bandera de control para Tuto 4
@@ -177,6 +185,11 @@ class Level2:
             img3 = pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha()
             self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
             
+            # === CARGA DE IMAGEN PARA TUTO 3 ALTERNATIVO (NUEVO) ===
+            self.tuto_image_3_alt = pygame.transform.scale(img3.copy(), (250, 180)) 
+            self.tuto_rect_alt = self.tuto_image_3_alt.get_rect(topleft=(self.tuto_3_alt_x, self.tuto_3_alt_y)) 
+            # ===============================================
+
             # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria) <--- NUEVO PARA TUTO 4
             img4 = pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha() # <--- IMAGEN DE TUTO 4
             self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) # <--- TUTO 4
@@ -186,6 +199,7 @@ class Level2:
             self.tuto_image_2 = None
             self.tuto_image_3 = None # <--- Manejo de error para Tuto 3
             self.tuto_image_4 = None # <--- Manejo de error para Tuto 4
+            self.tuto_image_3_alt = None # <--- Manejo de error para Tuto 3 Alternativo
             self.current_tuto_index = 0
             print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
@@ -502,6 +516,10 @@ class Level2:
                     # Tuto 3 desaparece para que el jugador se concentre en el quiz
                     if self.current_tuto_index == 3 and not self.tuto_fade_out_started:
                         self.tuto_fade_out_started = True
+                        # === INICIA LA DESAPARICIÓN DE TUTO 3 ALTERNATIVO TAMBIÉN ===
+                        if self.tuto_3_alt_active:
+                             self.tuto_fade_out_started = True # Usaremos la lógica de update para el slide-out/fade-out
+                        # =========================================================
                     # =========================================================
                     return None
                 
@@ -521,14 +539,23 @@ class Level2:
                     self.dialogo_active = True
                     self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
                     
-                    # === [MODIFICACIÓN] INICIO DE TUTO 3 (USANDO PENDING INDEX) ===
-                    # El tutorial 3 se activa al iniciar el diálogo SIEMPRE.
-                    if self.tuto_image_3: # <--- CONDICIÓN MODIFICADA (eliminada 'not self.tuto_3_has_appeared')
-                        self.tuto_pending_index = 3 # <-- Tuto 3 está pendiente
-                        # Asegura que el Tuto actual (1 o 2) empiece a desaparecer inmediatamente
-                        self.tuto_fade_out_started = True 
-                        self.tuto_visible_timer.pause()
+                    # === [MODIFICACIÓN CLAVE] ACTIVACIÓN INMEDIATA DEL TUTO 3 (FIX + COPIA) ===
+                    if self.tuto_image_3: 
+                        self.current_tuto_index = 3         # <-- ACTIVA TUTO 3 DIRECTAMENTE
+                        self.tuto_fade_out_started = False  # <-- ASEGURA QUE NO ESTÉ SALIENDO
+                        self.tuto_fade_in_started = True    # <-- FUERZA EL INICIO DE LA ANIMACIÓN
+                        self.tuto_current_x = self.tuto_exit_x # <-- POSICIONA FUERA PARA EL SLIDE-IN
+                        self.tuto_alpha = 0                 # <-- OPACIDAD CERO PARA EMPEZAR FADE-IN
+                        self.tuto_visible_timer.reset()     # <-- REINICIA EL TIMER
+                        self.tuto_3_has_appeared = True     # <-- MARCA COMO APARECIDO
+                    
+                    # === [NUEVO] INICIO DE TUTO 3 ALTERNATIVO ===
+                    if self.tuto_image_3_alt:
+                        self.tuto_3_alt_active = True
+                        self.tuto_3_alt_x = self.size[0] + 50 # Asegura que comience fuera de la pantalla derecha
+                        self.tuto_3_alt_alpha = 0
                     # ============================================
+                    
                     return None
 
             elif self.state == "quiz_floor" and self.quiz_game:
@@ -691,9 +718,41 @@ class Level2:
             if self.current_tuto_index == 4 and self.player.rect.colliderect(self.win_zone) and not self.tuto_fade_out_started:
                 self.tuto_fade_out_started = True
                 self.tuto_visible_timer.pause()
-        # =======================================================
-        # FIN DEL CONTROL DE ANIMACIÓN DEL TUTORIAL
-        # =======================================================
+
+            
+            # === [NUEVO] CONTROL DE ANIMACIÓN DE TUTO 3 ALTERNATIVO ===
+            if self.tuto_3_alt_active and self.tuto_image_3_alt:
+                
+                # Si el Tuto principal está en Fade Out, este también debe desvanecerse/salir
+                if self.tuto_fade_out_started:
+                    # 1. Slide Out (Sale por la derecha)
+                    if self.tuto_3_alt_x < self.size[0] + 50:
+                        self.tuto_3_alt_x = min(self.size[0] + 50, self.tuto_3_alt_x + self.tuto_slide_speed)
+                    
+                    # 2. Fade Out
+                    if self.tuto_3_alt_alpha > 0:
+                        self.tuto_3_alt_alpha = max(0, self.tuto_3_alt_alpha - self.tuto_fade_speed)
+
+                # Si el Tuto principal está visible/entrando y es el 3, este entra
+                elif self.current_tuto_index == 3:
+                    # 1. Slide In (Entra por la derecha)
+                    if self.tuto_3_alt_x > self.tuto_3_alt_target_x:
+                        self.tuto_3_alt_x = max(self.tuto_3_alt_target_x, self.tuto_3_alt_x - self.tuto_slide_speed)
+                    
+                    # 2. Fade In
+                    if self.tuto_3_alt_alpha < self.tuto_max_alpha:
+                        self.tuto_3_alt_alpha = min(self.tuto_max_alpha, self.tuto_3_alt_alpha + self.tuto_fade_speed * 3)
+                
+                # Posición y reinicio del rect
+                self.tuto_rect_alt.topleft = (self.tuto_3_alt_x, self.tuto_3_alt_y)
+                
+                # Desactivar si ya se salió y se desvaneció
+                if self.tuto_fade_out_started and self.tuto_3_alt_x >= self.size[0] + 50 and self.tuto_3_alt_alpha == 0:
+                    self.tuto_3_alt_active = False
+
+            # =======================================================
+            # FIN DEL CONTROL DE ANIMACIÓN DEL TUTORIAL
+            # =======================================================
 
         if self.state in ["game", "quiz_floor"]:
             
@@ -781,6 +840,13 @@ class Level2:
                     self.tuto_current_x = self.tuto_exit_x # Posiciona fuera para el slide-in
                     self.tuto_3_has_appeared = True # Mantiene la bandera para evitar que Tuto 1/2 lo reemplace
                     self.tuto_visible_timer.reset() # Reinicia el timer para que entre
+
+                    # === ACTIVACIÓN DEL TUTO 3 ALTERNATIVO (de nuevo si salió) ===
+                    if self.tuto_image_3_alt:
+                        self.tuto_3_alt_active = True
+                        self.tuto_3_alt_x = self.size[0] + 50 # Reinicia posición
+                        self.tuto_3_alt_alpha = 0
+                    # ==============================================================
                 # ==============================================================
                 
                 self.state = "quiz_complete_dialog"
@@ -817,7 +883,11 @@ class Level2:
                     self.tuto_pending_index = 4 # Tuto 4 está pendiente
                     self.tuto_fade_out_started = True 
                     self.tuto_visible_timer.pause()
-                # ===========================================================
+                    
+                    # === INICIA LA DESAPARICIÓN DE TUTO 3 ALTERNATIVO ===
+                    if self.tuto_3_alt_active:
+                         self.tuto_fade_out_started = True # Usaremos la lógica de update para el slide-out/fade-out
+                    # ===========================================================
                 
                 self.Guardia.rect.x -= 130
                 guardia_width = self.Guardia.rect.width
@@ -1017,6 +1087,12 @@ class Level2:
                     current_image.set_alpha(self.tuto_alpha) # Aplica opacidad
                     self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y) # Aplica posición
                     self.screen.blit(current_image, self.tuto_rect.topleft) # Dibuja
+            
+            # === [NUEVO] DIBUJO DE LA IMAGEN ALTERNATIVA DEL TUTO 3 ===
+            if self.tuto_3_alt_active and self.tuto_image_3_alt and (self.tuto_3_alt_alpha > 0 or self.tuto_3_alt_x < self.size[0] + 50):
+                self.tuto_image_3_alt.set_alpha(self.tuto_3_alt_alpha) # Aplica opacidad
+                self.tuto_rect_alt.topleft = (self.tuto_3_alt_x, self.tuto_3_alt_y) # Aplica posición
+                self.screen.blit(self.tuto_image_3_alt, self.tuto_rect_alt.topleft) # Dibuja
             # =======================================================
 
 

@@ -387,22 +387,22 @@ class Level2:
                 { "text": "Selva", "image": "Materials/Pictures/Assets/selva.jpg" }
             ], "correct_answer": 2 },
             { "question": "¿Qué línea imaginaria divide la Tierra en norte y sur?", "choices": [
-                { "text": "Polo norte", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
-                { "text": "Trópico", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
-                { "text": "Meridiano", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Ecuador", "image": "Materials/Pictures/Assets/selva.jpg" }
+                { "text": "Polo norte", "image": "Materials/Pictures/Assets/polo.jpg" }, 
+                { "text": "Oceano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
+                { "text": "Meridiano", "image": "Materials/Pictures/Assets/meridiano.jpg" }, 
+                { "text": "Ecuador", "image": "Materials/Pictures/Assets/ecuador.jpg" }
             ], "correct_answer": 3 },
             { "question": "¿Cómo se llama el país más grande del mundo?", "choices": [
-                { "text": "México", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
-                { "text": "Rusia", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
-                { "text": "China", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Canadá", "image": "Materials/Pictures/Assets/selva.jpg" }
+                { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }, 
+                { "text": "Rusia", "image": "Materials/Pictures/Assets/rusia.jpg" }, 
+                { "text": "China", "image": "Materials/Pictures/Assets/china.jpg" }, 
+                { "text": "Canadá", "image": "Materials/Pictures/Assets/canada.jpg" }
             ], "correct_answer": 1 },
             { "question": "¿Cómo se llama el cuerpo de agua más pequeño que un mar?", "choices": [
-                { "text": "Desierto", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
-                { "text": "Océano", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
-                { "text": "Lago", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Glaciar", "image": "Materials/Pictures/Assets/selva.jpg" }
+                { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                { "text": "Océano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
+                { "text": "Lago", "image": "Materials/Pictures/Assets/lago.jpg" }, 
+                { "text": "Glaciar", "image": "Materials/Pictures/Assets/glaciar.jpg" }
             ], "correct_answer": 2 }
         ]
         # ----------------------------------------------------------------------------------------------------------------------

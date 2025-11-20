@@ -107,6 +107,9 @@ class ArrowSprite:
     def start(self):
         self.active = True
 
+    def stop(self):
+        self.active = False
+        
     def update(self):
         if not self.active:
             return
@@ -191,8 +194,9 @@ class Level2:
             # ===============================================
 
             # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria) <--- NUEVO PARA TUTO 4
-            img4 = pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha() # <--- IMAGEN DE TUTO 4
-            self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) # <--- TUTO 4
+            # Esta es la imagen que el usuario quiere que aparezca sobre el confeti.
+            img4 = pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha() 
+            self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) 
             
         except pygame.error as e:
             self.tuto_image = None
@@ -668,6 +672,11 @@ class Level2:
                         # Marcamos Tuto 3 como aparecido si es el que se está cargando
                         if self.current_tuto_index == 3:
                             self.tuto_3_has_appeared = True
+                        
+                        # === [NUEVO] ACTIVACIÓN DE TUTO 4 ===
+                        if self.current_tuto_index == 4:
+                            self.tuto_4_active = True
+                            
                     # ==================================================
                     
                     # Lógica de transición de Tuto 1
@@ -849,6 +858,8 @@ class Level2:
                     # ==============================================================
                 # ==============================================================
                 
+                self.confetti.stop() # <--- AÑADIDO: Detiene el confeti antes de la lógica de diálogo.
+                
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
                 score = self.answer_results.count("correct")
@@ -872,23 +883,19 @@ class Level2:
                 self.timer.pause()
                 self.quiz_timer.reset()
                 if score >= 4: # <-- CONDICIÓN DE VICTORIA DE 4
-                    self.confetti.start()
+                    self.confetti.start() # Solo lo inicia si ganó.
         
         elif self.state == "quiz_complete_dialog":
             if not self.dialogo_active and self.current_dialog_index >= len(self.post_quiz_dialogs):
                 
-                # === [MODIFICACIÓN] INICIA LA DESAPARICIÓN DE TUTO 3 (Transición a Tuto 4) ===
-                # Si el diálogo de resultados finaliza, Tuto 3 desaparece para dar paso al Tuto 4
-                if self.current_tuto_index == 3 and not self.tuto_fade_out_started:
-                    self.tuto_pending_index = 4 # Tuto 4 está pendiente
-                    self.tuto_fade_out_started = True 
-                    self.tuto_visible_timer.pause()
-                    
-                    # === INICIA LA DESAPARICIÓN DE TUTO 3 ALTERNATIVO ===
-                    if self.tuto_3_alt_active:
-                         self.tuto_fade_out_started = True # Usaremos la lógica de update para el slide-out/fade-out
-                    # ===========================================================
+                score = self.answer_results.count("correct") # Obtener el score
                 
+                # Detener las animaciones de Tuto 3 (para Tuto 4)
+                self.tuto_fade_out_started = True # Inicia la salida de Tuto 3 (y alt)
+                self.tuto_visible_timer.pause()
+                self.tuto_pending_index = 0 # Limpiamos el pendiente
+
+                # Lógica de movimiento de la Prefecta y reseteo de jugador
                 self.Guardia.rect.x -= 130
                 guardia_width = self.Guardia.rect.width
                 new_width = self.guardia_collision_rect.width
@@ -902,14 +909,34 @@ class Level2:
                 self.player.rect.x = 450
                 self.player.rect.y = 570
                 self.guard_interacted = True
+                
+                # Cambio de fondo
                 if not self.background_changed:
                     self.background_image = self.background_image_open
                     self.background_changed = True
-                    # --- CRÍTICO: Activación de la flecha de la puerta final ---
-                    self.arrow_sprite.start()
-                    # ----------------------------------------------------------
                 
+                if score >= 4: 
+                    # === ACTIVACIÓN INMEDIATA DE TUTO 4 (si ganó) ===
+                    self.arrow_sprite.start()
+                    self.confetti.start() 
+                    
+                    # Forzamos la activación del Tuto 4 y sus flags de animación
+                    self.current_tuto_index = 4
+                    self.tuto_4_active = True 
+                    self.tuto_fade_out_started = False # Para que el Tuto 4 pueda entrar
+                    self.tuto_fade_in_started = True
+                    self.tuto_current_x = self.tuto_exit_x
+                    self.tuto_visible_timer.start() 
+                    self.tuto_3_alt_active = False # Limpiamos el tutorial alternativo
+                else:
+                    # Si perdió, limpiar la escena
+                    self.arrow_sprite.stop() 
+                    self.confetti.stop()
+                    self.current_tuto_index = 0
+                    self.tuto_3_alt_active = False
+
                 self.state = "game"
+
 
         elif self.state == "loss_sound_state":
             if not self.loss_sound or not pygame.mixer.get_busy() or (self.loss_sound and self.loss_sound.get_num_channels() == 0):
@@ -1069,6 +1096,7 @@ class Level2:
 
             # =======================================================
             # [INSERCIÓN] DIBUJO DE IMÁGENES DE TUTORIAL (TUTO 1-4)
+            # --> MOVIDO AQUÍ PARA DIBUJAR SOBRE EL CONFETI <--
             # =======================================================
             if self.current_tuto_index > 0:
                 current_image = None
@@ -1080,8 +1108,8 @@ class Level2:
                 elif self.current_tuto_index == 3 and self.tuto_image_3: 
                     current_image = self.tuto_image_3
                 elif self.current_tuto_index == 4 and self.tuto_image_4 and self.tuto_4_active: 
-                    current_image = self.tuto_image_4
-
+                    current_image = self.tuto_image_4 # <--- Dibuja Tuto 4
+                
                 # Dibuja si hay una imagen seleccionada y está visible/saliendo
                 if current_image and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
                     current_image.set_alpha(self.tuto_alpha) # Aplica opacidad

@@ -11,7 +11,10 @@ class Timer:
         # --- LÓGICA DE PAUSA ---
         self.paused = False 
         self.pause_ticks = 0 
-        # ---------------------------------
+        
+        # --- MODIFICACIÓN: Nuevo atributo para almacenar el tiempo restante ---
+        self.time_remaining = total_seconds 
+        # ---------------------------------------------------------------------
         
         # --- COLORES --- 
         self.primary_orange = (0, 255, 255) 
@@ -46,6 +49,7 @@ class Timer:
         self.finished = False 
         self.paused = False 
         self.pause_ticks = 0
+        self.time_remaining = self.total_seconds # MODIFICACIÓN: Reiniciar al iniciar
 
     def is_running(self):
         """Retorna True si el temporizador está activo (iniciado, no pausado y no terminado)."""
@@ -54,11 +58,13 @@ class Timer:
     def update(self): 
         if self.start_ticks is None or self.paused: 
             if self.start_ticks is None: 
+                self.time_remaining = self.total_seconds # MODIFICACIÓN: Almacenar tiempo total
                 return self.total_seconds 
             
             elapsed_seconds = self.pause_ticks // 1000 
             remaining = self.total_seconds - elapsed_seconds 
-            return max(0, remaining) 
+            self.time_remaining = max(0, remaining) # MODIFICACIÓN: Almacenar tiempo restante
+            return self.time_remaining
 
         elapsed_ticks = pygame.time.get_ticks() - self.start_ticks 
         elapsed_seconds = elapsed_ticks // 1000 
@@ -66,7 +72,10 @@ class Timer:
         
         if remaining <= 0: 
             self.finished = True 
+            self.time_remaining = 0 # MODIFICACIÓN: Almacenar 0
             return 0 
+            
+        self.time_remaining = remaining # MODIFICACIÓN: Almacenar tiempo restante
         return remaining
 
     def reset(self):
@@ -75,6 +84,7 @@ class Timer:
         self.finished = False
         self.paused = False
         self.pause_ticks = 0
+        self.time_remaining = self.total_seconds # MODIFICACIÓN: Resetear time_remaining
 
     # ----------------------------------------------------------------------
     # MÉTODO DRAW (Dibuja el temporizador)

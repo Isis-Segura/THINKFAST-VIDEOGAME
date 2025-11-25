@@ -1,5 +1,6 @@
 import pygame
 import os
+import random 
 
 class FloorQuiz_KeyAndCarry:
     def __init__(self, size, questions, font_question, dialog_box_img=None, dialog_box_rect=None, dialog_img_loaded=False):
@@ -20,15 +21,23 @@ class FloorQuiz_KeyAndCarry:
         self.dialog_box_rect_template = dialog_box_rect
         self._dialog_img_loaded = dialog_img_loaded
 
-        # --- PROPIEDADES PARA EL TEMPORIZADOR (2 SEGUNDOS) ---
+        # --- PROPIEDADES PARA EL TEMPORIZADOR DE AVANCE (2 SEGUNDOS) ---
         self.DELAY_DURATION = 2000 # 2 segundos en milisegundos
         self.delay_timer = 0       # Almacena el tiempo de inicio del retraso
-        # -----------------------------------------------
+        # -------------------------------------------------------------
 
         # Propiedades para la caja de la pregunta
         self.question_box_img = None
         self.question_box_rect = None
         self._setup_question_box_display()
+
+        # --- NUEVOS PARÁMETROS PARA LA REVELACIÓN DE RESPUESTAS (Fade-in) ---
+        self.ANSWER_REVEAL_DELAY = 1500  # 1.5 segundos de espera antes de la animación
+        self._answer_reveal_timer = 0    # Tiempo de inicio de la revelación
+        self._answers_visible = False    # Bandera para saber si ya se pueden dibujar
+        self._current_reveal_alpha = 0   # Transparencia (0 a 255) para la animación fade-in
+        self.REVEAL_DURATION = 500       # 0.5 segundos para el fade-in
+        # ------------------------------------------------------------------
 
         # Propiedades para la opción cargada
         self.carried_choice_box_img = None
@@ -39,24 +48,21 @@ class FloorQuiz_KeyAndCarry:
         self.highlight_color = (255, 255, 0)
         self.choice_font_color = (0, 0, 0) 
         # Color de texto de la pregunta: Blanco/Tiza
-        self.question_font_color = (255, 255, 255)
+        self.question_font_color = (0, 0, 0)
         
         # Nuevos colores para los bordes de retroalimentación
         self.CORRECT_COLOR = (0, 200, 0) # Verde
         self.INCORRECT_COLOR = (200, 0, 0) # Rojo
 
-        self.choice_images = []
         self._load_choice_images()
         
         self._setup_question_layout() 
 
     def _load_choice_images(self):
-        """Carga solo las imágenes de las opciones al inicio."""
+        """Carga las imágenes de las opciones al inicio y las adjunta a los datos de la opción."""
         C_IMG_SIZE = (80, 80) 
-        self.choice_images = []
-
+        
         for q_index, question_data in enumerate(self.questions):
-            current_q_images = []
             for choice_data in question_data["choices"]:
                 c_path = choice_data.get("image")
                 loaded_img = None
@@ -68,8 +74,8 @@ class FloorQuiz_KeyAndCarry:
                     except pygame.error as e:
                         print(f"Error al cargar imagen de la opción '{c_path}': {e}")
                 
-                current_q_images.append(loaded_img)
-            self.choice_images.append(current_q_images)
+                # Almacenar la imagen cargada directamente en el diccionario de la opción
+                choice_data["loaded_image"] = loaded_img 
 
     def _setup_question_box_display(self):
         if self._dialog_img_loaded and self.dialog_box_img_template:
@@ -83,7 +89,7 @@ class FloorQuiz_KeyAndCarry:
             self.question_box_img.set_colorkey((0, 0, 0))
             
             # Colores y parámetros
-            BACKGROUND_COLOR = (0, 100, 0) 
+            BACKGROUND_COLOR = (255, 255, 255) 
             BORDER_COLOR = (101, 67, 33) 
             BORDER_THICKNESS = 7   
             BORDER_RADIUS = 20     
@@ -101,6 +107,29 @@ class FloorQuiz_KeyAndCarry:
         self.choice_rects = []
         current_q = self.questions[self.current_question_index]
         choices = current_q["choices"]
+        
+        # --- LÓGICA PARA BARAJAR RESPUESTAS ---
+        # 1. Obtener el objeto de la respuesta correcta antes de barajar
+        correct_choice_data = choices[current_q["correct_answer"]]
+        
+        # 2. Barajar las opciones en su lugar (in-place)
+        random.shuffle(choices) 
+        
+        # 3. Encontrar el nuevo índice de la respuesta correcta en la lista barajada
+        try:
+            new_correct_index = choices.index(correct_choice_data)
+        except ValueError:
+            new_correct_index = current_q["correct_answer"] 
+
+        # 4. Actualizar la propiedad 'correct_answer' con el nuevo índice.
+        current_q["correct_answer"] = new_correct_index
+        # ---------------------------------------------
+        
+        # --- NUEVO: REINICIO DE ESTADOS DE REVELACIÓN ---
+        self._answers_visible = False
+        self._current_reveal_alpha = 0
+        self._answer_reveal_timer = pygame.time.get_ticks() 
+        # ------------------------------------------------
         
         start_y = self.size[1] - 130
         choice_box_height = 100
@@ -126,7 +155,8 @@ class FloorQuiz_KeyAndCarry:
         
 
     def check_player_collision(self, player_rect):
-        if self.is_answered or self.carried_choice_index != -1:
+        # La colisión solo se comprueba si las respuestas son visibles
+        if not self._answers_visible or self.is_answered or self.carried_choice_index != -1:
             self.highlighted_choice_index = -1
             return
             
@@ -149,17 +179,34 @@ class FloorQuiz_KeyAndCarry:
         self.carried_choice_box_rect.centerx = player_center_x + self.carried_choice_box_rect.width // 2 + 10
         self.carried_choice_box_rect.centery = player_top_y + (self.carried_choice_box_rect.height // 2) + 20
 
-    # --- MÉTODO UPDATE CRUCIAL PARA EL AVANCE AUTOMÁTICO (CORREGIDO) ---
     def update(self):
-        """Maneja la lógica de avance automático después de la respuesta."""
+        """Maneja la lógica de avance automático después de la respuesta y la animación de revelación."""
+        current_time = pygame.time.get_ticks()
+
+        # --- LÓGICA DE REVELACIÓN DE RESPUESTAS (Fade-in) ---
+        if not self._answers_visible and self.carried_choice_index == -1 and not self.is_answered:
+            elapsed = current_time - self._answer_reveal_timer
+            
+            if elapsed > self.ANSWER_REVEAL_DELAY:
+                # 1. Ya pasó el retraso inicial, ahora hacemos el fade-in
+                reveal_time = elapsed - self.ANSWER_REVEAL_DELAY
+                
+                # 2. Calcular el nuevo valor de alfa (transparencia)
+                if reveal_time < self.REVEAL_DURATION:
+                    # Cálculo de 0 a 255
+                    self._current_reveal_alpha = int((reveal_time / self.REVEAL_DURATION) * 255)
+                else:
+                    # Fin de la animación
+                    self._current_reveal_alpha = 255
+                    self._answers_visible = True
+
+        # --- Lógica de AVANCE AUTOMÁTICO (EXISTENTE) ---
         if self.is_answered and self.delay_timer > 0:
-            current_time = pygame.time.get_ticks()
             if current_time - self.delay_timer >= self.DELAY_DURATION:
                 # Si es la última pregunta
                 if self.current_question_index == self.max_questions - 1:
-                    # Al pasar el delay, se marca como terminado para Level2F.py
                     self.finished = True 
-                    self.is_answered = False # Se desactiva la respuesta para detener el dibujo del mensaje
+                    self.is_answered = False 
                     self.delay_timer = 0
                 else:
                     self.next_question() # Pasa a la siguiente pregunta
@@ -187,7 +234,7 @@ class FloorQuiz_KeyAndCarry:
                 return self.answer_result
 
         # 2. RECOGER (PICK UP)
-        elif self.highlighted_choice_index != -1:
+        elif self.highlighted_choice_index != -1 and self._answers_visible: # Solo permite recoger si son visibles
             self.carried_choice_index = self.highlighted_choice_index
             self.highlighted_choice_index = -1
             return "picked_up"
@@ -251,12 +298,25 @@ class FloorQuiz_KeyAndCarry:
         # 2. DIBUJAR OPCIONES EN EL SUELO 
         if self.carried_choice_index == -1: 
             current_q_data = self.questions[self.current_question_index]
-            current_choice_images = self.choice_images[self.current_question_index]
             correct_index = current_q_data["correct_answer"]
+            
+            # --- NUEVO: DIBUJAR EN UNA SUPERFICIE TEMPORAL CON ALFA ---
+            # Crear una superficie que abarque toda el área de dibujo para aplicar transparencia
+            temp_surface = pygame.Surface(self.size, pygame.SRCALPHA)
+            temp_surface.fill((0, 0, 0, 0)) # Rellenar transparente
+            
+            if not self.is_answered:
+                # Aplicar la transparencia calculada en update()
+                temp_surface.set_alpha(self._current_reveal_alpha)
+            else:
+                # Si ya fue respondida, se dibuja opaca (alpha 255)
+                temp_surface.set_alpha(255)
+            # --------------------------------------------------------
             
             for i, rect in enumerate(self.choice_rects):
                 
-                choice_text = current_q_data["choices"][i]["text"]
+                current_choice_data = current_q_data["choices"][i]
+                choice_text = current_choice_data["text"]
                 
                 # --- LÓGICA DE BORDE DE RETROALIMENTACIÓN ---
                 border_color = None
@@ -271,35 +331,31 @@ class FloorQuiz_KeyAndCarry:
                     border_color = self.highlight_color # Amarillo si está resaltada para recoger
                     border_width = 5 
                 
-                # --- DIBUJAR RECUADRO Y BORDE ---
-                # Se dibuja el recuadro blanco de fondo
-                pygame.draw.rect(surface, self.choice_colors[i], rect, border_radius=5)
+                # --- DIBUJAR RECUADRO Y BORDE EN temp_surface ---
+                pygame.draw.rect(temp_surface, self.choice_colors[i], rect, border_radius=5)
                 
-                # Se dibuja el borde (si aplica)
                 if border_color:
-                    # El borde se dibuja SOBRE el recuadro
-                    pygame.draw.rect(surface, border_color, rect, border_width, border_radius=5)
+                    pygame.draw.rect(temp_surface, border_color, rect, border_width, border_radius=5)
 
                 
                 # DIBUJAR IMAGEN DE OPCIÓN
-                choice_img = current_choice_images[i]
+                choice_img = current_choice_data.get("loaded_image") 
                 if choice_img:
-                    img_rect = choice_img.get_rect(centerx=rect.centerx, top=rect.top + 5)
-                    surface.blit(choice_img, img_rect.topleft)
+                    img_rect = choice_img.get_rect(centerx=rect.centerx, top=rect.top + 0) 
+                    temp_surface.blit(choice_img, img_rect.topleft)
                 
                 # DIBUJAR TEXTO DE OPCIÓN
                 text_surface = self.font_question.render(choice_text, True, self.choice_font_color)
-                text_rect = text_surface.get_rect(centerx=rect.centerx, bottom=rect.bottom - 5)
-                surface.blit(text_surface, text_rect)
+                text_rect = text_surface.get_rect(centerx=rect.centerx, bottom=rect.bottom - 2) 
+                temp_surface.blit(text_surface, text_rect)
                 
-                # DIBUJAR MENSAJE DE RECOGER
-                if i == self.highlighted_choice_index and not self.is_answered:
+                # DIBUJAR MENSAJE DE RECOGER (Solo si las respuestas están completamente visibles)
+                if self._answers_visible and i == self.highlighted_choice_index and not self.is_answered:
                     prompt_text = "Presiona ESPACIO/ENTER para RECOGER."
-                    
-                    prompt_center_pos = (rect.centerx, rect.top - 35) 
+                    prompt_center_pos = (rect.centerx, rect.top - 40) 
                     
                     self._draw_text_with_border(
-                        surface, 
+                        temp_surface, 
                         prompt_text, 
                         self.font_question, 
                         (255, 255, 255),  
@@ -307,6 +363,11 @@ class FloorQuiz_KeyAndCarry:
                         prompt_center_pos,
                         border_offset=1
                     )
+            
+            # --- DIBUJAR LA SUPERFICIE TEMPORAL EN LA PANTALLA ---
+            surface.blit(temp_surface, (0, 0))
+            # -------------------------------------------------------------
+
 
         # 3. DIBUJAR RESULTADO TEMPORAL CON BORDE 
         if self.is_answered:
@@ -341,10 +402,10 @@ class FloorQuiz_KeyAndCarry:
             current_box_height = temp_text_surface.get_height() + 10 
             
             carried_box_surface = pygame.Surface((current_box_width, current_box_height), pygame.SRCALPHA)
-            carried_box_surface.fill((30, 30, 100, 180)) 
+            carried_box_surface.fill((255, 255, 255)) 
             pygame.draw.rect(carried_box_surface, (255, 255, 0), carried_box_surface.get_rect(), 2, border_radius=5) 
             
-            text_surface = self.font_question.render(choice_text, True, (255, 255, 255)) 
+            text_surface = self.font_question.render(choice_text, True, (0, 0, 0)) 
             text_rect = text_surface.get_rect(center=(carried_box_surface.get_width() // 2, carried_box_surface.get_height() // 2))
             carried_box_surface.blit(text_surface, text_rect)
             

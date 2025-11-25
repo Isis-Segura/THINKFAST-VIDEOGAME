@@ -6,11 +6,13 @@ from Personajes.girl import Characterg
 from Personajes.Guardian import Characternpcg
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
-from Interacciones.Mecanicas.FloorQuiz import FloorQuiz # Asegúrate de que este archivo exista
+from Interacciones.Mecanicas.FloorQuiz import FloorQuiz 
 
 # Inicializa el mezclador de audio (para música y sonidos)
+MIXER_INITIALIZED = False
 try:
     pygame.mixer.init()
+    MIXER_INITIALIZED = True
 except pygame.error:
     pass
 
@@ -87,7 +89,6 @@ class ArrowSprite:
             try:
                 img = pygame.image.load(f'Materials/Pictures/Assets/flecha{i}.png').convert_alpha()
                 # Redimensiona la flecha a un tamaño apropiado (ej: 80x80)
-                # MODIFICACIÓN DE TAMAÑO (previo)
                 img = pygame.transform.scale(img, (80, 80)) 
                 self.images.append(img)
             except pygame.error:
@@ -136,6 +137,60 @@ class Level1:
         self.size = size
         self.font = font
         self.character_choice = character_choice
+
+        # PANTALLA DE TUTORIAL
+        self.tuto_image = None
+        self.tuto_image_2 = None 
+        self.tuto_image_3 = None # <--- NUEVA VARIABLE
+        # === AÑADIDO PARA TUTO 4 ===
+        self.tuto_image_4 = None # <--- NUEVA VARIABLE PARA TUTO 4
+        self.tuto_4_active = False # Bandera de control para Tuto 4
+        # ===========================
+        self.tuto_alpha = 0  
+        self.tuto_max_alpha = 255
+        self.tuto_fade_speed = 8  
+        self.tuto_slide_speed = 10 
+        self.tuto_visible_timer = Timer(5) # 5 segundos de visibilidad (para el Tuto 1)
+        self.tuto_fade_in_started = False
+        self.tuto_fade_out_started = False
+        self.tuto_finished = False # Indica si el Tuto 1 ha terminado su ciclo automático (se usa para bloqueo permanente)
+        self.tuto_3_has_appeared = False # NUEVA BANDERA: Indica si Tuto 3 ya apareció alguna vez.
+
+        # Control del tutorial actual (1 = tuto1, 2 = tuto2, 3 = tuto3, 0 = finalizado)
+        self.current_tuto_index = 1 
+        self.tuto_2_active = False 
+
+        self.tuto_target_x = 20  # Posición X final (cerca de la esquina izquierda)
+        # Posición X inicial/final de salida (fuera de la pantalla a la izquierda)
+        self.tuto_exit_x = -250 
+        self.tuto_current_x = self.tuto_exit_x # Inicializa fuera de pantalla
+        self.tuto_y = 20 # Posición Y fija cerca de la parte superior
+
+        try:
+            # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
+            img1 = pygame.image.load('Materials/Pictures/Assets/tuto1.jpg').convert_alpha()
+            self.tuto_image = pygame.transform.scale(img1, (250, 180)) 
+            self.tuto_rect = self.tuto_image.get_rect(topleft=(self.tuto_current_x, self.tuto_y)) 
+            
+            # 2. Cargar y redimensionar la imagen de tutorial 2 (Espacio/Enter)
+            img2 = pygame.image.load('Materials/Pictures/Assets/tuto2.jpg').convert_alpha()
+            self.tuto_image_2 = pygame.transform.scale(img2, (250, 180))
+            
+            # 3. Cargar y redimensionar la imagen de tutorial 3 (Diálogo/Quiz) <--- NUEVO
+            img3 = pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha()
+            self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
+            
+            # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria) <--- NUEVO PARA TUTO 4
+            img4 = pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha() # <--- IMAGEN DE TUTO 4
+            self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) # <--- TUTO 4
+            
+        except pygame.error as e:
+            self.tuto_image = None
+            self.tuto_image_2 = None
+            self.tuto_image_3 = None # <--- Manejo de error para Tuto 3
+            self.tuto_image_4 = None # <--- Manejo de error para Tuto 4
+            self.current_tuto_index = 0
+            print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
         # Pantalla de controles (se muestra al iniciar el nivel)
         try:
@@ -195,24 +250,22 @@ class Level1:
             self.background_image_open = self.background_image_game
         self.background_changed = False
 
-        # === MODIFICACIÓN SOLICITADA: Cuadro de diálogo inferior (Mismo estilo que el Quiz) ===
-        self.DIALOG_BOX_BACKGROUND = (20, 30, 80)
-        self.DIALOG_BOX_BORDER = (255, 200, 0)
+        # Cuadro de diálogo inferior
+        self.DIALOG_BOX_BACKGROUND = (247, 247, 247)
+        self.DIALOG_BOX_BORDER = (89, 61, 46)
         self.DIALOG_BOX_RADIUS = 10
         self.DIALOG_BOX_WIDTH = 800
-        self.DIALOG_BOX_HEIGHT = 100 # Altura consistente con el cuadro de pregunta
+        self.DIALOG_BOX_HEIGHT = 100 
         
         dialog_width = self.DIALOG_BOX_WIDTH
         dialog_height = self.DIALOG_BOX_HEIGHT
         dialog_x = (self.size[0] - dialog_width) // 2
-        # Posición Y calculada para que el cuadro quede cerca de la parte inferior
         dialog_y = self.size[1] - 130 
         
         self.dialog_box_rect = pygame.Rect(dialog_x, dialog_y, dialog_width, dialog_height)
-        self._dialog_img_loaded = False # Forzar a usar la lógica de dibujo con pygame.draw.rect
+        self._dialog_img_loaded = False 
         self.dialog_box_img = None
-        # === FIN DE LA MODIFICACIÓN ===
-
+        
         # Pantallas de victoria y derrota
         try:
             img = pygame.image.load('Materials/Pictures/Assets/perdiste.png').convert()
@@ -227,8 +280,10 @@ class Level1:
             self.win_image = None
 
         # Temporizadores
-        self.timer = Timer(120)      # tiempo general del nivel
-        self.quiz_timer = Timer(10)  # tiempo para responder cada pregunta
+        self.timer = Timer(5000)      # tiempo general del nivel
+        self.quiz_timer = Timer(100000) # MODIFICADO: tiempo para responder cada pregunta # tiempo para responder cada pregunta
+        # AÑADIDO: Temporizador para la pausa después de responder una pregunta (2 segundos)
+        self.answer_pause_timer = Timer(2) 
 
         # palomitas y taches -> ahora con imágenes
         self.answer_results = []
@@ -260,21 +315,22 @@ class Level1:
         # Carga sonidos y música
         self.controls_music = None
         self.level_music_loaded = False
-        try:
-            self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
-            pygame.mixer.music.load('Materials/Music/Level1.wav')
-            self.level_music_loaded = True
-            self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
-            self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
-            self.win_music = pygame.mixer.Sound('Materials/Music/Ganar.wav')
-            self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
-            self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
-        except Exception:
-            self.loss_sound = None
-            self.game_over_music = None
-            self.win_music = None
-            self.correct_sound = None
-            self.incorrect_sound = None
+        if MIXER_INITIALIZED:
+            try:
+                self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
+                pygame.mixer.music.load('Materials/Music/Level1.wav')
+                self.level_music_loaded = True
+                self.loss_sound = pygame.mixer.Sound('Materials/Music/antesover.wav')
+                self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
+                self.win_music = pygame.mixer.Sound('Materials/Music/Ganar.wav')
+                self.correct_sound = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
+                self.incorrect_sound = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
+            except Exception:
+                self.loss_sound = None
+                self.game_over_music = None
+                self.win_music = None
+                self.correct_sound = None
+                self.incorrect_sound = None
 
         # Texto inicial del guardia
         self.dialogo_text = "Si quieres pasar, tendras que responder estas\n preguntas!!"
@@ -352,18 +408,26 @@ class Level1:
         self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
         # ------------------------------------------
 
-        # Fuentes del texto (Simplificación para evitar "Error de dibujo de texto")
+        # Fuentes del texto
         if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf"):
             font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
         else:
             font_path = None 
         
         self.font_base = pygame.font.Font(font_path, 18)
-        self.font_dialog = pygame.font.Font(font_path, 15)
+        self.font_dialog = pygame.font.Font(font_path, 17)
         self.font_question = pygame.font.Font(font_path, 13)
         self.font_title = pygame.font.Font(font_path, 15)
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
+        # Fuente para el texto inferior de controles
+        self.font_control_text = pygame.font.Font(font_path, 18) 
+        
+        # --- CÓDIGO INTEGRADO DE LEVEL 2: Temporizador de Controles ---
+        self.control_timer = Timer(5) # Ajustado a 5 segundos
+        self.control_timer_started = False
+        self.can_skip_controls = False
+        # ------------------------------------------------------------
 
 
     # ============================================================
@@ -385,12 +449,14 @@ class Level1:
 
         # Pantalla de controles (presionar espacio para continuar)
         if self.state == "controls_screen" and not self.is_fading:
-            if event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
+            # --- CÓDIGO INTEGRADO DE LEVEL 2: Solo permite saltar si la espera de 5 segundos ha terminado ---
+            if self.can_skip_controls and event.type == pygame.KEYDOWN and (event.key in [pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN]):
                 self.is_fading = True
                 self.target_state = "game"
                 self.fade_alpha = 0
                 if self.controls_music:
-                    self.controls_music.stop()
+                    self.controls_music.stop() # Detiene la música de control al pasar al juego
+            # ----------------------------------------------------------------------------------------------
             return None
 
         # Interacción con diálogos o quiz (espacio/enter)
@@ -401,45 +467,53 @@ class Level1:
                 elif self.state == "dialog":
                     # Inicia el quiz
                     self.timer.start()
-                    self.quiz_timer = Timer(10)
+                    self.quiz_timer = Timer(100000)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False
                     self.typewriter = None
-                    # LLAMADA CORREGIDA DEL ERROR ANTERIOR: Sin argumentos de color
                     self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question) 
+                    
+                    # *** INICIO DE TUTO 3 (PRIMERA APARICIÓN) TERMINA SU SLIDE-OUT AQUÍ ***
+                    # Lo forzamos a salir ya que el quiz cubre la pantalla.
+                    if self.current_tuto_index == 3:
+                        self.tuto_fade_out_started = True 
+                        if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                            self.tuto_visible_timer.time_remaining = 0 
+                    else:
+                        # Finalizamos el tutorial si el flujo normal terminó
+                        self.current_tuto_index = 0 
+                        self.tuto_finished = True 
+                        
                 elif self.state == "quiz_complete_dialog":
                     # Avanza los diálogos después del quiz
                     self.current_dialog_index += 1
                     if self.current_dialog_index < len(self.post_quiz_dialogs):
                         next_text = self.post_quiz_dialogs[self.current_dialog_index]
-                        # LLAMADA CORREGIDA: Se eliminan argumentos de color no soportados por TypewriterText
                         self.typewriter = TypewriterText(next_text, self.font_dialog, 
-                                                         (255, 255, 255), speed=25) 
+                                                         (0, 0, 0), speed=25) 
                         self.dialogo_active = True
                     else:
+                        # Diálogo post-quiz ha terminado
                         self.dialogo_active = False
                         self.typewriter = None
+                        
+                        # --- MODIFICACIÓN: Desactiva Tuto 3 al final del diálogo post-quiz (SEGUNDA APARICIÓN) ---
+                        # Inicia el slide-out forzado de Tuto 3.
+                        if self.current_tuto_index == 3:
+                            self.tuto_fade_out_started = True 
+                            if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                                self.tuto_visible_timer.time_remaining = 0 
+                            # NO SE MARCA COMO 'tuto_finished = True' AQUÍ, ya que el tutorial 3 es el último
+                            # y se marca como finalizado en el SLIDE-OUT de la función update.
+                        # -------------------------------------------------------------------
             
-            # LÓGICA DE AVANCE DEL QUIZ
-            if self.state == "quiz_floor" and self.quiz_game:
-                # La lógica de next_question() ahora la maneja FloorQuiz si se pulsa espacio y ya está contestada
-                if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.state != "loss_sound_state":
-                    self.quiz_timer = Timer(10)
-                    self.quiz_timer.start()
-                    self.quiz_game.next_question()
-                    return None
-
         # Manejo del quiz
         if self.state == "quiz_floor" and self.quiz_game:
             result = self.quiz_game.handle_event(event)
 
             if result in ["correct", "incorrect"]:
                 self.quiz_timer.pause()
-                
-                # FIX DEL REQUISITO: Forzar visualmente el tiempo restante a 10s.
-                if hasattr(self.quiz_timer, 'time_remaining'):
-                    self.quiz_timer.time_remaining = 10
                     
                 if len(self.answer_results) < self.max_questions:
                     if result == "correct":
@@ -451,13 +525,15 @@ class Level1:
                             self.incorrect_sound.play()
                         self.answer_results.append("incorrect")
 
+                # AÑADIDO: Inicia el temporizador de pausa para el avance automático
+                self.answer_pause_timer.reset()
+                self.answer_pause_timer.start()
+
                 if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
                     pygame.mixer.music.stop()
                     if self.loss_sound:
                         self.loss_sound.play()
-
-            # La llamada a next_question() por ESPACIO se maneja arriba ahora.
 
         return None
 
@@ -469,11 +545,16 @@ class Level1:
 
         # Transiciones de fundido (fade in/out)
         if self.is_fading:
+            # ... (código de fade-in/out para controls_screen)
             if self.state == "controls_screen":
                 if self.target_state is None:
                     self.fade_alpha = max(0, self.fade_alpha - self.fade_in_speed)
                     if self.fade_alpha == 0:
                         self.is_fading = False
+                        # --- INICIO DE LA MÚSICA DE CONTROLES (SOLUCIÓN AÑADIDA) ---
+                        if self.controls_music and not self.controls_music.get_num_channels():
+                            self.controls_music.play(-1) # -1 para reproducción en bucle
+                        # -------------------------------------------------------------
                 elif self.target_state == "game":
                     self.fade_alpha = min(255, self.fade_alpha + self.fade_out_speed)
                     if self.fade_alpha == 255:
@@ -486,14 +567,245 @@ class Level1:
                     self.is_fading = False
                     if self.level_music_loaded and not pygame.mixer.music.get_busy():
                         pygame.mixer.music.play(-1)
+                    # CAMBIO: Inicia el tutorial 1 si no ha terminado
+                    if (self.tuto_image or self.tuto_image_2 or self.tuto_image_3) and self.current_tuto_index > 0 and not self.tuto_fade_in_started:
+                        self.tuto_fade_in_started = True
 
-        if self.state == "controls_screen":
+        if self.state == "controls_screen" and not self.is_fading:
+            # ... (código del temporizador de controles)
+            if not self.control_timer_started:
+                self.control_timer.start()
+                self.control_timer_started = True
+
+            if self.control_timer.is_running():
+                self.control_timer.update()
+                if self.control_timer.finished and not self.can_skip_controls:
+                    self.can_skip_controls = True
+            
             return self.state
 
+        # Lógica de la animación del tutorial (MODIFICADA PARA ACTIVACIÓN DINÁMICA DE TUTO 2/3)
+        # Se asegura de que si Tuto 4 está activo, los otros tutoriales no interfieran.
+        if self.current_tuto_index > 0 and not self.tuto_4_active and (self.tuto_image or self.tuto_image_2 or self.tuto_image_3): 
+            
+            # Determinar si el jugador está cerca del guardia (AUMENTAR EL RECT DE COLISIÓN PARA CERCANÍA)
+            is_near_guard = self.player.rect.colliderect(self.guardia_collision_rect.inflate(100, 100))
+            
+            # LÓGICA DE TRANSICIÓN POR PROXIMIDAD
+            
+            # TUTO 1 -> TUTO 2: Se activa al acercarse al guardia
+            if self.current_tuto_index == 1 and is_near_guard and not self.tuto_fade_out_started:
+                # Si estamos en Tuto 1 y nos acercamos al guardia, forzamos la salida de Tuto 1
+                if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                    self.tuto_visible_timer.time_remaining = 0 # Fuerza el temporizador a terminar
+                self.tuto_fade_out_started = True # Inicia el slide-out
+
+            # TUTO 2 -> TUTO 1/FINAL: Se activa al alejarse (antes de la interacción)
+            elif self.current_tuto_index == 2 and not is_near_guard and not self.tuto_fade_out_started and not self.guard_interacted:
+                 # Si estamos en Tuto 2 y nos alejamos, forzamos la salida de Tuto 2
+                 if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                    self.tuto_visible_timer.time_remaining = 0
+                 self.tuto_fade_out_started = True
+
+
+            # ---------------------------------------------------
+            # Animation State 1: SLIDE-IN (tuto1 or tuto2 or tuto3)
+            # ---------------------------------------------------
+            if self.tuto_fade_in_started and not self.tuto_fade_out_started:
+                # 1. Fade-in (Opacidad)
+                if self.tuto_alpha < self.tuto_max_alpha:
+                    self.tuto_alpha = min(self.tuto_max_alpha, self.tuto_alpha + self.tuto_fade_speed)
+
+                # 2. Slide-in (Posición: de exit_x a target_x)
+                if self.tuto_current_x < self.tuto_target_x:
+                    self.tuto_current_x = min(self.tuto_target_x, self.tuto_current_x + self.tuto_slide_speed)
+                
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+
+                # Check if slide-in is complete
+                is_slide_finished = (self.tuto_current_x >= self.tuto_target_x)
+                is_fade_in_finished = (self.tuto_alpha == self.tuto_max_alpha)
+
+                # If slide-in is complete, start the timer for visibility (Solo para Tuto 1/2 si es necesario)
+                if is_slide_finished and is_fade_in_finished and not self.tuto_visible_timer.is_running():
+                    if self.current_tuto_index in [1, 2]:
+                         self.tuto_visible_timer.start()
+                    
+                    # Tuto 1 solo debe iniciar su timer la primera vez
+                    if self.current_tuto_index == 1 and not self.tuto_finished:
+                        # La bandera tuto_finished ahora indica que ya corrió el ciclo de timer una vez (para controlar la repetición)
+                        self.tuto_finished = True 
+
+            # ---------------------------------------------------
+            # Animation State 2: VISIBLE
+            # ---------------------------------------------------
+            if self.tuto_visible_timer.is_running():
+                self.tuto_visible_timer.update()
+                
+                # Si el temporizador terminó, inicia la salida 
+                if self.tuto_visible_timer.finished and not self.tuto_fade_out_started:
+                    
+                    if self.current_tuto_index == 1:
+                         # Tuto 1: si termina el tiempo, inicia el fade-out.
+                        self.tuto_fade_out_started = True 
+
+                    elif self.current_tuto_index == 2:
+                        # Tuto 2: solo debe desaparecer si me alejo o interactúo. Si el timer termina, se mantiene visible hasta que ocurra algo.
+                        pass
+                    
+                    elif self.current_tuto_index == 3:
+                        # Tuto 3: No tiene timer de desaparición automática.
+                        pass
+
+
+            # ---------------------------------------------------
+            # Animation State 3: SLIDE-OUT (tuto1 or tuto2 or tuto3)
+            # ---------------------------------------------------
+            if self.tuto_fade_out_started and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
+                # 1. Fade-out (Opacidad)
+                self.tuto_alpha = max(0, self.tuto_alpha - self.tuto_fade_speed)
+
+                # 2. Slide-out (Posición: de target_x a exit_x)
+                if self.tuto_current_x > self.tuto_exit_x:
+                    self.tuto_current_x = max(self.tuto_exit_x, self.tuto_current_x - self.tuto_slide_speed)
+                
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+
+                # Check if slide-out is complete
+                is_slide_out_finished = (self.tuto_current_x <= self.tuto_exit_x)
+
+                if is_slide_out_finished and self.tuto_alpha == 0:
+                    
+                    if self.current_tuto_index == 1:
+                        # TUTO 1 FINISHED -> START TUTO 2 (ACTIVADO POR PROXIMIDAD) O REPETIR/FINALIZAR (por timer)
+                        if is_near_guard: # Si salió por proximidad, vamos a Tuto 2
+                            self.current_tuto_index = 2
+                            self.tuto_fade_in_started = True
+                            self.tuto_fade_out_started = False
+                            self.tuto_visible_timer.reset() 
+                            self.tuto_alpha = 0 
+                            self.tuto_current_x = self.tuto_exit_x
+                            self.tuto_finished = True # Si se acerca al guardia, ya no debe volver a Tuto 1 por tiempo.
+                        else:
+                            # Si salió por timer y no estaba cerca
+                            if not self.tuto_finished:
+                                # Primera vez que el timer termina: Repite Tuto 1 para la segunda aparición.
+                                # La bandera tuto_finished ahora indica que ya corrió el ciclo de timer una vez.
+                                self.tuto_finished = True 
+                                self.current_tuto_index = 1 # Se queda en 1
+                                self.tuto_fade_in_started = True
+                                self.tuto_fade_out_started = False
+                                self.tuto_visible_timer.reset() 
+                                self.tuto_alpha = 0 
+                                self.tuto_current_x = self.tuto_exit_x
+                            else:
+                                # Segunda vez que el timer termina: Finaliza permanentemente.
+                                self.current_tuto_index = 0
+                                # La bandera self.tuto_finished ya está en True
+                                self.tuto_fade_in_started = False
+                                self.tuto_fade_out_started = False
+                                self.tuto_visible_timer.reset()
+                        
+                    elif self.current_tuto_index == 2:
+                        # TUTO 2 FINISHED -> VUELVE A TUTO 1 o FINALIZA
+
+                        # Si se aleja (y aún no ha interactuado), vuelve a Tuto 1 para permitir el re-trigger de Tuto 2
+                        if not self.guard_interacted and not is_near_guard and self.tuto_image and self.tuto_finished: 
+                            self.current_tuto_index = 1
+                            self.tuto_fade_in_started = True
+                            self.tuto_fade_out_started = False
+                            self.tuto_visible_timer.reset() 
+                            self.tuto_alpha = 0 
+                            self.tuto_current_x = self.tuto_exit_x
+                            self.tuto_finished = True # Mantiene el estado de "ya ha aparecido la primera vez"
+                            
+                        else:
+                            # Finaliza la secuencia de tutoriales (solo si ya interactuó o si Tuto 1 terminó permanentemente)
+                            self.current_tuto_index = 0
+                            self.tuto_finished = True 
+                            self.tuto_fade_in_started = False
+                            self.tuto_fade_out_started = False
+                            self.tuto_visible_timer.reset()
+                            
+                    elif self.current_tuto_index == 3: 
+                        # TUTO 3 FINISHED -> Vuelve al estado de juego (Permite la re-aparición con Confeti si es la primera vez)
+                        
+                        # Si es la primera aparición (al iniciar el diálogo), no finalizamos la secuencia.
+                        if not self.tuto_3_has_appeared:
+                            self.tuto_3_has_appeared = True
+                            self.current_tuto_index = 0 # Temporalmente 0 para no interferir con el quiz
+                        else:
+                            # Si es la segunda aparición (con el Confeti), finaliza la secuencia permanentemente.
+                            self.current_tuto_index = 0
+                            self.tuto_finished = True
+                        
+                        self.tuto_fade_in_started = False
+                        self.tuto_fade_out_started = False
+                        self.tuto_visible_timer.reset()
+            # FIN CÓDIGO MODIFICADO PARA TUTO 1/2/3
+
+
+        # LÓGICA DE ANIMACIÓN DE TUTO 4 (NUEVO)
+        if self.tuto_4_active and self.tuto_image_4:
+            # Estado 1: SLIDE-IN
+            if self.tuto_fade_in_started and not self.tuto_fade_out_started:
+                # 1. Fade-in (Opacidad)
+                if self.tuto_alpha < self.tuto_max_alpha:
+                    self.tuto_alpha = min(self.tuto_max_alpha, self.tuto_alpha + self.tuto_fade_speed)
+
+                # 2. Slide-in (Posición: de exit_x a target_x)
+                if self.tuto_current_x < self.tuto_target_x:
+                    self.tuto_current_x = min(self.tuto_target_x, self.tuto_current_x + self.tuto_slide_speed)
+                
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+
+                # Si el slide-in está completo, inicia el timer de visibilidad
+                is_slide_finished = (self.tuto_current_x >= self.tuto_target_x)
+                is_fade_in_finished = (self.tuto_alpha == self.tuto_max_alpha)
+
+                if is_slide_finished and is_fade_in_finished and not self.tuto_visible_timer.is_running():
+                    # === CORRECCIÓN DEL ERROR 'AttributeError: 'Timer' object has no attribute 'set_timer'' ===
+                    # Se recrea el objeto Timer para asegurar su reseteo y ajuste a 8 segundos.
+                    self.tuto_visible_timer = Timer(8) # Tuto 4 visible por 8 segundos
+                    # =========================================================================================
+                    self.tuto_visible_timer.start()
+
+            # Estado 2: VISIBLE (Controlado por timer)
+            if self.tuto_visible_timer.is_running():
+                self.tuto_visible_timer.update()
+                
+                if self.tuto_visible_timer.finished and not self.tuto_fade_out_started:
+                    self.tuto_fade_out_started = True # Inicia el fade-out
+
+            # Estado 3: SLIDE-OUT
+            if self.tuto_fade_out_started and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
+                # 1. Fade-out (Opacidad)
+                self.tuto_alpha = max(0, self.tuto_alpha - self.tuto_fade_speed)
+
+                # 2. Slide-out (Posición: de target_x a exit_x)
+                if self.tuto_current_x > self.tuto_exit_x:
+                    self.tuto_current_x = max(self.tuto_exit_x, self.tuto_current_x - self.tuto_slide_speed)
+                
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+
+                # Check if slide-out is complete
+                is_slide_out_finished = (self.tuto_current_x <= self.tuto_exit_x)
+
+                if is_slide_out_finished and self.tuto_alpha == 0:
+                    # TUTO 4 TERMINADO PERMANENTEMENTE
+                    self.tuto_4_active = False 
+                    self.tuto_fade_in_started = False
+                    self.tuto_fade_out_started = False
+                    self.tuto_visible_timer.reset()
+                    self.tuto_finished = True # Asegura que la secuencia completa de tutoriales termine
+
+
         # Estados de juego y quiz
-        if self.state in ["game", "quiz_floor"]:
+        if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor", "loss_sound_state"]: # Añadido "quiz_complete_dialog" para movimiento
             if self.timer.is_running():
                 self.timer.update()
+            
+            # El jugador puede moverse durante el diálogo, pero el guardia sigue siendo barrera
             barrier = self.guardia_collision_rect if not self.guard_interacted else None
             self.player.move(keys, self.size[0], self.size[1], barrier)
             
@@ -513,6 +825,12 @@ class Level1:
                 pygame.mixer.music.stop()
                 self.state = "win_state"
                 self.confetti.reset()
+                # --- MODIFICACIÓN: Desactiva Tuto 4 al entrar a la zona de victoria ---
+                if self.tuto_4_active:
+                    self.tuto_fade_out_started = True 
+                    if hasattr(self.tuto_visible_timer, 'time_remaining'):
+                        self.tuto_visible_timer.time_remaining = 0 
+                # ---------------------------------------------------------------------
                 if self.win_music and not self.win_music_played:
                     self.win_music.play()
                     self.win_music_played = True
@@ -521,17 +839,50 @@ class Level1:
             if not self.is_fading and self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)) and (keys[pygame.K_SPACE] or keys[pygame.K_RETURN]) and not self.guard_interacted:
                 self.state = "dialog"
                 self.dialogo_active = True
-                # LLAMADA CORREGIDA: Se eliminan argumentos de color no soportados por TypewriterText
                 self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, 
-                                                 (255, 255, 255), speed=25)
+                                                 (0, 0, 0), speed=25)
+                
+                # *** MODIFICACIÓN: Lógica de PRIMERA APARICIÓN DE TUTO 3 ***
+                # Tuto 2 termina y Tuto 3 empieza su fade-in/slide-in
+                if self.tuto_image_3 and not self.tuto_3_has_appeared:
+                    self.current_tuto_index = 3 
+                    self.tuto_fade_in_started = True
+                    self.tuto_fade_out_started = False
+                    self.tuto_visible_timer.reset() 
+                    self.tuto_alpha = 0 
+                    self.tuto_current_x = self.tuto_exit_x
+                else:
+                    # Finalizamos la secuencia Tuto 1/2. Si ya apareció Tuto 3, no hacemos nada.
+                    self.current_tuto_index = 0 
+                    self.tuto_finished = True 
+                
+                # Aseguramos que la secuencia de Tuto 1/2 esté marcada como terminada si llegamos a interactuar
+                self.tuto_finished = True
 
 
         # Estado del quiz (temporizador y respuestas)
         elif self.state == "quiz_floor":
+            # AÑADIDO: Lógica de Avance Automático
+            if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.answer_pause_timer.is_running():
+                self.answer_pause_timer.update()
+                
+            # Si el temporizador de pausa terminó, avanza a la siguiente pregunta
+            if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.answer_pause_timer.finished:
+                if self.answer_results.count("incorrect") < 3:
+                    # Resetea y arranca el timer del quiz.
+                    self.quiz_timer.reset() 
+                    self.quiz_timer.start()
+                    self.quiz_game.next_question()
+                
+                # Si el quiz NO terminó, reseteamos el pause timer para evitar que se re-active
+                if not self.quiz_game.finished:
+                    self.answer_pause_timer.reset()
+                    
             if not self.quiz_timer.paused and not getattr(self.quiz_game, "is_answered", False):
                 self.quiz_timer.update()
 
             if self.quiz_timer.finished and not getattr(self.quiz_game, "is_answered", False):
+                # ... (resto de lógica de finalización de tiempo en quiz)
                 if self.incorrect_sound:
                     self.incorrect_sound.play()
                 if len(self.answer_results) < self.max_questions:
@@ -541,9 +892,10 @@ class Level1:
                 self.quiz_game.answer_result = "incorrect"
                 self.quiz_game.selected_choice_index = -1
                 self.quiz_timer.pause()
-                
-                if hasattr(self.quiz_timer, 'time_remaining'):
-                    self.quiz_timer.time_remaining = 10 
+                    
+                # AÑADIDO: Inicia el temporizador de pausa
+                self.answer_pause_timer.reset()
+                self.answer_pause_timer.start()
 
                 if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
@@ -553,9 +905,11 @@ class Level1:
 
             if self.quiz_game:
                 self.quiz_game.check_player_collision(self.player.rect)
+            
+            if self.quiz_game:
+                self.quiz_game.update()
 
             # Si termina el quiz, muestra diálogo final
-            # OJO: La condición se basa en que FloorQuiz.finished se pone a True internamente
             if self.quiz_game and self.quiz_game.finished: 
                 self.state = "quiz_complete_dialog"
                 self.dialogo_active = True
@@ -575,14 +929,29 @@ class Level1:
                     "Ahora te abro el paso. Buena suerte en tu camino!"
                 ]
                 self.current_dialog_index = 0
-                # LLAMADA CORREGIDA: Se eliminan argumentos de color no soportados por TypewriterText
                 self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
-                                                 (255, 255, 255), speed=25)
+                                                 (0, 0, 0), speed=25)
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
+                self.answer_pause_timer.reset() # AÑADIDO
+                
+                # --- MODIFICACIÓN: Inicia Confeti y Tuto 3 (SEGUNDA APARICIÓN) aquí ---
                 if score >= 2:
                     self.confetti.start()
+                    
+                    # ACTIVA TUTO 3 PARA QUE APAREZCA CON EL CONFETI (AUNQUE HAYA APARECIDO ANTES)
+                    if self.tuto_image_3:
+                        self.current_tuto_index = 3 
+                        self.tuto_fade_in_started = True
+                        self.tuto_fade_out_started = False
+                        self.tuto_visible_timer.reset()
+                        self.tuto_alpha = 0 
+                        self.tuto_current_x = self.tuto_exit_x
+                    else:
+                        self.current_tuto_index = 0
+                        self.tuto_finished = True
+                # --- FIN MODIFICACIÓN ---
         
         # Diálogo final tras el quiz
         elif self.state == "quiz_complete_dialog":
@@ -591,7 +960,8 @@ class Level1:
                 self.Guardia.rect.x -= 130
                 guardia_width = self.Guardia.rect.width
                 new_width = self.guardia_collision_rect.width
-                self.guardia_collision_rect.x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
+                new_x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
+                self.guardia_collision_rect.x = new_x
                 self.player.rect.x = 450
                 self.player.rect.y = 570
                 self.guard_interacted = True
@@ -599,7 +969,22 @@ class Level1:
                     self.background_image = self.background_image_open
                     self.background_changed = True
                     self.arrow_sprite.start()
+                    
+                    # === INICIA LA APARICIÓN DE TUTO 4 AQUÍ ===
+                    if self.tuto_image_4:
+                        # Reinicia las banderas de animación para Tuto 4
+                        self.tuto_4_active = True
+                        self.tuto_fade_in_started = True
+                        self.tuto_fade_out_started = False
+                        # Es importante crear una nueva instancia de Timer o usar .reset()
+                        # pero dado el cambio de duración (5s a 8s), lo más seguro es recrearlo
+                        self.tuto_visible_timer = Timer(8)
+                        self.tuto_alpha = 0 
+                        self.tuto_current_x = self.tuto_exit_x
+                    # ==========================================
+                    
                 self.state = "game"
+                # El Tuto 3 ya fue marcado para desaparecer en handle_events
 
         # Estado de derrota (reproduce sonido y pasa a game_over)
         elif self.state == "loss_sound_state":
@@ -636,6 +1021,7 @@ class Level1:
     def draw(self):
         # Pantalla de controles
         if self.state == "controls_screen":
+            # ... (código de draw para controls_screen)
             if self.control_image:
                 screen_width, screen_height = self.size
                 image_orig_width, image_orig_height = self.control_image.get_size()
@@ -653,22 +1039,52 @@ class Level1:
                 self.screen.fill((255, 255, 255))
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
-                font_to_use = self.font_control_title
+                # TITULO DE CONTROLES
+                font_to_use_title = self.font_control_title
                 text_to_render_title = "CONTROLES"
                 center_x_title = self.size[0] // 2
                 center_y_title = 40 
-                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
+                # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
+                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                 
-                font_to_use = self.font_dialog
-                text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1"
+                # --- LÓGICA DE MENSAJE DE INICIO CON TEMPORIZADOR Y ESTILO UNIFICADO ---
+                font_to_use = self.font_control_text
                 center_x = self.size[0] // 2
-                center_y = self.size[1] - 30
-                self._draw_text_with_border(self.screen, text_to_render, font_to_use, (0, 0, 0), (255, 128, 0), (center_x, center_y), border_size=2)
+                center_y = self.size[1] - 30 
+
+                BORDER_SIZE = 3
+                # Colores base unificados para el texto de abajo: Negro con Borde Naranja
+                COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                COLOR_TEXT = (0, 0, 0) # Negro (Texto)
+
+                if self.can_skip_controls:
+                    # ✅ TEXTO LISTO PARA EMPEZAR
+                    text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1" 
+                elif self.control_timer_started:
+                    # 🕒 TEXTO DEL TEMPORIZADOR
+                    remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                    remaining_time = max(0, int(remaining_time_ms // 1000))
+                    
+                    if remaining_time == 0 and self.control_timer.is_running():
+                        text_to_render = "Espera un momento..."
+                    else:
+                        text_to_render = f"Esperando {remaining_time} segundos..."
+                else:
+                    # ⏳ TEXTO DE CARGA
+                    text_to_render = "Cargando..."
+                
+                # Dibuja el texto con borde (utilizando los colores unificados)
+                self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                            COLOR_TEXT, COLOR_BORDER, 
+                                            (center_x, center_y), border_size=BORDER_SIZE)
+
             else:
-                self.screen.fill((255, 255, 255))
-                font_to_use = self.font_dialog
-                text1 = font_to_use.render("Error cargando Controles. Presiona ESPACIO.", True, (0, 0, 0))
-                self.screen.blit(text1, text1.get_rect(center=(self.size[0] // 2, self.size[1] // 2)))
+                self.screen.fill((0, 0, 0))
+                font_to_use = self.font_control_text 
+                text_to_render = "Error cargando Controles. Presiona ESPACIO."
+                center_x = self.size[0] // 2
+                center_y = self.size[1] // 2
+                self._draw_text_with_border(self.screen, text_to_render, font_to_use, (255, 255, 255), (255, 128, 0), (center_x, center_y), border_size=3)
 
             # Dibuja efecto fundido
             if self.is_fading or self.fade_alpha > 0:
@@ -683,6 +1099,7 @@ class Level1:
             self.screen.blit(self.background_image, (0, 0))
             
             # DIBUJAR SOMBRAS
+            # ... (código de sombras)
             shadow_surface = pygame.Surface(self.size, pygame.SRCALPHA)
             SHADOW_COLOR_RGBA = (30, 30, 30, 100)
             OFFSET_Y = 4
@@ -706,6 +1123,7 @@ class Level1:
             self.player.draw(self.screen)
 
             # DIBUJAR MARCOS EN LA PARTE SUPERIOR
+            # ... (código de marcadores de quiz)
             spacing = 18
             marco_w, marco_h = self.marco_img.get_size()
             total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
@@ -731,16 +1149,17 @@ class Level1:
             self.arrow_sprite.draw(self.screen)
             
             # Dibuja timers
-            if self.state == "quiz_floor":
-                self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
-            elif self.timer.is_running():
-                self.timer.draw(self.screen, self.font_timer, position=(680, 10))
+            #if self.state == "quiz_floor":
+                # Dibuja el timer del quiz. Si está en pausa, solo lo dibuja.
+                #self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
+            #elif self.timer.is_running():
+                #self.timer.draw(self.screen, self.font_timer, position=(680, 10))
 
             # Dibuja quiz si está activo
             if self.state == "quiz_floor" and self.quiz_game:
                 self.quiz_game.draw(self.screen)
 
-            # === MODIFICACIÓN SOLICITADA: Dibuja cuadro de diálogo con el estilo del quiz ===
+            # Dibuja cuadro de diálogo con el estilo del quiz
             if self.dialogo_active:
                 box_rect = self.dialog_box_rect
                 # Dibuja el fondo y el borde con los colores del cuadro de pregunta
@@ -749,10 +1168,45 @@ class Level1:
                 
                 # Dibuja el texto
                 self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
-            # === FIN DE LA MODIFICACIÓN ===
+
+            # DIBUJA LA IMAGEN DE TUTORIAL (TUTO 1, 2, 3)
+            # Dibuja la imagen usando la posición y opacidad actuales
+            if self.current_tuto_index > 0 and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x) and not self.tuto_4_active:
+                # Selecciona la imagen correcta
+                current_image = self.tuto_image 
+                if self.current_tuto_index == 2:
+                    current_image = self.tuto_image_2
+                elif self.current_tuto_index == 3: # <--- LÓGICA AÑADIDA PARA TUTO 3
+                    current_image = self.tuto_image_3
+                
+                if current_image:
+                    # Aplica la opacidad actual
+                    current_image.set_alpha(self.tuto_alpha) 
+                    
+                    # Actualiza el rectángulo con la posición actual (slide)
+                    self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+                    
+                    # Dibuja
+                    self.screen.blit(current_image, self.tuto_rect.topleft)
+
+            # DIBUJA LA IMAGEN DE TUTORIAL 4 (NUEVO)
+            if self.tuto_4_active and self.tuto_image_4 and (self.tuto_alpha > 0 or self.tuto_current_x > self.tuto_exit_x):
+                # Selecciona la imagen de Tuto 4
+                current_image = self.tuto_image_4
+                
+                # Aplica la opacidad actual
+                current_image.set_alpha(self.tuto_alpha) 
+                
+                # Actualiza el rectángulo con la posición actual (slide)
+                self.tuto_rect.topleft = (self.tuto_current_x, self.tuto_y)
+                
+                # Dibuja
+                self.screen.blit(current_image, self.tuto_rect.topleft)
+
 
         # Pantalla de derrota
         if self.state == "game_over":
+            # ... (código de draw para game_over)
             self.screen.fill((0, 0, 0))
             if self.game_over_image:
                 self.screen.blit(self.game_over_image, (0, 0))
@@ -764,6 +1218,7 @@ class Level1:
 
         # Pantalla de victoria
         elif self.state == "win_state":
+            # ... (código de draw para win_state)
             self.screen.fill((0, 0, 0))
             if self.win_image:
                 self.screen.blit(self.win_image, (0, 0))
@@ -771,7 +1226,7 @@ class Level1:
             text_restart = "Presiona 'R' para Reiniciar"
             text_menu = "Presiona 'ESC' para volver al Menu"
             font_to_use = self.font_title
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-0), border_size=3)
             self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
         # Dibuja efecto fundido (si está activo)

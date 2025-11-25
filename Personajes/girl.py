@@ -57,23 +57,35 @@ class Characterg:
         self.image = self.animations[self.direction][0]
 
     # --- FUNCIÓN MOVE CON MÁRGENES POR NIVEL ---
-    def move(self, keys, screen_width, screen_height, npc_rect=None, level_id=2, can_move=True):
+    def move(self, keys, screen_width, screen_height, npc_rect=None, obstacles=None, level_id=2, can_move=True): 
         
         MARGINS = {
-            # ⬅️ Colisiones Nivel 1: (Ejemplo, ajusta los valores si el Nivel 1 tenía otros límites)
+            # Colisiones Nivel 1: [Superior, Lateral(Izquierda/Derecha), Inferior]
             1: [100, 50, 0], 
             
-            # ⬅️ Colisiones Nivel 2: (Usando tus valores anteriores: 340 superior, 100 lateral, 80 inferior)
-            2: [340, 215, 80], 
+            # Colisiones Nivel 2: [Superior, Izquierda, Derecha, Inferior] <- ¡MODIFICADO!
+            # Valor original Lateral (215) usado por defecto para Izquierda/Derecha.
+            2: [340, 215, 190, 80], 
             
-            # ⬅️ Colisiones Nivel 3: (Ejemplo de nuevos límites, AJUSTAR NECESARIAMENTE)
-            3: [200, 150, 100] 
+            # 🟢 Colisiones Nivel 3: [Superior, Izquierda, Derecha, Inferior] (Estructura nueva)
+            3: [200, 50, 300, 100] # 50px a la izquierda, 300px a la derecha
         }
 
-        # Aplicar el margen del nivel. Usa Nivel 2 por defecto si el ID no existe o no se pasa.
+        # Aplicar el margen del nivel. Usa Nivel 2 por defecto si el ID no existe.
         current_margins = MARGINS.get(level_id, MARGINS[2])
-        margin_top, margin_side, fence_offset = current_margins
         
+        # 🟢 VERIFICAR SI USAR LA ESTRUCTURA VIEJA O LA NUEVA
+        if level_id in [2, 3]: # <-- AHORA INCLUYE EL NIVEL 2
+            # NUEVA ESTRUCTURA (Niveles 2 y 3)
+            margin_top, margin_left, margin_right, fence_offset = current_margins
+            margin_side_left = margin_left
+            margin_side_right = margin_right
+        else:
+            # ESTRUCTURA VIEJA (Nivel 1)
+            margin_top, margin_side, fence_offset = current_margins
+            margin_side_left = margin_side
+            margin_side_right = margin_side
+
         # ----------------------------------------------------
         
         if not can_move:
@@ -116,19 +128,35 @@ class Characterg:
                 self.rect.x = int(self.x_float)
                 self.rect.y = int(self.y_float)
 
+        # Lógica de Colisión con Obstáculos
+        if obstacles is not None:
+            for obstacle in obstacles:
+                if self.rect.colliderect(obstacle):
+                    self.x_float = previous_x
+                    self.y_float = previous_y 
+                    self.rect.x = int(self.x_float)
+                    self.rect.y = int(self.y_float)
+                    break 
+
         # 🟢 Lógica de límites de pantalla APLICADA POR NIVEL
         bottom_fence_limit = screen_height - fence_offset 
 
-        if self.rect.left < margin_side:
-            self.rect.left = margin_side
+        # Límite Izquierdo (Usa margin_side_left)
+        if self.rect.left < margin_side_left:
+            self.rect.left = margin_side_left
             self.x_float = float(self.rect.x)
-        if self.rect.right > screen_width - margin_side:
-            self.rect.right = screen_width - margin_side
+        
+        # 🟢 Límite Derecho (Usa margin_side_right)
+        if self.rect.right > screen_width - margin_side_right:
+            self.rect.right = screen_width - margin_side_right
             self.x_float = float(self.rect.x)
+            
+        # Límite Superior
         if self.rect.top < margin_top:
             self.rect.top = margin_top
             self.y_float = float(self.rect.y)
             
+        # Límite Inferior
         if self.rect.bottom > bottom_fence_limit:
             self.rect.bottom = bottom_fence_limit
             self.y_float = float(self.rect.y)

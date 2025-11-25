@@ -2,6 +2,10 @@ import pygame, sys
 import Levels.Level1F as Level1F
 import Levels.Level2F as Level2F
 import Levels.Level3F as Level3F
+# Importar los nuevos niveles (debes crear estos archivos)
+import Levels.Level4F as Level4F
+import Levels.Level5F as Level5F
+import Levels.Level6F as Level6F
 # Importa las clases de movimiento y la función del video
 from Interacciones.Menu_Dynamics import Cloud, HotAirBalloon 
 from Interacciones.Intro_Video import run_intro_video 
@@ -156,6 +160,7 @@ MENU = 0
 SELECT_DIFFICULTY = 1
 SELECT_CHARACTER = 2
 SELECT_LEVEL = 3
+SELECT_ADVANCED_LEVEL = 8  # Nuevo estado para niveles avanzados
 GAME_LEVEL_1 = 4 
 CONFIG_MENU = 5
 
@@ -341,6 +346,31 @@ def create_level_buttons():
     back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     
     return level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect
+
+# *** NUEVA FUNCIÓN PARA BOTONES DE NIVELES AVANZADOS ***
+def create_advanced_level_buttons():
+    btn_w, btn_h = 270, 80
+    center_x = screen.get_width() // 2
+    
+    # Espacio vertical entre botones
+    spacing_y = btn_h + 30 
+
+    # Nivel 4 (Arriba) - Usando los mismos botones que para niveles normales
+    level4_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level4_button_rect.center = (center_x - 100, screen.get_height() // 2 - spacing_y)
+    
+    # Nivel 5 (Medio)
+    level5_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level5_button_rect.center = (center_x, screen.get_height() // 2)
+    
+    # Nivel 6 (Abajo)
+    level6_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level6_button_rect.center = (center_x + 100, screen.get_height() // 2 + spacing_y)
+    
+    back_button_rect = pygame.Rect(0, 0, 160, 80)
+    back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
+    
+    return level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect
 # ***************************************************************
 
 
@@ -457,6 +487,35 @@ def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_r
         text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
         screen.blit(coming_soon_text, text_rect)
 
+# *** NUEVA FUNCIÓN PARA DIBUJAR SELECCIÓN DE NIVELES AVANZADOS ***
+def draw_advanced_level_selection(level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect_advanced, mouse_pos, button_pressed):
+    
+    # Fondo Dinámico y ESCUELA SECUNDARIA
+    screen.blit(sky_background, [0, 0])
+    for cloud in clouds:
+        cloud.draw(screen)
+    balloon.draw(screen)
+    screen.blit(school_secondary_img, school_secondary_rect) 
+    
+    # Título
+    bg_rect = text_background_img.get_rect(center=(size[0] // 2, size[1] // 2 - 200))
+    screen.blit(text_background_img, bg_rect)
+    level_surface = render_text_with_outline(texts[language]["select_level"], font_medium, white, brown)
+    screen.blit(level_surface, level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 200)))
+    
+    # Botones Nivel con texto y 3 estados de imagen (btn_normal)
+    # Usamos los mismos nombres "Entrada", "Pasillo", "Salón" para los niveles 4, 5, 6
+    draw_button_with_text_3_state(level4_button_rect, texts[language]["level1_name"], font_small, mouse_pos, button_pressed, "lvl4", level1_button_img_1, level1_button_img_3, level1_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
+    draw_button_with_text_3_state(level5_button_rect, texts[language]["level2_name"], font_small, mouse_pos, button_pressed, "lvl5", level2_button_img_1, level2_button_img_3, level2_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
+    draw_button_with_text_3_state(level6_button_rect, texts[language]["level3_name"], font_small, mouse_pos, button_pressed, "lvl6", level3_button_img_1, level3_button_img_3, level3_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
+    # Botón Regresar (btn_back) - SIN TEXTO
+    draw_3_state_button(back_button_rect_advanced, back_button_img_1, back_button_img_3, back_button_img_2, mouse_pos, button_pressed, "back_advanced")
+    
+    if show_coming_soon:
+        coming_soon_text = render_text_with_outline(texts[language]["coming_soon"], font_medium, red, white)
+        text_rect = coming_soon_text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
+        screen.blit(coming_soon_text, text_rect)
+
 def draw_config_menu(back_button_rect_config, mouse_pos, button_pressed, dragging_volume):
     
     # Fondo Dinámico y ESCUELA SECUNDARIA
@@ -546,6 +605,7 @@ play_button_rect, quit_button_rect, config_button_rect = create_menu_buttons()
 beginner_button_rect, advanced_button_rect, back_button_rect_difficulty = create_difficulty_buttons()
 char1_button_rect, char2_button_rect, back_button_rect_character = create_character_buttons()
 level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect_level = create_level_buttons()
+level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect_advanced = create_advanced_level_buttons()  # Nuevos botones
 back_button_rect_config = create_config_buttons()
 
 language_es_rect = None; language_en_rect = None
@@ -584,6 +644,8 @@ while running:
                 button_pressed = "back_character"
             elif game_state == SELECT_LEVEL and back_button_rect_level.collidepoint(event.pos):
                 button_pressed = "back_level"
+            elif game_state == SELECT_ADVANCED_LEVEL and back_button_rect_advanced.collidepoint(event.pos):  # Nuevo
+                button_pressed = "back_advanced"
             elif game_state == CONFIG_MENU and back_button_rect_config.collidepoint(event.pos):
                 button_pressed = "back_config"
             
@@ -626,6 +688,12 @@ while running:
                 if level1_button_rect.collidepoint(event.pos): button_pressed = "lvl1"
                 elif level2_button_rect.collidepoint(event.pos): button_pressed = "lvl2"
                 elif level3_button_rect.collidepoint(event.pos): button_pressed = "lvl3"
+                
+            # --- Lógica de botones de SELECCIÓN DE NIVEL AVANZADO (Nuevo) ---
+            elif game_state == SELECT_ADVANCED_LEVEL:
+                if level4_button_rect.collidepoint(event.pos): button_pressed = "lvl4"
+                elif level5_button_rect.collidepoint(event.pos): button_pressed = "lvl5"
+                elif level6_button_rect.collidepoint(event.pos): button_pressed = "lvl6"
         
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             
@@ -648,9 +716,9 @@ while running:
                 is_advanced = False
                 game_state = SELECT_CHARACTER; state_history.append(game_state); show_coming_soon = False
             elif button_pressed == "advanced" and advanced_button_rect.collidepoint(event.pos):
-                if not show_coming_soon:
-                    show_coming_soon = True
-                    coming_soon_timer = pygame.time.get_ticks()
+                # Cambiado: Ahora lleva a la selección de niveles avanzados
+                is_advanced = True
+                game_state = SELECT_ADVANCED_LEVEL; state_history.append(game_state); show_coming_soon = False
                     
             # Lógica de PERSONAJE
             elif button_pressed == "char_boy" and char1_button_rect.collidepoint(event.pos):
@@ -660,7 +728,7 @@ while running:
                 selected_character = "girl"
                 game_state = SELECT_LEVEL; state_history.append(game_state)
                 
-            # Lógica de NIVELES (Esta parte es la que abre el nivel, y es la misma que ya tenías)
+            # Lógica de NIVELES NORMALES
             elif button_pressed == "lvl1" and level1_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level1F.Level1(screen, size, font_small, selected_character)
@@ -672,6 +740,20 @@ while running:
             elif button_pressed == "lvl3" and level3_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level3F.Level3(screen, size, font_small, selected_character) 
+                show_coming_soon = False
+                
+            # Lógica de NIVELES AVANZADOS (Nuevo)
+            elif button_pressed == "lvl4" and level4_button_rect.collidepoint(event.pos):
+                game_state = GAME_LEVEL_1
+                level_instance = Level4F.Level4(screen, size, font_small, selected_character)
+                show_coming_soon = False
+            elif button_pressed == "lvl5" and level5_button_rect.collidepoint(event.pos):
+                game_state = GAME_LEVEL_1
+                level_instance = Level5F.Level5(screen, size, font_small, selected_character)
+                show_coming_soon = False
+            elif button_pressed == "lvl6" and level6_button_rect.collidepoint(event.pos):
+                game_state = GAME_LEVEL_1
+                level_instance = Level6F.Level6(screen, size, font_small, selected_character) 
                 show_coming_soon = False
 
             # Lógica de CONFIGURACIÓN
@@ -694,7 +776,7 @@ while running:
                 pygame.mixer.music.set_volume(volume_level)
 
     # ACTUALIZACIÓN DEL MOVIMIENTO DINÁMICO (en todas las pantallas de menú)
-    if game_state == MENU or game_state == SELECT_DIFFICULTY or game_state == SELECT_CHARACTER or game_state == SELECT_LEVEL or game_state == CONFIG_MENU:
+    if game_state == MENU or game_state == SELECT_DIFFICULTY or game_state == SELECT_CHARACTER or game_state == SELECT_LEVEL or game_state == SELECT_ADVANCED_LEVEL or game_state == CONFIG_MENU:
         for cloud in clouds:
             cloud.move()
         balloon.move()
@@ -708,6 +790,8 @@ while running:
         draw_character_selection(char1_button_rect, char2_button_rect, back_button_rect_character, mouse_pos, button_pressed)
     elif game_state == SELECT_LEVEL:
         draw_level_selection(level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect_level, mouse_pos, button_pressed)
+    elif game_state == SELECT_ADVANCED_LEVEL:  # Nuevo estado
+        draw_advanced_level_selection(level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect_advanced, mouse_pos, button_pressed)
     elif game_state == CONFIG_MENU:
         draw_config_menu(back_button_rect_config, mouse_pos, button_pressed, dragging_volume)
     elif game_state == GAME_LEVEL_1 and level_instance:
@@ -726,4 +810,4 @@ while running:
     clock.tick(60)
 
 pygame.quit()
-sys.exit() 
+sys.exit()

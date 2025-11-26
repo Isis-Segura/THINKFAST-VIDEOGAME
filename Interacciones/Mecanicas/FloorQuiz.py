@@ -1,27 +1,32 @@
 import pygame 
 import random 
 import os
-# Definiciones de colores para usar en el dibujo
+from Interacciones.Controldeobjetos.timer import Timer
+
+# Definiciones de colores
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 200, 0)
 RED = (200, 0, 0)
 YELLOW = (255, 255, 0)
-BLUE = (0, 100, 255) # Azul Neón
+BLUE = (0, 100, 255) 
+DARK_GREEN = (0, 100, 0) 
 
-# =======================================================
-# FUNCIÓN AUXILIAR PARA OSCURECER COLORES (NUEVA)
-# =======================================================
 def _darken_color(color, factor=80):
-    """Oscurece un color RGB dado un factor (0-255)."""
     return (max(0, color[0] - factor), 
             max(0, color[1] - factor), 
             max(0, color[2] - factor))
 
+def _draw_text_outline(surface, text, font, color, outline_color, x, y, outline_thickness=2):
+    for dx, dy in [(-outline_thickness, 0), (outline_thickness, 0), (0, -outline_thickness), (0, outline_thickness)]:
+        outline_surface = font.render(text, True, outline_color)
+        surface.blit(outline_surface, (x + dx, y + dy))
+    
+    text_surface = font.render(text, True, color)
+    surface.blit(text_surface, (x, y))
+
+
 class FloorQuiz: 
-    """ 
-    Gestiona la lógica y el dibujo del minijuego de preguntas en el suelo. 
-    """ 
     def __init__(self, size, questions, font): 
         self.size = size 
         self.questions = questions 
@@ -32,29 +37,35 @@ class FloorQuiz:
         self.is_answered = False 
         self.selected_choice_index = -1 
         self.answer_result = None 
-
-        # --- Dimensiones y Posiciones (Atributos de Instancia - CORREGIDOS) --- 
         
+        # Temporizador para retrasar la aparición de las opciones
+        self.options_reveal_timer = Timer(1.5) 
+        self.options_reveal_timer.start() 
+
+        # --- Variables para la animación de fade-in de las opciones ---
+        self.choice_alpha = 0              
+        self.fade_in_speed = 15            
+        self.fade_in_finished = False      
+
+        # --- Dimensiones y Posiciones --- 
+        self.choice_corner_radius = 20 # <--- Mantenemos el valor para redondeado
+        self.choice_border_thickness = 0 
+
         self.PIXEL_RADIUS = 10  
         self.QUESTION_BOX_WIDTH = 800 
         self.QUESTION_BOX_HEIGHT = 100 
         self.QUESTION_BOX_RADIUS = 10 
         
-        # Dimensiones de las opciones de respuesta (DEFINIDAS ANTES DEL SHUFFLE)
-        self.CHOICE_WIDTH = 160 # AHORA ES UN ATRIBUTO de INSTANCIA
-        self.IMAGE_HEIGHT = 80  # Altura dedicada a la imagen
-        # Altura total de la caja de opción 
+        self.CHOICE_WIDTH = 160 
+        self.IMAGE_HEIGHT = 100  
         self.CHOICE_HEIGHT = 160 
         
         self.start_x = (size[0] - self.QUESTION_BOX_WIDTH) // 2 
-        # Posición de la caja de pregunta (ajustada a -490)
         self.start_y = size[1] - self.QUESTION_BOX_HEIGHT - 490  
         self.box_width = self.QUESTION_BOX_WIDTH 
         self.box_height = self.QUESTION_BOX_HEIGHT
 
     
-        # 1. Definir las 4 posiciones (rectángulos) posibles de la cuadrícula 
-        
         POS_0_X = 150 
         POS_0_Y = 290  
         POS_1_X = size[0] - 150 - self.CHOICE_WIDTH 
@@ -64,7 +75,6 @@ class FloorQuiz:
         POS_3_X = size[0] - 150 - self.CHOICE_WIDTH 
         POS_3_Y = size[1] - 200 
         
-        # Usamos los atributos de instancia self.CHOICE_WIDTH y self.CHOICE_HEIGHT
         choice_rects_template = [ 
             pygame.Rect(POS_0_X, POS_0_Y, self.CHOICE_WIDTH, self.CHOICE_HEIGHT),  
             pygame.Rect(POS_1_X, POS_1_Y, self.CHOICE_WIDTH, self.CHOICE_HEIGHT), 
@@ -72,15 +82,13 @@ class FloorQuiz:
             pygame.Rect(POS_3_X, POS_3_Y, self.CHOICE_WIDTH, self.CHOICE_HEIGHT) 
         ]
 
-        # 2. Definir los 4 colores (fijos)
         self.NEON_COLORS = [ 
-            (0, 255, 0), # Verde Neón
-            (255, 255, 0), # Amarillo Neón
-            (0, 100, 255), # Azul Neón
-            (255, 51, 255),  # Rosa Neón
+            (255, 255, 255), 
+            (255, 255, 255), 
+            (255, 255, 255), 
+            (255, 255, 255),  
         ] 
         
-        # 3. ¡ALEATORIZAR LAS POSICIONES Y COLORES AL INICIO! 
         self.choice_rects = choice_rects_template 
         self.vivid_colors = self.NEON_COLORS  
 
@@ -88,15 +96,13 @@ class FloorQuiz:
         random.shuffle(self.vivid_colors) 
         
         # --- Colores de estado --- 
-     
-        self.QUESTION_BOX_BACKGROUND = (20, 30, 80)  
-        self.QUESTION_BOX_BORDER = (255, 200, 0)  
+        self.QUESTION_BOX_BACKGROUND = (255, 255, 255)  
+        self.QUESTION_BOX_BORDER = (71, 52, 41)  
         self.option_text_color_default = BLACK 
         self.selected_color = WHITE 
         self.correct_color_highlight = (0, 255, 0) 
         self.NEON_RED_ERROR = (255, 0, 0) 
         self.DIM_COLOR = (100, 30, 30) 
-        
         
         # Cargar imágenes de las opciones
         self.choice_images = []
@@ -104,12 +110,12 @@ class FloorQuiz:
             question_images = []
             for choice in q["choices"]:
                 try:
-                    img_path = choice["image"] if isinstance(choice, dict) else "Materials/Pictures/Assets/imagen1.jpg"
+                    img_path = choice["image"] if isinstance(choice, dict) and "image" in choice else "Materials/Pictures/Assets/imagen1.jpg"
                     img = pygame.image.load(img_path).convert_alpha()
-                    img = pygame.transform.scale(img, (self.CHOICE_WIDTH - 10, self.IMAGE_HEIGHT))
+                    img = pygame.transform.scale(img, (100  , self.IMAGE_HEIGHT))
                     question_images.append(img)
-                except:
-                    fallback = pygame.Surface((self.CHOICE_WIDTH - 10, self.IMAGE_HEIGHT), pygame.SRCALPHA)
+                except Exception:
+                    fallback = pygame.Surface((100 , self.IMAGE_HEIGHT), pygame.SRCALPHA)
                     fallback.fill((100, 100, 100))
                     question_images.append(fallback)
             self.choice_images.append(question_images)
@@ -119,10 +125,6 @@ class FloorQuiz:
 
 
     def _shuffle_questions_choices(self): 
-        """ 
-        Mezcla las opciones (choices) de cada pregunta y actualiza el  
-        índice de la respuesta correcta (correct_answer) para que coincida.
-        """ 
         for q in self.questions: 
             choices = q["choices"] 
             correct_index = q["correct_answer"] 
@@ -147,21 +149,20 @@ class FloorQuiz:
         self._reorder_choice_images()
 
     def _reorder_choice_images(self):
-        """Reordena las imágenes cargadas para que coincida con el orden aleatorio de las opciones."""
         new_choice_images = []
         
         for q_index, q in enumerate(self.questions):
             question_images = []
             for choice in q["choices"]:
                 try:
-                    img_path = choice["image"] if isinstance(choice, dict) else "Materials/Pictures/Assets/imagen1.jpg"
+                    img_path = choice["image"] if isinstance(choice, dict) and "image" in choice else "Materials/Pictures/Assets/imagen1.jpg"
                     
                     img = pygame.image.load(img_path).convert_alpha()
-                    img = pygame.transform.scale(img, (self.CHOICE_WIDTH - 10, self.IMAGE_HEIGHT))
+                    img = pygame.transform.scale(img, (100 , self.IMAGE_HEIGHT))
                     question_images.append(img)
 
-                except:
-                    fallback = pygame.Surface((self.CHOICE_WIDTH - 10, self.IMAGE_HEIGHT), pygame.SRCALPHA)
+                except Exception:
+                    fallback = pygame.Surface((100 , self.IMAGE_HEIGHT), pygame.SRCALPHA)
                     fallback.fill((100, 100, 100))
                     question_images.append(fallback)
             new_choice_images.append(question_images)
@@ -170,21 +171,43 @@ class FloorQuiz:
 
 
     def next_question(self): 
-        """Avanza a la siguiente pregunta o finaliza el quiz.""" 
         if self.current_question_index < len(self.questions) - 1: 
             self.current_question_index += 1 
             self.is_answered = False 
             self.selected_choice_index = -1 
             self.answer_result = None 
+            
+            # Reinicia el temporizador de revelado y el estado de fade-in para la nueva pregunta
+            self.options_reveal_timer.reset()
+            self.options_reveal_timer.start()
+            self.choice_alpha = 0
+            self.fade_in_finished = False
         else: 
             self.finished = True 
 
+    def update(self):
+        # Actualiza el temporizador de retraso
+        if self.options_reveal_timer.is_running():
+            self.options_reveal_timer.update()
+        
+        # --- Lógica de Fade-in ---
+        # Solo ejecuta el fade-in si el retraso terminó, el quiz NO ha sido respondido, 
+        # y la animación aún no ha terminado.
+        if self.options_reveal_timer.finished and not self.is_answered and not self.fade_in_finished:
+            self.choice_alpha += self.fade_in_speed
+            if self.choice_alpha >= 255:
+                self.choice_alpha = 255
+                self.fade_in_finished = True 
+        
+        # Solo reseteamos la opacidad si el retraso NO ha terminado, es decir, antes de que aparezcan por primera vez.
+        if not self.options_reveal_timer.finished:
+            self.choice_alpha = 0
+            self.fade_in_finished = False
+
+
     def check_player_collision(self, player_rect): 
-        """ 
-        Verifica si el jugador (player_rect) colisiona con alguna de las opciones 
-        y actualiza la opción seleccionada. 
-        """ 
-        if self.is_answered: 
+        # Solo permite la colisión si las opciones ya fueron reveladas Y el fade-in terminó
+        if self.is_answered or not self.fade_in_finished:
             return 
 
         current_selected = -1 
@@ -198,10 +221,8 @@ class FloorQuiz:
 
 
     def handle_event(self, event): 
-        """ 
-        Maneja el evento de contestar (tecla ESPACIO/ENTER). 
-        """ 
-        if self.finished or self.is_answered: 
+        # Solo permite responder si las opciones ya fueron reveladas Y el fade-in terminó
+        if self.finished or self.is_answered or not self.fade_in_finished:
             return None 
 
         if event.type == pygame.KEYDOWN and (event.key == pygame.K_SPACE or event.key == pygame.K_RETURN): 
@@ -210,10 +231,12 @@ class FloorQuiz:
         return None 
 
     def submit_answer(self): 
-        """Procesa la respuesta seleccionada.""" 
         self.is_answered = True 
         current_q = self.questions[self.current_question_index] 
         correct_index = current_q["correct_answer"] 
+        
+        # Al contestar, forzamos la opacidad al máximo (255) para asegurar el feedback
+        self.choice_alpha = 255 
         
         if self.selected_choice_index == correct_index: 
             self.correct_answers += 1 
@@ -224,110 +247,136 @@ class FloorQuiz:
             return "incorrect" 
 
     def draw(self, screen): 
-        """Dibuja la pregunta, las opciones y el estado del quiz.""" 
         if self.finished: 
             return 
 
         current_q = self.questions[self.current_question_index] 
         question_text = current_q["question"].replace('\n', ' ') 
         choices = current_q["choices"] 
+        
         correct_index = current_q["correct_answer"] 
         current_images = self.choice_images[self.current_question_index]
 
-
-        # --- 1. Dibujo de la caja de pregunta inferior (Opaca) --- 
+        # --- 1. Dibujo de la caja de pregunta inferior --- 
         question_box_rect = pygame.Rect(self.start_x, self.start_y, self.box_width, self.box_height) 
         pygame.draw.rect(screen, self.QUESTION_BOX_BACKGROUND, question_box_rect, border_radius=self.QUESTION_BOX_RADIUS) 
         pygame.draw.rect(screen, self.QUESTION_BOX_BORDER, question_box_rect, 5, border_radius=self.QUESTION_BOX_RADIUS) 
 
-        # Dibujar pregunta: Centrado (Texto blanco) 
         try:
-            text_surface = self.font.render(question_text, True, WHITE) 
+            text_surface = self.font.render(question_text, True, BLACK) 
             text_rect = text_surface.get_rect(center=(question_box_rect.centerx, question_box_rect.centery)) 
             screen.blit(text_surface, text_rect) 
         except:
             pass
 
-        # --- 2. Dibujo de las 4 opciones de respuesta (en el suelo) --- 
-        for i, rect in enumerate(self.choice_rects): 
-            choice_dict = choices[i] 
-            choice_text = choice_dict["text"].replace('\n', ' ') 
+        # --- 2. Dibujo de las 4 opciones de respuesta (en el suelo) con FADE-IN --- 
+        if self.choice_alpha > 0 or self.is_answered:
+            
+            for i, rect in enumerate(self.choice_rects): 
+                choice_dict = choices[i] 
+                choice_text = choice_dict["text"].replace('\n', ' ') 
 
-            # --- DIBUJO DE FONDO Y BORDE --- 
-            draw_color = self.vivid_colors[i] 
-            border_color = BLACK # Inicializar con valor por defecto
-            border_thickness = 5 
-            
-            # --- LÓGICA DE COLOR DE ESTADO ---
-            if self.is_answered: 
-                if i == correct_index: 
-                    # Respuesta correcta
-                    draw_color = self.correct_color_highlight 
-                    border_color = WHITE
-                elif i == self.selected_choice_index and i != correct_index: 
-                    # Respuesta seleccionada incorrecta 
-                    draw_color = self.NEON_RED_ERROR 
-                    border_color = WHITE
-                else:
-                    # Opciones incorrectas no seleccionadas (atenuar)
-                    draw_color = self.DIM_COLOR
-                    border_color = BLACK
-            
-            # --- LÓGICA DE COLOR NORMAL/HOVER (ANTES DE RESPONDER) ---
-            else: 
-                if i == self.selected_choice_index: 
-                    # ESTADO SELECCIONADO (Hover)
-                    # 1. Ajustar el color del fondo (más claro)
-                    selected_draw_color = (min(255, draw_color[0] + 50), min(255, draw_color[1] + 50), min(255, draw_color[2] + 50))
-                    # 2. El borde será del mismo color CLARO para un efecto sutil
-                    border_color = selected_draw_color
-                else:
-                    # ESTADO NORMAL (No seleccionado)
-                    # El borde será el color base, pero oscurecido
-                    border_color = _darken_color(draw_color, factor=80) 
+                # Inicialización: Fondo BLANCO, Borde NEGRO sutil
+                # fill_color se usará como el color de relleno del rectángulo (blanco)
+                fill_color = WHITE               
+                border_color = BLACK             
+                border_thickness = 1             
+                
+                # --- LÓGICA DE COLOR DE ESTADO (feedback) ---
+                if self.is_answered: 
+                    border_thickness = 5 
                     
-            # Dibuja la caja de opción con el color de estado
-            surface = pygame.Surface((rect.width, rect.height)) 
-            
-            # Rellenar con el color de fondo (usando el color más claro si está en hover)
-            if i == self.selected_choice_index and not self.is_answered: 
-                surface.fill(selected_draw_color) 
-            else:
-                surface.fill(draw_color) 
-            
-            # Dibuja el borde con el color dinámico
-            pygame.draw.rect(surface, border_color, (0, 0, rect.width, rect.height), border_thickness, border_radius=self.PIXEL_RADIUS) 
-            screen.blit(surface, rect.topleft) 
-            
-            # --- DIBUJAR TEXTO DE LA OPCIÓN (siempre negro) ---
-            choice_text_surface = self.font.render(choice_text, True, self.option_text_color_default) 
-            choice_text_rect = choice_text_surface.get_rect(center=(rect.centerx, rect.top + 30)) 
-            screen.blit(choice_text_surface, choice_text_rect.topleft) 
-            
-            # --- DIBUJAR IMAGEN DEBAJO DEL TEXTO ---
-            image_rect_pos = current_images[i].get_rect()
-            image_rect_pos.center = (rect.centerx, rect.top + 30 + self.IMAGE_HEIGHT // 2 + 10) 
-            try:
-                screen.blit(current_images[i], image_rect_pos.topleft) 
-            except:
-                pass
+                    if i == correct_index: 
+                        border_color = self.correct_color_highlight 
+                    else:
+                        border_color = self.NEON_RED_ERROR 
+                        
+                # --- LÓGICA DE COLOR NORMAL/HOVER (ANTES DE RESPONDER) ---
+                else: 
+                    if i == self.selected_choice_index: 
+                        border_color = YELLOW  
+                        border_thickness = 5 
+                    else:
+                        border_color = BLACK 
+                        border_thickness = 1 
+                        
+                # Crea una superficie temporal para la opción y aplica la opacidad
+                option_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+                
+                # PASO 1: Dibujar el relleno blanco redondeado (grosor 0). 
+                # Esto asegura que todo el área de la opción sea blanca y se recorte correctamente.
+                pygame.draw.rect(option_surface, WHITE, (0, 0, rect.width, rect.height), 0, border_radius=self.choice_corner_radius) 
+                
+                # PASO 2: Dibujar el borde redondeado encima del relleno. 
+                # Pygame respeta el área definida por el radio de la esquina.
+                if border_thickness > 0:
+                     pygame.draw.rect(option_surface, border_color, (0, 0, rect.width, rect.height), border_thickness, border_radius=self.choice_corner_radius) 
+                
+                # --- DIBUJAR TEXTO DE LA OPCIÓN (siempre negro) ---
+                choice_text_surface = self.font.render(choice_text, True, self.option_text_color_default) 
+                choice_text_rect = choice_text_surface.get_rect(center=(rect.width // 2, 30)) 
+                option_surface.blit(choice_text_surface, choice_text_rect.topleft) 
+                
+                # --- DIBUJAR IMAGEN DEBAJO DEL TEXTO ---
+                image_rect_pos = current_images[i].get_rect()
+                image_rect_pos.center = (rect.width // 2, 30 + self.IMAGE_HEIGHT // 2 + 10) 
+                try:
+                    option_surface.blit(current_images[i], image_rect_pos.topleft) 
+                except:
+                    pass
+                
+                # Aplica la opacidad
+                option_surface.set_alpha(self.choice_alpha)
+                
+                # Dibuja la superficie temporal en la pantalla
+                screen.blit(option_surface, rect.topleft) 
             
         # --- 3. Mensajes de estado (inferior derecho) --- 
+        status_msg = None
+        status_color = None
+        
+        outline_color = BLACK
+        
+        status_font = self.font
+        try:
+            status_font_size = int(self.font.get_height() * 5.0) 
+            font_path = self.font.get_path()
+            if font_path:
+                status_font = pygame.font.Font(font_path, status_font_size)
+            else:
+                status_font = pygame.font.Font(None, status_font_size)
+                
+        except Exception:
+            pass 
+        
         if self.is_answered: 
             if self.answer_result == "correct": 
-                msg = "¡Correcto! (Presiona ESPACIO para avanzar)" 
-                color = self.correct_color_highlight 
+                status_msg = "¡Correcto!" 
+                status_color = self.correct_color_highlight 
+                outline_color = DARK_GREEN 
             else: 
                 correct_choice_text = choices[correct_index]["text"] if isinstance(choices[correct_index], dict) else choices[correct_index]
                 correct_choice = correct_choice_text.replace('\n', ' ') 
-                msg = f"¡Mal! La correcta era: {correct_choice} (ESPACIO para avanzar)" 
-                color = self.NEON_RED_ERROR 
+                status_msg = f"¡Mal! La correcta era: {correct_choice}" 
+                status_color = self.NEON_RED_ERROR 
+                outline_color = WHITE
         
-            msg_surface = self.font.render(msg, True, color) 
-            msg_rect = msg_surface.get_rect(bottomright=(question_box_rect.right - 10, question_box_rect.bottom - 10)) 
-            screen.blit(msg_surface, msg_rect) 
+            if status_msg and status_color:
+                temp_surface = status_font.render(status_msg, True, status_color) 
+                msg_rect = temp_surface.get_rect(bottomright=(question_box_rect.right - 10, question_box_rect.bottom - 10)) 
+                
+                _draw_text_outline(
+                    screen, 
+                    status_msg, 
+                    status_font, 
+                    status_color, 
+                    outline_color, 
+                    msg_rect.x, 
+                    msg_rect.y, 
+                    outline_thickness=2 
+                )
         
-        elif self.selected_choice_index != -1: 
+        elif self.selected_choice_index != -1 and self.fade_in_finished: 
             msg = "Presiona ESPACIO para contestar." 
             msg_surface = self.font.render(msg, True, WHITE)
             msg_rect = msg_surface.get_rect(bottomright=(question_box_rect.right - 10, question_box_rect.bottom - 10))

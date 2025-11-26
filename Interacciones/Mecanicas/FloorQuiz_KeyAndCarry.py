@@ -48,7 +48,7 @@ class FloorQuiz_KeyAndCarry:
         self.highlight_color = (255, 255, 0)
         self.choice_font_color = (0, 0, 0) 
         # Color de texto de la pregunta: Blanco/Tiza
-        self.question_font_color = (255, 255, 255)
+        self.question_font_color = (0, 0, 0)
         
         # Nuevos colores para los bordes de retroalimentación
         self.CORRECT_COLOR = (0, 200, 0) # Verde
@@ -89,7 +89,7 @@ class FloorQuiz_KeyAndCarry:
             self.question_box_img.set_colorkey((0, 0, 0))
             
             # Colores y parámetros
-            BACKGROUND_COLOR = (0, 100, 0) 
+            BACKGROUND_COLOR = (255, 255, 255) 
             BORDER_COLOR = (101, 67, 33) 
             BORDER_THICKNESS = 7   
             BORDER_RADIUS = 20     
@@ -402,10 +402,10 @@ class FloorQuiz_KeyAndCarry:
             current_box_height = temp_text_surface.get_height() + 10 
             
             carried_box_surface = pygame.Surface((current_box_width, current_box_height), pygame.SRCALPHA)
-            carried_box_surface.fill((30, 30, 100, 180)) 
+            carried_box_surface.fill((255, 255, 255)) 
             pygame.draw.rect(carried_box_surface, (255, 255, 0), carried_box_surface.get_rect(), 2, border_radius=5) 
             
-            text_surface = self.font_question.render(choice_text, True, (255, 255, 255)) 
+            text_surface = self.font_question.render(choice_text, True, (0, 0, 0)) 
             text_rect = text_surface.get_rect(center=(carried_box_surface.get_width() // 2, carried_box_surface.get_height() // 2))
             carried_box_surface.blit(text_surface, text_rect)
             

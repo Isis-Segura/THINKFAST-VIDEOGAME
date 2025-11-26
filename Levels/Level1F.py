@@ -7,6 +7,7 @@ from Personajes.Guardian import Characternpcg
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer import Timer
 from Interacciones.Mecanicas.FloorQuiz import FloorQuiz 
+from Interacciones.PauseMenu import PauseMenu # <--- VERIFICAR ESTA IMPORTACIÓN
 
 # Inicializa el mezclador de audio (para música y sonidos)
 MIXER_INITIALIZED = False
@@ -138,13 +139,30 @@ class Level1:
         self.font = font
         self.character_choice = character_choice
 
+        # Variables de estado del juego y configuración
+        self.language = "es" # Asumiendo idioma por defecto
+        self.current_volume = 0.5 # <--- VOLUMEN ACTUAL (Necesario para Settings)
+        
+        # --- CONFIGURACIÓN Y BOTÓN DE PAUSA (NUEVO) ---
+        self.pause_menu = PauseMenu(screen, size, font, self.language, self.current_volume) # <--- LÍNEA DEL ERROR
+        
+        # Botón de Pausa (Arriba a la derecha)
+        # Asegúrate que estas imágenes existan en tu proyecto
+        self.pause_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_pause1.png").convert_alpha()
+        self.pause_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_pause3.png").convert_alpha()
+        self.pause_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_pause2.png").convert_alpha()
+        btn_w, btn_h = 70, 70
+        self.pause_rect = pygame.Rect(size[0] - btn_w - 20, 20, btn_w, btn_h)
+        self.pause_pressed = False
+        # ---------------------------------------------
+
         # PANTALLA DE TUTORIAL
         self.tuto_image = None
         self.tuto_image_2 = None 
-        self.tuto_image_3 = None # <--- NUEVA VARIABLE
+        self.tuto_image_3 = None 
         # === AÑADIDO PARA TUTO 4 ===
-        self.tuto_image_4 = None # <--- NUEVA VARIABLE PARA TUTO 4
-        self.tuto_4_active = False # Bandera de control para Tuto 4
+        self.tuto_image_4 = None 
+        self.tuto_4_active = False 
         # ===========================
         self.tuto_alpha = 0  
         self.tuto_max_alpha = 255
@@ -251,8 +269,8 @@ class Level1:
         self.background_changed = False
 
         # Cuadro de diálogo inferior
-        self.DIALOG_BOX_BACKGROUND = (20, 30, 80)
-        self.DIALOG_BOX_BORDER = (255, 200, 0)
+        self.DIALOG_BOX_BACKGROUND = (247, 247, 247)
+        self.DIALOG_BOX_BORDER = (89, 61, 46)
         self.DIALOG_BOX_RADIUS = 10
         self.DIALOG_BOX_WIDTH = 800
         self.DIALOG_BOX_HEIGHT = 100 
@@ -281,7 +299,9 @@ class Level1:
 
         # Temporizadores
         self.timer = Timer(5000)      # tiempo general del nivel
-        self.quiz_timer = Timer(10)  # tiempo para responder cada pregunta
+        self.quiz_timer = Timer(100000) # MODIFICADO: tiempo para responder cada pregunta # tiempo para responder cada pregunta
+        # AÑADIDO: Temporizador para la pausa después de responder una pregunta (2 segundos)
+        self.answer_pause_timer = Timer(2) 
 
         # palomitas y taches -> ahora con imágenes
         self.answer_results = []
@@ -329,6 +349,16 @@ class Level1:
                 self.win_music = None
                 self.correct_sound = None
                 self.incorrect_sound = None
+        
+        # Ajusta el volumen inicial
+        if MIXER_INITIALIZED:
+            pygame.mixer.music.set_volume(self.current_volume)
+            if self.controls_music: self.controls_music.set_volume(self.current_volume)
+            if self.loss_sound: self.loss_sound.set_volume(self.current_volume)
+            if self.game_over_music: self.game_over_music.set_volume(self.current_volume)
+            if self.win_music: self.win_music.set_volume(self.current_volume)
+            if self.correct_sound: self.correct_sound.set_volume(self.current_volume)
+            if self.incorrect_sound: self.incorrect_sound.set_volume(self.current_volume)
 
         # Texto inicial del guardia
         self.dialogo_text = "Si quieres pasar, tendras que responder estas\n preguntas!!"
@@ -354,47 +384,47 @@ class Level1:
         self.questions = [
             {
                 "image": "Materials/Pictures/Assets/imagen1.jpg",  # Imagen principal de la pregunta
-                "question": "¿Qué órgano bombea sangre por el cuerpo?",
+                "question": "¿De qué colores se ponen las hojas en otoño?",
                 "choices": [
-                    {"text": "Cerebro", "image": "Materials/Pictures/Assets/cerebro.jpg"},
-                    {"text": "Corazón", "image": "Materials/Pictures/Assets/cora.jpg"},
-                    {"text": "Riñones", "image": "Materials/Pictures/Assets/rinones.jpg"},
-                    {"text": "Pulmones", "image": "Materials/Pictures/Assets/pulmones.jpg"}
+                    {"text": "Naranja", "image": "Materials/Pictures/Assets/pre1-1.jpg"},
+                    {"text": "Azul", "image": "Materials/Pictures/Assets/pre1-2.jpg"},
+                    {"text": "Verde", "image": "Materials/Pictures/Assets/pre1-3.jpg"},
+                    {"text": "Negro", "image": "Materials/Pictures/Assets/pre1-4.jpg"}
                 ],
-                "correct_answer": 1 # Índice 1 es 'Corazón'
+                "correct_answer": 0 # Índice 0 es 'Naranja'
             },
             {
                 "image": "Materials/Pictures/Assets/imagen2.jpg",  # Imagen principal de la pregunta
-                "question": "¿Qué animales comen solo plantas?",
+                "question": "¿Qué animal puede vivir en el agua y en la tierra y dice “croac”?",
                 "choices": [
-                    {"text": "Carnívoros", "image": "Materials/Pictures/Assets/carnivoros.jpg"},
-                    {"text": "Herbívoros", "image": "Materials/Pictures/Assets/herbivoros.jpg"},
-                    {"text": "Omnívoros", "image": "Materials/Pictures/Assets/omnivoros.jpg"},
-                    {"text": "Detritívoros", "image": "Materials/Pictures/Assets/detritivoros.jpg"}
+                    {"text": "Camello", "image": "Materials/Pictures/Assets/pre2-1.jpg"},
+                    {"text": "Pinguino", "image": "Materials/Pictures/Assets/pre2-2.jpg"},
+                    {"text": "Ballena", "image": "Materials/Pictures/Assets/pre2-3.jpg"},
+                    {"text": "Rana", "image": "Materials/Pictures/Assets/pre2-4.jpg"}
                 ],
-                "correct_answer": 1 # Índice 1 es 'Herbívoros'
+                "correct_answer": 3 # Índice 3 es 'Rana'
             },
             {
                 "image": "Materials/Pictures/Assets/imagen3.jpg",
-                "question": "¿Cuál es el animal más grande del mundo?",
+                "question": "¿De qué color es la sangre dentro de nuestro cuerpo?",
                 "choices": [
-                    {"text": "Ballena azul", "image": "Materials/Pictures/Assets/ballena_azul.jpg"},
-                    {"text": "Elefante", "image": "Materials/Pictures/Assets/elefante.jpg"},
-                    {"text": "Tiburón", "image": "Materials/Pictures/Assets/tiburon.jpg"},
-                    {"text": "Jirafa", "image": "Materials/Pictures/Assets/jirafa.jpg"}
+                    {"text": "Amarilla", "image": "Materials/Pictures/Assets/pre3-1.jpg"},
+                    {"text": "Roja", "image": "Materials/Pictures/Assets/pre3-2.jpg"},
+                    {"text": "Verde", "image": "Materials/Pictures/Assets/pre3-3.jpg"},
+                    {"text": "Azul", "image": "Materials/Pictures/Assets/pre3-4.jpg"}
                 ],
-                "correct_answer": 0 # Índice 0 es 'Ballena azul'
+                "correct_answer": 1 # Índice 1 es 'Roja'
             },
             {
                 "image": "Materials/Pictures/Assets/imagen4.jpg",
-                "question": "¿Qué animales nacen de huevos?",
+                "question": "¿Qué parte de nuestro cuerpo usamos para respirar?",
                 "choices": [
-                    {"text": "Perros", "image": "Materials/Pictures/Assets/perros.jpg"},
-                    {"text": "Gatos", "image": "Materials/Pictures/Assets/gatos.jpg"},
-                    {"text": "Iguanas", "image": "Materials/Pictures/Assets/iguanas.jpg"},
-                    {"text": "Vacas", "image": "Materials/Pictures/Assets/vacas.jpg"}
+                    {"text": "Orejas", "image": "Materials/Pictures/Assets/pre4-1.jpg"},
+                    {"text": "Pulmones", "image": "Materials/Pictures/Assets/pre4-2.jpg"},
+                    {"text": "Manos", "image": "Materials/Pictures/Assets/pre4-3.jpg"},
+                    {"text": "Pie", "image": "Materials/Pictures/Assets/pre4-4.jpg"}
                 ],
-                "correct_answer": 2 # Índice 2 es 'Iguanas'
+                "correct_answer": 1 # Índice 1 es 'Pulmones'
             }
         ]
         # =======================================================
@@ -413,7 +443,7 @@ class Level1:
             font_path = None 
         
         self.font_base = pygame.font.Font(font_path, 18)
-        self.font_dialog = pygame.font.Font(font_path, 15)
+        self.font_dialog = pygame.font.Font(font_path, 17)
         self.font_question = pygame.font.Font(font_path, 13)
         self.font_title = pygame.font.Font(font_path, 15)
         self.font_timer = pygame.font.Font(font_path, 24)
@@ -429,21 +459,117 @@ class Level1:
 
 
     # ============================================================
+    # Reinicia el nivel (llamado desde el menú de pausa)
+    # ============================================================
+    def reset_level(self):
+        """Reinicia el nivel a su estado inicial, incluyendo la posición de los personajes y el quiz."""
+        pygame.mixer.stop() # Detener sonidos
+
+        # 1. Resetear el estado del juego
+        self.state = "game"
+        self.answer_results.clear()
+        self.timer.reset()
+        self.timer.start()
+        self.guard_interacted = False
+        self.background_changed = False
+        self.confetti.reset()
+        self.arrow_sprite.active = False
+        self.quiz_game = None # Asegurarse de que no haya quiz activo
+        self.dialogo_active = False
+        self.typewriter = None
+        self.game_over_music_played = False
+        self.win_music_played = False
+        
+        # Resetear tutoriales
+        self.current_tuto_index = 1 
+        self.tuto_fade_in_started = False
+        self.tuto_fade_out_started = False
+        self.tuto_finished = False
+        self.tuto_3_has_appeared = False
+        self.tuto_4_active = False
+        self.tuto_alpha = 0  
+        self.tuto_current_x = self.tuto_exit_x
+        self.tuto_visible_timer.reset()
+
+        # 2. Resetear posición de personajes y guardia
+        if self.character_choice == "boy":
+            self.player = Characterb(440, 600, 2)
+        else:
+            self.player = Characterg(440, 600, 2)
+        self.Guardia = Characternpcg(470, 330, 'Materials/Pictures/Characters/NPCs/Guardia/Guar_down1.png')
+        
+        # 3. Resetear posición de colisión del guardia
+        guardia_width = self.Guardia.rect.width
+        guardia_height = self.Guardia.rect.height
+        COL_WIDTH_FACTOR = 0.5
+        COL_HEIGHT_PIXELS = 5
+        new_width = int(guardia_width * COL_WIDTH_FACTOR)
+        new_height = COL_HEIGHT_PIXELS
+        new_x = self.Guardia.rect.x + int((guardia_width - new_width) / 2)
+        new_y = self.Guardia.rect.y + guardia_height - new_height
+        self.guardia_collision_rect = pygame.Rect(new_x, new_y, new_width, new_height)
+        
+        # 4. Resetear fondo
+        self.background_image = self.background_image_game
+        
+        # 5. Reiniciar música de nivel
+        if self.level_music_loaded:
+            pygame.mixer.music.set_volume(self.current_volume)
+            pygame.mixer.music.play(-1)
+
+
+    # ============================================================
     # Maneja los eventos del teclado y las interacciones del jugador
     # ============================================================
     def handle_events(self, event):
-        # Reinicio o salida desde pantalla final
+        # ----------------------------------------------------
+        # LÓGICA DE PAUSA ACTIVA (Prioridad Máxima)
+        # ----------------------------------------------------
+        if self.pause_menu.game_paused or self.pause_menu.is_closing:
+            # Delegar el evento al menú de pausa y obtener la acción/volumen
+            pause_action, new_volume = self.pause_menu.handle_events(event, self.current_volume)
+            
+            # Actualizar el volumen global del juego
+            if new_volume != self.current_volume:
+                self.current_volume = new_volume
+                pygame.mixer.music.set_volume(self.current_volume)
+                # (Añadir lógica para ajustar el volumen de otros sonidos aquí si es necesario)
+
+            # Procesar las acciones devueltas por el menú de pausa
+            if pause_action == "resume":
+                self.pause_menu.toggle_pause() # Despausar (inicia el slide-out)
+            elif pause_action == "reset":
+                self.reset_level() # Reiniciar el nivel (esto desactiva la pausa internamente)
+            elif pause_action == "menu":
+                pygame.mixer.stop()
+                return "menu" # Retorna al menú principal
+                
+            return "none" # Bloquear otros eventos mientras está pausado o cerrándose
+
+        # Reinicio o salida desde pantalla final (solo si NO está en pausa)
         if self.state in ["game_over", "loss_sound_state", "win_state"]:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    pygame.mixer.stop()
-                    self.__init__(self.screen, self.size, self.font, self.character_choice)
-                    self.answer_results.clear()
+                    self.reset_level() # Usa el nuevo método de reinicio
                     return "restart"
                 if event.key == pygame.K_ESCAPE:
                     pygame.mixer.stop()
                     return "menu"
             return None
+        
+        # ----------------------------------------------------
+        # LÓGICA DEL BOTÓN DE PAUSA (Fuera del menú de pausa)
+        # ----------------------------------------------------
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.pause_rect.collidepoint(event.pos):
+                self.pause_pressed = True
+        
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self.pause_pressed and self.pause_rect.collidepoint(event.pos):
+                if self.state in ["game", "dialog", "quiz_complete_dialog", "quiz_floor"]:
+                    self.pause_menu.toggle_pause() # Activa la pausa (inicia el slide-in)
+            self.pause_pressed = False
+        # ----------------------------------------------------
 
         # Pantalla de controles (presionar espacio para continuar)
         if self.state == "controls_screen" and not self.is_fading:
@@ -465,7 +591,7 @@ class Level1:
                 elif self.state == "dialog":
                     # Inicia el quiz
                     self.timer.start()
-                    self.quiz_timer = Timer(60)
+                    self.quiz_timer = Timer(100000)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False
@@ -489,7 +615,7 @@ class Level1:
                     if self.current_dialog_index < len(self.post_quiz_dialogs):
                         next_text = self.post_quiz_dialogs[self.current_dialog_index]
                         self.typewriter = TypewriterText(next_text, self.font_dialog, 
-                                                         (255, 255, 255), speed=25) 
+                                                         (0, 0, 0), speed=25) 
                         self.dialogo_active = True
                     else:
                         # Diálogo post-quiz ha terminado
@@ -506,24 +632,12 @@ class Level1:
                             # y se marca como finalizado en el SLIDE-OUT de la función update.
                         # -------------------------------------------------------------------
             
-            # LÓGICA DE AVANCE DEL QUIZ
-            if self.state == "quiz_floor" and self.quiz_game:
-                if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.state != "loss_sound_state":
-                    self.quiz_timer = Timer(60)
-                    self.quiz_timer.start()
-                    self.quiz_game.next_question()
-                    return None
-
         # Manejo del quiz
         if self.state == "quiz_floor" and self.quiz_game:
             result = self.quiz_game.handle_event(event)
 
             if result in ["correct", "incorrect"]:
                 self.quiz_timer.pause()
-                
-                # Forzar visualmente el tiempo restante a 10s.
-                if hasattr(self.quiz_timer, 'time_remaining'):
-                    self.quiz_timer.time_remaining = 10
                     
                 if len(self.answer_results) < self.max_questions:
                     if result == "correct":
@@ -534,6 +648,10 @@ class Level1:
                         if self.incorrect_sound:
                             self.incorrect_sound.play()
                         self.answer_results.append("incorrect")
+
+                # AÑADIDO: Inicia el temporizador de pausa para el avance automático
+                self.answer_pause_timer.reset()
+                self.answer_pause_timer.start()
 
                 if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
@@ -547,6 +665,14 @@ class Level1:
     # Actualiza la lógica del juego según el estado actual
     # ============================================================
     def update(self):
+        
+        # 1. ACTUALIZA EL MENÚ DE PAUSA
+        self.pause_menu.update()
+        
+        # 2. BLOQUEA LA LÓGICA DEL JUEGO SI ESTÁ PAUSADO
+        if self.pause_menu.game_paused or self.pause_menu.is_closing:
+            return self.state
+            
         keys = pygame.key.get_pressed()
 
         # Transiciones de fundido (fade in/out)
@@ -770,10 +896,7 @@ class Level1:
                 is_fade_in_finished = (self.tuto_alpha == self.tuto_max_alpha)
 
                 if is_slide_finished and is_fade_in_finished and not self.tuto_visible_timer.is_running():
-                    # === CORRECCIÓN DEL ERROR 'AttributeError: 'Timer' object has no attribute 'set_timer'' ===
-                    # Reemplazamos self.tuto_visible_timer.set_timer(8) por una nueva instancia del Timer.
                     self.tuto_visible_timer = Timer(8) # Tuto 4 visible por 8 segundos
-                    # =========================================================================================
                     self.tuto_visible_timer.start()
 
             # Estado 2: VISIBLE (Controlado por timer)
@@ -846,7 +969,7 @@ class Level1:
                 self.state = "dialog"
                 self.dialogo_active = True
                 self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, 
-                                                 (255, 255, 255), speed=25)
+                                                 (0, 0, 0), speed=25)
                 
                 # *** MODIFICACIÓN: Lógica de PRIMERA APARICIÓN DE TUTO 3 ***
                 # Tuto 2 termina y Tuto 3 empieza su fade-in/slide-in
@@ -868,6 +991,22 @@ class Level1:
 
         # Estado del quiz (temporizador y respuestas)
         elif self.state == "quiz_floor":
+            # AÑADIDO: Lógica de Avance Automático
+            if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.answer_pause_timer.is_running():
+                self.answer_pause_timer.update()
+                
+            # Si el temporizador de pausa terminó, avanza a la siguiente pregunta
+            if getattr(self.quiz_game, 'is_answered', False) and not self.quiz_game.finished and self.answer_pause_timer.finished:
+                if self.answer_results.count("incorrect") < 3:
+                    # Resetea y arranca el timer del quiz.
+                    self.quiz_timer.reset() 
+                    self.quiz_timer.start()
+                    self.quiz_game.next_question()
+                
+                # Si el quiz NO terminó, reseteamos el pause timer para evitar que se re-active
+                if not self.quiz_game.finished:
+                    self.answer_pause_timer.reset()
+                    
             if not self.quiz_timer.paused and not getattr(self.quiz_game, "is_answered", False):
                 self.quiz_timer.update()
 
@@ -882,9 +1021,10 @@ class Level1:
                 self.quiz_game.answer_result = "incorrect"
                 self.quiz_game.selected_choice_index = -1
                 self.quiz_timer.pause()
-                
-                if hasattr(self.quiz_timer, 'time_remaining'):
-                    self.quiz_timer.time_remaining = 10 
+                    
+                # AÑADIDO: Inicia el temporizador de pausa
+                self.answer_pause_timer.reset()
+                self.answer_pause_timer.start()
 
                 if self.answer_results.count("incorrect") >= 3:
                     self.state = "loss_sound_state"
@@ -894,6 +1034,9 @@ class Level1:
 
             if self.quiz_game:
                 self.quiz_game.check_player_collision(self.player.rect)
+            
+            if self.quiz_game:
+                self.quiz_game.update()
 
             # Si termina el quiz, muestra diálogo final
             if self.quiz_game and self.quiz_game.finished: 
@@ -916,10 +1059,11 @@ class Level1:
                 ]
                 self.current_dialog_index = 0
                 self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
-                                                 (255, 255, 255), speed=25)
+                                                 (0, 0, 0), speed=25)
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
+                self.answer_pause_timer.reset() # AÑADIDO
                 
                 # --- MODIFICACIÓN: Inicia Confeti y Tuto 3 (SEGUNDA APARICIÓN) aquí ---
                 if score >= 2:
@@ -961,7 +1105,9 @@ class Level1:
                         self.tuto_4_active = True
                         self.tuto_fade_in_started = True
                         self.tuto_fade_out_started = False
-                        self.tuto_visible_timer.reset()
+                        # Es importante crear una nueva instancia de Timer o usar .reset()
+                        # pero dado el cambio de duración (5s a 8s), lo más seguro es recrearlo
+                        self.tuto_visible_timer = Timer(8)
                         self.tuto_alpha = 0 
                         self.tuto_current_x = self.tuto_exit_x
                     # ==========================================
@@ -996,6 +1142,22 @@ class Level1:
                     surface.blit(border_surface, border_rect)
         
         surface.blit(text_surface, text_rect)
+    
+    def _draw_pause_button(self, mouse_pos):
+        """Dibuja el botón de pausa en la esquina superior derecha."""
+        if self.pause_menu.game_paused or self.pause_menu.is_closing:
+            # No dibujar el botón si el menú de pausa está activo o cerrándose
+            return
+            
+        if self.pause_pressed:
+            img = self.pause_button_img_2
+        elif self.pause_rect.collidepoint(mouse_pos):
+            img = self.pause_button_img_3
+        else:
+            img = self.pause_button_img_1
+        
+        img = pygame.transform.scale(img, (self.pause_rect.width, self.pause_rect.height))
+        self.screen.blit(img, self.pause_rect)
 
 
     # ============================================================
@@ -1131,12 +1293,6 @@ class Level1:
             # Dibuja la flecha
             self.arrow_sprite.draw(self.screen)
             
-            # Dibuja timers
-            if self.state == "quiz_floor":
-                self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
-            elif self.timer.is_running():
-                self.timer.draw(self.screen, self.font_timer, position=(680, 10))
-
             # Dibuja quiz si está activo
             if self.state == "quiz_floor" and self.quiz_game:
                 self.quiz_game.draw(self.screen)
@@ -1185,6 +1341,16 @@ class Level1:
                 # Dibuja
                 self.screen.blit(current_image, self.tuto_rect.topleft)
 
+            
+            # --- DIBUJAR BOTÓN DE PAUSA (NUEVO) ---
+            self._draw_pause_button(pygame.mouse.get_pos())
+            # --------------------------------------
+
+            # --- DIBUJAR MENÚ DE PAUSA (NUEVO) ---
+            # Esto solo dibuja el menú si game_paused o is_closing son True
+            self.pause_menu.draw(pygame.mouse.get_pos())
+            # -------------------------------------
+
 
         # Pantalla de derrota
         if self.state == "game_over":
@@ -1208,7 +1374,7 @@ class Level1:
             text_restart = "Presiona 'R' para Reiniciar"
             text_menu = "Presiona 'ESC' para volver al Menu"
             font_to_use = self.font_title
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-0), border_size=3)
             self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
         # Dibuja efecto fundido (si está activo)

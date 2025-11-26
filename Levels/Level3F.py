@@ -144,8 +144,8 @@ class Level3:
         self.tuto_target_x = 20; self.tuto_exit_x = -250; self.tuto_current_x = -250; self.tuto_y = 20
 
         try:
-            self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto1.jpg').convert_alpha(), (250, 180))
-            self.tuto_image_2 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto2.jpg').convert_alpha(), (250, 180))
+            self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto8.jpg').convert_alpha(), (250, 180))
+            self.tuto_image_2 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto9.jpg').convert_alpha(), (250, 180))
             self.tuto_image_3 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha(), (250, 180))
             self.tuto_image_4 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha(), (250, 180))
             self.tuto_rect = self.tuto_image.get_rect(topleft=(-250, 20))
@@ -186,7 +186,7 @@ class Level3:
         self.typewriter = None
         self.dialog_active = False
 
-        # --- PREGUNTAS ---
+        # --- PREGUNTAS (8 EN TOTAL) ---
         self.questions = [
             {
                 "question": "Tengo 9 naranjas y las reparto entre 3 companeros\nCuantas naranjas recibe cada uno?",
@@ -215,6 +215,35 @@ class Level3:
                 "images": ["8GLOBOS.png", "7GLOBOS.png", "1GLOBO.png", "3GLOBOS.png"],
                 "correct_number": "8",
                 "correct_image": "8GLOBOS.png"
+            },
+            # NUEVAS PREGUNTAS AÑADIDAS
+            {
+                "question": "Maria tiene 5 manzanas y compra 3 mas\nCuantas manzanas tiene en total?",
+                "numbers": ["5", "8", "7", "6"],
+                "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
+                "correct_number": "8",
+                "correct_image": "8manzanas.png"
+            },
+            {
+                "question": "Si tengo 12 lapices y regalo 4\nCuantos lapices me quedan?",
+                "numbers": ["6", "8", "7", "9"],
+                "images": ["6lapices.png", "8lapices.png", "7lapices.png", "9lapices.png"],
+                "correct_number": "8",
+                "correct_image": "8lapices.png"
+            },
+            {
+                "question": "En una caja hay 6 galletas y meto 2 mas\nCuantas galletas hay ahora?",
+                "numbers": ["7", "8", "9", "6"],
+                "images": ["7galletas.png", "8galletas.png", "9galletas.png", "6galletas.png"],
+                "correct_number": "8",
+                "correct_image": "8galletas.png"
+            },
+            {
+                "question": "Pedro tiene 10 pesos y gasta 2\nCuanto dinero le queda?",
+                "numbers": ["7", "8", "9", "6"],
+                "images": ["7pesos.png", "8pesos.png", "9pesos.png", "6pesos.png"],
+                "correct_number": "8",
+                "correct_image": "8pesos.png"
             }
         ]
         self.q_idx = 0
@@ -235,7 +264,7 @@ class Level3:
         self.results = []
 
         # --- TIMERS Y FUENTES ---
-        self.timer = Timer(150)
+        self.timer = Timer(100000)
         
         fp = "Materials/Fonts/PressStart2P-Regular.ttf" if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf") else None
         self.f_base = pygame.font.Font(fp, 18)
@@ -246,6 +275,7 @@ class Level3:
         self.f_ctrl_s = pygame.font.Font(fp, 18)
 
         # --- SONIDOS ---
+        self.game_over_music = None
         self.controls_music = None
         self.level_music_loaded = False
         if MIXER_INITIALIZED:
@@ -253,12 +283,15 @@ class Level3:
                 self.controls_music = pygame.mixer.Sound('Materials/Music/controls.wav')
                 pygame.mixer.music.load('Materials/Music/Level3.wav')
                 self.level_music_loaded = True
+                
                 self.s_win = pygame.mixer.Sound('Materials/Music/Ganar.wav')
                 self.s_lose = pygame.mixer.Sound('Materials/Music/antesover.wav')
                 self.s_ok = pygame.mixer.Sound('Materials/Music/PreguntaB.wav')
                 self.s_bad = pygame.mixer.Sound('Materials/Music/PreguntaM.wav')
                 self.game_over_music = pygame.mixer.Sound('Materials/Music/GameOver.wav')
-            except: pass
+            except Exception as e:
+                print(f"Error cargando sonidos: {e}")
+                pass
 
         # Assets UI
         try:
@@ -273,9 +306,10 @@ class Level3:
         
         self.win_music_played = False
         self.game_over_music_played = False
+        self.lose_sound_played = False  # Nueva bandera agregada
         try:
-            self.game_over_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/perdiste.png').convert(), size)
-            self.win_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/ganaste.png').convert(), size)
+            self.game_over_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/perdiste_3.png').convert(), size)
+            self.win_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/ganaste_3.png').convert(), size)
         except: self.game_over_image = None; self.win_image = None
 
     # ============================================================
@@ -377,7 +411,8 @@ class Level3:
 
     def check_final_score(self):
         correct_count = self.results.count("correct")
-        if correct_count >= 3:
+        # CAMBIO: Ahora se requieren 6 aciertos de 8 preguntas
+        if correct_count >= 6:
             self.maestro.rect.x -= 130
             self.maestro_col.x = self.maestro.rect.x + int(self.maestro.rect.width*0.1)
             self.player.rect.topleft = (450, 570)
@@ -390,6 +425,10 @@ class Level3:
         else:
             self.state = "game_over"
             pygame.mixer.music.stop()
+            # Reproducir sonido de derrota inmediatamente
+            if hasattr(self, 's_lose') and not self.lose_sound_played:
+                self.s_lose.play()
+                self.lose_sound_played = True
 
     def draw_minigame(self):
         # Dibuja la capa semi-transparente para oscurecer el fondo
@@ -431,7 +470,7 @@ class Level3:
     # UPDATE
     # ============================================================
     def handle_events(self, event):
-        if self.state in ["game_over", "loss_sound_state", "win_state"]:
+        if self.state in ["game_over", "win_state"]:  # Eliminado "loss_sound_state"
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r: 
                     pygame.mixer.stop(); self.__init__(self.screen, self.size, self.font, self.character_choice); return "restart"
@@ -505,18 +544,29 @@ class Level3:
             # TIMER ACTUALIZADO SIEMPRE (Si ya se inició)
             if self.timer.is_running(): self.timer.update()
             
+            # CORRECCIÓN PRINCIPAL: Manejo simplificado del game over
             if self.timer.finished and not self.guard_interacted: 
-                self.state = "loss_sound_state"; pygame.mixer.music.stop(); 
-                if hasattr(self, 's_lose'): self.s_lose.play()
+                self.state = "game_over"
+                pygame.mixer.music.stop()
+                # Reproducir sonido de game over solo una vez
+                if hasattr(self, 's_lose') and not self.lose_sound_played:
+                    self.s_lose.play()
+                    self.lose_sound_played = True
                 return self.state
 
-        elif self.state == "loss_sound_state":
-            if not pygame.mixer.get_busy():
-                self.state = "game_over"
-                if self.game_over_music and not self.game_over_music_played: 
-                    self.game_over_music.play(-1); self.game_over_music_played = True
+        # CORRECCIÓN: Eliminado completamente el bloque "loss_sound_state" y reemplazado con:
+        elif self.state == "game_over":
+            # Asegurarse de que la música de game over se reproduzca solo una vez
+            if self.game_over_music and not self.game_over_music_played: 
+                self.game_over_music.play(-1)
+                self.game_over_music_played = True
 
         if self.dialog_active and self.typewriter: self.typewriter.update()
+        
+        # CORRECCIÓN: Inicializar is_near fuera del bloque condicional
+        is_near = False
+        if not self.guard_interacted:
+            is_near = self.player.rect.colliderect(self.maestro_col.inflate(100,100))
         
         if (self.current_tuto_index > 0 and not self.tuto_4_active) or self.tuto_4_active:
             if self.tuto_fade_in_started and not self.tuto_fade_out_started:
@@ -527,7 +577,7 @@ class Level3:
             if self.tuto_visible_timer.is_running():
                 self.tuto_visible_timer.update()
                 if self.tuto_visible_timer.finished: self.tuto_fade_out_started = True
-                is_near = self.player.rect.colliderect(self.maestro_col.inflate(100,100))
+                # CORRECCIÓN: is_near ya está definida
                 if self.current_tuto_index == 1 and is_near: self.tuto_fade_out_started = True
             if self.tuto_fade_out_started:
                 self.tuto_alpha = max(0, self.tuto_alpha - self.tuto_fade_speed)
@@ -599,10 +649,11 @@ class Level3:
 
         # 4. Dibujar elementos de UI Superiores (Se dibujan DESPUÉS de la capa oscura para que sean visibles)
         
-        # Dibujar Marcos de Resultados
+        # Dibujar Marcos de Resultados (AHORA PARA 8 PREGUNTAS)
         if self.img_frm:
-            for i in range(4):
-                x = (self.size[0] - (4*74))//2 + i*74
+            # Mostrar marcos para las 8 preguntas
+            for i in range(8):
+                x = (self.size[0] - (8*50))//2 + i*50  # Ajustado para 8 elementos
                 self.screen.blit(self.img_frm, (x, 10))
                 if i < len(self.results):
                     ic = self.img_ok if self.results[i] == "correct" else self.img_bad
@@ -610,8 +661,8 @@ class Level3:
                     self.screen.blit(ic, (x+8, 18))
 
         # Dibujar Timer (A 720, 20 que es 20px a la derecha de 700)
-        if self.minigame_active:
-            self.timer.draw(self.screen, self.f_timer, (720, 20))
+        #if self.minigame_active:
+            #self.timer.draw(self.screen, self.f_timer, (720, 20))
 
         # 5. Otros elementos de superposición (Flecha, Confetti, Tutoriales)
         self.arrow.draw(self.screen)
@@ -628,7 +679,7 @@ class Level3:
             self.screen.fill((0,0,0))
             img = self.game_over_image if self.state == "game_over" else self.win_image
             if img: self.screen.blit(img, (0,0))
-            t = self.f_base.render("R: Reiniciar   ESC: Menu", True, (255,255,255))
+            t = self.f_base.render("PRESIONA R PARA REINICIAR/ESC PARA IR AL MENU", True, (255,255,255))
             self.screen.blit(t, t.get_rect(center=(self.size[0]//2, self.size[1]-50)))
             if self.state == "win_state": self.confetti.draw(self.screen)
 

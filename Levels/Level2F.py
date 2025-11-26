@@ -171,12 +171,12 @@ class Level2:
 
         try:
             # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
-            img1 = pygame.image.load('Materials/Pictures/Assets/tuto1.jpg').convert_alpha()
+            img1 = pygame.image.load('Materials/Pictures/Assets/tuto5.jpg').convert_alpha()
             self.tuto_image = pygame.transform.scale(img1, (250, 180)) 
             self.tuto_rect = self.tuto_image.get_rect(topleft=(self.tuto_current_x, self.tuto_y)) 
             
             # 2. Cargar y redimensionar la imagen de tutorial 2 (Espacio/Enter)
-            img2 = pygame.image.load('Materials/Pictures/Assets/tuto2.jpg').convert_alpha()
+            img2 = pygame.image.load('Materials/Pictures/Assets/tuto6.jpg').convert_alpha()
             self.tuto_image_2 = pygame.transform.scale(img2, (250, 180))
             
             # 3. Cargar y redimensionar la imagen de tutorial 3 (Diálogo/Quiz)
@@ -184,7 +184,7 @@ class Level2:
             self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
             
             # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria)
-            img4 = pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha() 
+            img4 = pygame.image.load('Materials/Pictures/Assets/tuto7.jpg').convert_alpha() 
             self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) 
             
         except pygame.error as e:
@@ -273,7 +273,7 @@ class Level2:
             self.win_image = None
 
         self.timer = Timer(5000)
-        self.quiz_timer = Timer(60)
+        self.quiz_timer = Timer(100000)
 
         self.answer_results = []
         self.max_questions = 7
@@ -492,7 +492,7 @@ class Level2:
                 
                 if self.state == "dialog":
                     self.timer.start()
-                    self.quiz_timer = Timer(60)
+                    self.quiz_timer = Timer(100000)
                     self.quiz_timer.start()
                     self.state = "quiz_floor"
                     self.dialogo_active = False
@@ -510,7 +510,7 @@ class Level2:
                     self.current_dialog_index += 1
                     if self.current_dialog_index < len(self.post_quiz_dialogs):
                         next_text = self.post_quiz_dialogs[self.current_dialog_index]
-                        self.typewriter = TypewriterText(next_text, self.font_dialog, (255,255,255), speed=25)
+                        self.typewriter = TypewriterText(next_text, self.font_dialog, (0, 0, 0), speed=25)
                         self.dialogo_active = True
                     else:
                         self.dialogo_active = False
@@ -520,7 +520,7 @@ class Level2:
                 if self.player.rect.colliderect(self.guardia_collision_rect.inflate(20,20)):
                     self.state = "dialog"
                     self.dialogo_active = True
-                    self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (255,255,255), speed=25)
+                    self.typewriter = TypewriterText(self.dialogo_text, self.font_dialog, (0, 0, 0), speed=25)
                     
                     # === ACTIVACIÓN INMEDIATA DEL TUTO 3 (Solo Izquierdo) ===
                     if self.tuto_image_3: 
@@ -804,7 +804,7 @@ class Level2:
                     "Ahora te abro el paso. Buena suerte en tu camino!"
                 ]
                 self.current_dialog_index = 0
-                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (255,255,255), speed=25)
+                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (0, 0, 0), speed=25)
                 self.quiz_game = None
                 self.timer.pause()
                 self.quiz_timer.reset()
@@ -1038,10 +1038,10 @@ class Level2:
 
 
             # --- DIBUJO DEL TEMPORIZADOR ---
-            if self.state == "quiz_floor":
-                self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
-            elif self.timer.is_running():
-                self.timer.draw(self.screen, self.font_timer, position=(680, 10))
+            #if self.state == "quiz_floor":
+                #self.quiz_timer.draw(self.screen, self.font_timer, is_quiz_timer=True, position=(680, 10))
+            #elif self.timer.is_running():
+                #self.timer.draw(self.screen, self.font_timer, position=(680, 10))
 
             if self.state == "quiz_floor" and self.quiz_game:
                 self.quiz_game.draw(self.screen, self.player.rect)
@@ -1068,8 +1068,8 @@ class Level2:
                     self.typewriter.draw(self.screen, (self.dialog_box_rect.x + 20, self.dialog_box_rect.y + 35))
                 else:
                     box_rect = pygame.Rect(50, 550, 800, 100)
-                    pygame.draw.rect(self.screen, (20, 30, 80), box_rect, border_radius=10)
-                    pygame.draw.rect(self.screen, (255, 200, 0), box_rect, 5, border_radius=10)
+                    pygame.draw.rect(self.screen, (255, 255, 255), box_rect, border_radius=10)
+                    pygame.draw.rect(self.screen, (139, 69, 19), box_rect, 5, border_radius=10)
                     self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
 
         if self.state == "game_over":

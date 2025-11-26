@@ -235,7 +235,7 @@ def run_quiz_with_timer(screen, fondo_path):
     # Crear mensaje flotante inicial
     floating_message = FloatingMessage("Presiona ENTER o ESPACIO para interactuar con el profesor", message_font, 5)
     
-    # --- DATOS DE LAS PREGUNTAS CORREGIDAS ---
+    # --- DATOS DE LAS PREGUNTAS (8 PREGUNTAS EN TOTAL) ---
     questions_data = [
         {
             "question": "Tengo 9 naranjas y las reparto entre 3 compañeros\n¿Cuántas naranjas recibe cada uno?",
@@ -264,6 +264,35 @@ def run_quiz_with_timer(screen, fondo_path):
             "images": ["8GLOBOS.png", "7GLOBOS.png", "1GLOBO.png", "3GLOBOS.png"],
             "correct_answer": "8",
             "correct_image": "8GLOBOS.png"
+        },
+        # NUEVAS PREGUNTAS AÑADIDAS
+        {
+            "question": "María tiene 5 manzanas y compra 3 más\n¿Cuántas manzanas tiene en total?",
+            "numbers": ["5", "8", "7", "6"],
+            "images": ["7GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png"],
+            "correct_answer": "8",
+            "correct_image": "7GLOBOS.png"
+        },
+        {
+            "question": "Si tengo 12 lápices y regalo 4\n¿Cuántos lápices me quedan?",
+            "numbers": ["6", "8", "7", "9"],
+            "images": ["8GLOBOS.png", "8GLOBOS.png", "7GLOBOS.png", "8GLOBOS.png"],
+            "correct_answer": "8",
+            "correct_image": "7GLOBOS.png"
+        },
+        {
+            "question": "En una caja hay 6 galletas y meto 2 más\n¿Cuántas galletas hay ahora?",
+            "numbers": ["7", "8", "9", "6"],
+            "images": ["8GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png", "7GLOBOS.png"],
+            "correct_answer": "8",
+            "correct_image": "7GLOBOS.png"
+        },
+        {
+            "question": "Pedro tiene 10 pesos y gasta 2\n¿Cuánto dinero le queda?",
+            "numbers": ["7", "8", "9", "6"],
+            "images": ["8GLOBOS.png", "7GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png"],
+            "correct_answer": "8",
+            "correct_image": "7GLOBOS.png"
         }
     ]
     
@@ -477,8 +506,8 @@ def run_quiz_with_timer(screen, fondo_path):
             pygame.display.flip()
             pygame.time.Clock().tick(60)
     
-    # Determinar si ganó o perdió (3 de 4 aciertos para pasar)
-    passed = score >= 3
+    # Determinar si ganó o perdió (6 de 8 aciertos para pasar)
+    passed = score >= 6
     show_final_screen(screen, background, score, total_questions, passed, SCREEN_WIDTH, SCREEN_HEIGHT)
     
     return passed
@@ -534,7 +563,7 @@ def show_final_screen(screen, background, score, total, passed, screen_width, sc
         score_rect = score_text.get_rect(center=(screen_width // 2, screen_height // 2 + 20))
         screen.blit(score_text, score_rect)
         
-        message_text = medium_font.render("Necesitas al menos 3 aciertos para pasar", True, BLUE)
+        message_text = medium_font.render("Necesitas al menos 6 aciertos para pasar", True, BLUE)
         message_rect = message_text.get_rect(center=(screen_width // 2, screen_height // 2 + 70))
         screen.blit(message_text, message_rect)
     

@@ -41,12 +41,25 @@ class RelationButton:
                 if os.path.exists(full_path):
                     self.image = pygame.image.load(full_path).convert_alpha()
                     img_ratio = self.image.get_width() / self.image.get_height()
+                    
+                    # AUMENTAR EL TAMAÑO DE LAS IMÁGENES - usar más espacio del botón
                     if img_ratio > 1:
-                        new_width = width - 10
+                        # Imagen horizontal - usar 90% del ancho del botón
+                        new_width = width * 0.9
                         new_height = new_width / img_ratio
                     else:
-                        new_height = height - 10
+                        # Imagen vertical - usar 90% del alto del botón
+                        new_height = height * 0.9
                         new_width = new_height * img_ratio
+                    
+                    # Asegurarse de que no sea más grande que el botón
+                    if new_width > width * 0.95:
+                        new_width = width * 0.95
+                        new_height = new_width / img_ratio
+                    if new_height > height * 0.95:
+                        new_height = height * 0.95
+                        new_width = new_height * img_ratio
+                    
                     self.image = pygame.transform.scale(self.image, (int(new_width), int(new_height)))
             except Exception:
                 pass
@@ -86,6 +99,7 @@ class Confetti:
     def stop(self): self.active = False
     def reset(self): self.particles = []; self.active = False
     def update(self):
+        
         if self.active:
             for _ in range(self.spawn_rate):
                 x = random.randint(0, self.w); y = random.randint(-50, 0)
@@ -162,7 +176,7 @@ class Level3:
         self.target_state = None
         self.state = "controls_screen" if self.control_image else "game"
         self.fade_in_speed = 5; self.fade_out_speed = 10
-        self.control_timer = Timer(5) 
+        self.control_timer = Timer(3) 
         self.control_timer_started = False
         self.can_skip_controls = False
 
@@ -182,68 +196,53 @@ class Level3:
 
         # --- DIÁLOGOS ---
         self.dialog_rect = pygame.Rect((size[0]-800)//2, size[1]-130, 800, 100)
-        self.dialog_text = "Bienvenidos. Resuelve los problemas\nmatematicos para pasar."
+        self.dialog_text = "responde las preguntas correctamente para poder\ntomar la clase, animo supera este nivel!!"
         self.typewriter = None
         self.dialog_active = False
 
-        # --- PREGUNTAS (8 EN TOTAL) ---
+        # --- PREGUNTAS (6 PREGUNTAS EN TOTAL) ---
         self.questions = [
             {
-                "question": "Tengo 9 naranjas y las reparto entre 3 companeros\nCuantas naranjas recibe cada uno?",
-                "numbers": ["2", "3", "4", "5"],
+                "question": "Si tienes 5 naranjas y comes 2\n¿cuántas te quedan?",
+                "numbers": ["2", "3", "4", "7"],
                 "images": ["3naranjas.png", "6 naranjas.png", "2naranjas.png", "4naranjas.png"],
                 "correct_number": "3",
                 "correct_image": "3naranjas.png"
             },
             {
-                "question": "Carlos tenia 3 canicas. Su amigo le regala 5 mas\nCuantas canicas tiene ahora?",
-                "numbers": ["2", "8", "4", "7"],
-                "images": ["4canicas.png", "8canicas.png", "2canicas.png", "7canicas.png"],
-                "correct_number": "8",
-                "correct_image": "8canicas.png"
-            },
-            {
-                "question": "Tengo 14 caramelos y los reparto entre 10 amigos\ncuantos caramelos me quedan?",
-                "numbers": ["3", "4", "5", "7"],
-                "images": ["4caramelos.png", "3caramelos.png", "7caramelos.png", "5carmelos.png"],
+                "question": "¿Cuántas ruedas tiene un coche normal?",
+                "numbers": ["1", "3", "4", "6"],
+                "images": ["4llantas.png", "1llantas.png", "3llantas.png", "6llantas.png"],
                 "correct_number": "4",
-                "correct_image": "4caramelos.png"
+                "correct_image": "4llantas.png"
             },
             {
-                "question": "En una fiesta hay 8 ninos y cada uno recibe 1 globo\nCuantos globos dimos?",
-                "numbers": ["8", "1", "7", "3"],
-                "images": ["8GLOBOS.png", "7GLOBOS.png", "1GLOBO.png", "3GLOBOS.png"],
-                "correct_number": "8",
-                "correct_image": "8GLOBOS.png"
+                "question": "Si tienes 6 caramelos y das 1 a tu amigo\n¿cuántos te quedan?",
+                "numbers": ["1", "5", "6", "7"],
+                "images": ["1dulces.png", "7dulces.png", "6dulces.png", "5dulces.png"],
+                "correct_number": "5",
+                "correct_image": "5dulces.png"
             },
-            # NUEVAS PREGUNTAS AÑADIDAS
             {
-                "question": "Maria tiene 5 manzanas y compra 3 mas\nCuantas manzanas tiene en total?",
+                "question": "¿Cuántos son \n2 mangos + 2 mangos + 2 mangos?",
+                "numbers": ["3", "6", "2", "5"],
+                "images": ["3mangos.png", "6mangos.png", "2mangos.png", "5mangos.png"],
+                "correct_number": "6",
+                "correct_image": "6mangos.png"
+            },
+            {
+                "question": "¿Cuántas patitas tienen 1 gatito?\n",
+                "numbers": ["1", "4", "2", "5"],
+                "images": ["4patitas.png", "1patitas.png", "5patitas.png", "2patitas.png"],
+                "correct_number": "12",
+                "correct_image": "12patitas.png"
+            },
+            {
+                "question": "María tiene 10 manzanas y se come 5\n¿cuántas tiene ahora?",
                 "numbers": ["5", "8", "7", "6"],
                 "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
-                "correct_number": "8",
-                "correct_image": "8manzanas.png"
-            },
-            {
-                "question": "Si tengo 12 lapices y regalo 4\nCuantos lapices me quedan?",
-                "numbers": ["6", "8", "7", "9"],
-                "images": ["6lapices.png", "8lapices.png", "7lapices.png", "9lapices.png"],
-                "correct_number": "8",
-                "correct_image": "8lapices.png"
-            },
-            {
-                "question": "En una caja hay 6 galletas y meto 2 mas\nCuantas galletas hay ahora?",
-                "numbers": ["7", "8", "9", "6"],
-                "images": ["7galletas.png", "8galletas.png", "9galletas.png", "6galletas.png"],
-                "correct_number": "8",
-                "correct_image": "8galletas.png"
-            },
-            {
-                "question": "Pedro tiene 10 pesos y gasta 2\nCuanto dinero le queda?",
-                "numbers": ["7", "8", "9", "6"],
-                "images": ["7pesos.png", "8pesos.png", "9pesos.png", "6pesos.png"],
-                "correct_number": "8",
-                "correct_image": "8pesos.png"
+                "correct_number": "5",
+                "correct_image": "5manzanas.png"
             }
         ]
         self.q_idx = 0
@@ -262,6 +261,11 @@ class Level3:
         self.selected_img_idx = None
         self.current_pair = None 
         self.results = []
+
+        # --- VARIABLES PARA NUEVA MECÁNICA ---
+        self.show_mechanic_after_delay = False
+        self.mechanic_delay_start = 0
+        self.mechanic_delay_duration =2 
 
         # --- TIMERS Y FUENTES ---
         self.timer = Timer(100000)
@@ -333,18 +337,19 @@ class Level3:
         q = self.questions[self.q_idx]
         w, h = self.size
         
-        # --- POSICIÓN AJUSTADA (MÁS ABAJO) ---
-        base_y = h // 10 + 10  
+        # --- POSICIÓN MÁS CENTRADA ---
+        base_y = h // 8  # Más centrado verticalmente
         self.rect_q = pygame.Rect(w//10, base_y, w*0.8, h//6)
         self.rect_main = pygame.Rect(w//10, base_y + h//6 + 20, w*0.8, h*0.6)
         
-        self.number_buttons = []
-        btn_w = self.rect_main.width // 6
-        btn_h = self.rect_main.height // 4
+        # AUMENTAR EL TAMAÑO DE LOS BOTONES PARA MEJOR VISIBILIDAD
+        btn_w = self.rect_main.width // 5  # Botones más anchos
+        btn_h = self.rect_main.height // 4  # Botones más altos
         
+        self.number_buttons = []
         total_w_nums = len(q["numbers"]) * btn_w + (len(q["numbers"])-1)*20
         start_x_nums = self.rect_main.left + (self.rect_main.width - total_w_nums)//2
-        start_y_nums = self.rect_main.top + 40
+        start_y_nums = self.rect_main.top + self.rect_main.height // 3  # Más centrado
         
         for i, txt in enumerate(q["numbers"]):
             x = start_x_nums + i*(btn_w+20)
@@ -354,7 +359,7 @@ class Level3:
         self.image_buttons = []
         total_w_imgs = len(q["images"]) * btn_w + (len(q["images"])-1)*20
         start_x_imgs = self.rect_main.left + (self.rect_main.width - total_w_imgs)//2
-        start_y_imgs = start_y_nums + btn_h + 40
+        start_y_imgs = start_y_nums + btn_h + 30  # Más espacio entre filas
         
         for i, img_path in enumerate(q["images"]):
             x = start_x_imgs + i*(btn_w+20)
@@ -362,12 +367,22 @@ class Level3:
             self.image_buttons.append(btn)
             
         bx = w//2 - 80
-        by = self.rect_main.bottom - 70
+        by = self.rect_main.bottom - 10  # Más centrado
         self.submit_btn = pygame.Rect(bx, by, 160, 50)
 
+        # --- INICIALIZAR NUEVA MECÁNICA - AUTOMÁTICA DESPUÉS DE 5 SEGUNDOS ---
+        self.show_mechanic_after_delay = False  # Inicialmente no mostrar mecánica
+        self.mechanic_delay_start = time.time()  # Iniciar contador
+
     def update_minigame(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        # Verificar si ya pasaron los 5 segundos para mostrar la mecánica automáticamente
+        if not self.show_mechanic_after_delay and time.time() - self.mechanic_delay_start >= self.mechanic_delay_duration:
+            self.show_mechanic_after_delay = True
+
+        if event.type == pygame.MOUSEBUTTONDOWN and self.show_mechanic_after_delay:
             pos = event.pos
+            
+            # Verificar clic en botones solo si la mecánica está visible
             for i, btn in enumerate(self.number_buttons):
                 if btn.contains_point(pos):
                     self.selected_num_idx = i
@@ -411,8 +426,8 @@ class Level3:
 
     def check_final_score(self):
         correct_count = self.results.count("correct")
-        # CAMBIO: Ahora se requieren 6 aciertos de 8 preguntas
-        if correct_count >= 6:
+        # CAMBIO: Ahora se requieren 4 aciertos de 6 preguntas
+        if correct_count >= 4:
             self.maestro.rect.x -= 130
             self.maestro_col.x = self.maestro.rect.x + int(self.maestro.rect.width*0.1)
             self.player.rect.topleft = (450, 570)
@@ -439,32 +454,62 @@ class Level3:
         if self.q_idx >= len(self.questions): return
 
         q = self.questions[self.q_idx]
+        
+        # --- DIBUJAR PREGUNTA SIEMPRE ---
         pygame.draw.rect(self.screen, WHITE, self.rect_q, border_radius=10)
         pygame.draw.rect(self.screen, BROWN, self.rect_q, 3, border_radius=10)
         
         lines = q["question"].split('\n')
         for i, line in enumerate(lines):
             t_surf = self.f_quest.render(line, True, BLACK)
-            t_rect = t_surf.get_rect(center=(self.rect_q.centerx, self.rect_q.centery - 15 + i*30))
+            t_rect = t_surf.get_rect(center=(self.rect_q.centerx, self.rect_q.centery - 10 + i*30))
             self.screen.blit(t_surf, t_rect)
             
-        pygame.draw.rect(self.screen, WHITE, self.rect_main, border_radius=15)
-        pygame.draw.rect(self.screen, BROWN, self.rect_main, 4, border_radius=15)
+        # --- DIBUJAR CONTADOR O MECÁNICA SEGÚN EL TIEMPO ---
+        if not self.show_mechanic_after_delay:
+            # NO MOSTRAR NADA DURANTE LOS 5 SEGUNDOS - SOLO LA PREGUNTA
+            pass
         
-        for btn in self.number_buttons: btn.draw(self.screen)
-        for btn in self.image_buttons: btn.draw(self.screen)
-        
-        if self.current_pair:
-            n_idx, i_idx = self.current_pair
-            if n_idx < len(self.number_buttons) and i_idx < len(self.image_buttons):
-                start = self.number_buttons[n_idx].rect.midbottom
-                end = self.image_buttons[i_idx].rect.midtop
-                pygame.draw.line(self.screen, GREEN, start, end, 6)
+        # --- DIBUJAR MECÁNICA (después de 5 segundos) ---
+        else:
+            pygame.draw.rect(self.screen, WHITE, self.rect_main, border_radius=15)
+            pygame.draw.rect(self.screen, BROWN, self.rect_main, 4, border_radius=15)
             
-        pygame.draw.rect(self.screen, GREEN, self.submit_btn, border_radius=10)
-        pygame.draw.rect(self.screen, BLACK, self.submit_btn, 2, border_radius=10)
-        t_sub = self.f_dial.render("ENVIAR", True, WHITE)
-        self.screen.blit(t_sub, t_sub.get_rect(center=self.submit_btn.center))
+            # Dibujar etiquetas centradas
+            numbers_label = self.f_quest.render("SELECCIONA EL NÚMERO CORRECTO:", True, BLACK)
+            images_label = self.f_quest.render("SELECCIONA LA IMAGEN CORRECTA:", True, BLACK)
+            
+            # Calcular posiciones centradas para las etiquetas
+            start_x_nums = self.rect_main.left + (self.rect_main.width - (len(self.number_buttons) * (self.rect_main.width // 5) + (len(self.number_buttons)-1)*20)) // 2
+            start_y_nums = self.rect_main.top + self.rect_main.height // 3
+            
+            label_y_nums = start_y_nums - 50  # Más espacio para la etiqueta
+            label_y_imgs = start_y_nums + self.rect_main.height // 4 + 20  # Más espacio para la etiqueta
+            
+            # Centrar las etiquetas horizontalmente
+            numbers_label_rect = numbers_label.get_rect(center=(self.rect_main.centerx, label_y_nums))
+            images_label_rect = images_label.get_rect(center=(self.rect_main.centerx, label_y_imgs))
+            
+            self.screen.blit(numbers_label, numbers_label_rect)
+            self.screen.blit(images_label, images_label_rect)
+            
+            # Dibujar botones
+            for btn in self.number_buttons: btn.draw(self.screen)
+            for btn in self.image_buttons: btn.draw(self.screen)
+            
+            # Dibujar línea de conexión si hay par
+            if self.current_pair:
+                n_idx, i_idx = self.current_pair
+                if n_idx < len(self.number_buttons) and i_idx < len(self.image_buttons):
+                    start = self.number_buttons[n_idx].rect.midbottom
+                    end = self.image_buttons[i_idx].rect.midtop
+                    pygame.draw.line(self.screen, GREEN, start, end, 6)
+                
+            # Dibujar botón de enviar centrado
+            pygame.draw.rect(self.screen, GREEN, self.submit_btn, border_radius=10)
+            pygame.draw.rect(self.screen, BLACK, self.submit_btn, 2, border_radius=10)
+            t_sub = self.f_dial.render("ENVIAR", True, WHITE)
+            self.screen.blit(t_sub, t_sub.get_rect(center=self.submit_btn.center))
 
     # ============================================================
     # UPDATE
@@ -499,8 +544,11 @@ class Level3:
                     if self.tuto_image_3 and not self.tuto_3_has_appeared:
                         self.current_tuto_index = 3; self.tuto_fade_in_started = True; self.tuto_visible_timer.reset()
 
-    def update(self):
+    def update(self,is_paused):
         keys = pygame.key.get_pressed()
+        if is_paused:
+                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
+                    return "running"
 
         if self.is_fading:
             if self.state == "controls_screen":
@@ -529,7 +577,9 @@ class Level3:
 
         if self.state == "game":
             if self.minigame_active:
-                pass 
+                # Manejar la aparición de la mecánica después del delay automáticamente
+                if not self.show_mechanic_after_delay and time.time() - self.mechanic_delay_start >= self.mechanic_delay_duration:
+                    self.show_mechanic_after_delay = True
             else:
                 barrier = self.maestro_col if not self.guard_interacted else None
                 self.player.move(keys, self.size[0], self.size[1], barrier, self.obstacles, 3)
@@ -649,11 +699,11 @@ class Level3:
 
         # 4. Dibujar elementos de UI Superiores (Se dibujan DESPUÉS de la capa oscura para que sean visibles)
         
-        # Dibujar Marcos de Resultados (AHORA PARA 8 PREGUNTAS)
+        # Dibujar Marcos de Resultados (AHORA PARA 6 PREGUNTAS)
         if self.img_frm:
-            # Mostrar marcos para las 8 preguntas
-            for i in range(8):
-                x = (self.size[0] - (8*50))//2 + i*50  # Ajustado para 8 elementos
+            # Mostrar marcos para las 6 preguntas
+            for i in range(6):
+                x = (self.size[0] - (6*50))//2 + i*50  # Ajustado para 6 elementos
                 self.screen.blit(self.img_frm, (x, 10))
                 if i < len(self.results):
                     ic = self.img_ok if self.results[i] == "correct" else self.img_bad

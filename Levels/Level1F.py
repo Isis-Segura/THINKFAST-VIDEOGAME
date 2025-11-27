@@ -138,6 +138,28 @@ class Level1:
         self.font = font
         self.character_choice = character_choice
 
+        # Fuentes del texto <-- ¡BLOQUE MOVILIZADO AQUÍ PARA LA CORRECCIÓN!
+        if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf"):
+            font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
+        else:
+            font_path = None 
+        
+        self.font_base = pygame.font.Font(font_path, 18)
+        self.font_dialog = pygame.font.Font(font_path, 17)
+        self.font_question = pygame.font.Font(font_path, 16)
+        self.font_title = pygame.font.Font(font_path, 15)
+        self.font_timer = pygame.font.Font(font_path, 24)
+        self.font_control_title = pygame.font.Font(font_path, 36)
+        # Fuente para el texto inferior de controles
+        self.font_control_text = pygame.font.Font(font_path, 18) 
+        
+        # --- CÓDIGO INTEGRADO DE LEVEL 2: Temporizador de Controles ---
+        self.control_timer = Timer(5) # Ajustado a 5 segundos
+        self.control_timer_started = False
+        self.can_skip_controls = False
+        # ------------------------------------------------------------
+
+
         # PANTALLA DE TUTORIAL
         self.tuto_image = None
         self.tuto_image_2 = None 
@@ -164,7 +186,7 @@ class Level1:
         # Posición X inicial/final de salida (fuera de la pantalla a la izquierda)
         self.tuto_exit_x = -250 
         self.tuto_current_x = self.tuto_exit_x # Inicializa fuera de pantalla
-        self.tuto_y = 20 # Posición Y fija cerca de la parte superior
+        self.tuto_y = 80 # Posición Y fija cerca de la parte superior
 
         try:
             # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
@@ -367,7 +389,7 @@ class Level1:
             },
             {
                 "image": "Materials/Pictures/Assets/imagen2.jpg",  # Imagen principal de la pregunta
-                "question": "¿Qué animal puede vivir en el agua y\nen la tierra y dice “croac”?",
+                "question": "¿Qué animal puede vivir en el agua y en\nla tierra y dice “croac”?",
                 "choices": [
                     {"text": "Camello", "image": "Materials/Pictures/Assets/pre2-1.jpg"},
                     {"text": "Pinguino", "image": "Materials/Pictures/Assets/pre2-2.jpg"},
@@ -378,7 +400,7 @@ class Level1:
             },
             {
                 "image": "Materials/Pictures/Assets/imagen3.jpg",
-                "question": "¿De qué color es la sangre dentro de nuestro cuerpo?",
+                "question": "¿De qué color es la sangre dentro\nde nuestro cuerpo?",
                 "choices": [
                     {"text": "Amarilla", "image": "Materials/Pictures/Assets/pre3-1.jpg"},
                     {"text": "Roja", "image": "Materials/Pictures/Assets/pre3-2.jpg"},
@@ -389,7 +411,7 @@ class Level1:
             },
             {
                 "image": "Materials/Pictures/Assets/imagen4.jpg",
-                "question": "¿Qué parte de nuestro cuerpo usamos para respirar?",
+                "question": "¿Qué parte de nuestro cuerpo usamos\npara respirar?",
                 "choices": [
                     {"text": "Orejas", "image": "Materials/Pictures/Assets/pre4-1.jpg"},
                     {"text": "Pulmones", "image": "Materials/Pictures/Assets/pre4-2.jpg"},
@@ -408,26 +430,26 @@ class Level1:
         self.arrow_sprite = ArrowSprite(self.win_zone.centerx + 22, self.win_zone.centery ) 
         # ------------------------------------------
 
-        # Fuentes del texto
-        if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf"):
-            font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
-        else:
-            font_path = None 
+        # # Fuentes del texto <-- Bloque eliminado de aquí
+        # if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf"):
+        #     font_path = "Materials/Fonts/PressStart2P-Regular.ttf"
+        # else:
+        #     font_path = None 
         
-        self.font_base = pygame.font.Font(font_path, 18)
-        self.font_dialog = pygame.font.Font(font_path, 17)
-        self.font_question = pygame.font.Font(font_path, 13)
-        self.font_title = pygame.font.Font(font_path, 15)
-        self.font_timer = pygame.font.Font(font_path, 24)
-        self.font_control_title = pygame.font.Font(font_path, 36)
-        # Fuente para el texto inferior de controles
-        self.font_control_text = pygame.font.Font(font_path, 18) 
+        # self.font_base = pygame.font.Font(font_path, 18)
+        # self.font_dialog = pygame.font.Font(font_path, 17)
+        # self.font_question = pygame.font.Font(font_path, 13)
+        # self.font_title = pygame.font.Font(font_path, 15)
+        # self.font_timer = pygame.font.Font(font_path, 24)
+        # self.font_control_title = pygame.font.Font(font_path, 36)
+        # # Fuente para el texto inferior de controles
+        # self.font_control_text = pygame.font.Font(font_path, 18) 
         
-        # --- CÓDIGO INTEGRADO DE LEVEL 2: Temporizador de Controles ---
-        self.control_timer = Timer(5) # Ajustado a 5 segundos
-        self.control_timer_started = False
-        self.can_skip_controls = False
-        # ------------------------------------------------------------
+        # # --- CÓDIGO INTEGRADO DE LEVEL 2: Temporizador de Controles ---
+        # self.control_timer = Timer(5) # Ajustado a 5 segundos
+        # self.control_timer_started = False
+        # self.can_skip_controls = False
+        # # ------------------------------------------------------------
 
 
     # ============================================================
@@ -540,9 +562,11 @@ class Level1:
     # ============================================================
     # Actualiza la lógica del juego según el estado actual
     # ============================================================
-    def update(self):
+    def update(self,is_paused):
         keys = pygame.key.get_pressed()
-
+        if is_paused:
+                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
+                    return "running"
         # Transiciones de fundido (fade in/out)
         if self.is_fading:
             # ... (código de fade-in/out para controls_screen)
@@ -917,16 +941,16 @@ class Level1:
                 total = len(self.questions)
 
                 if score == total:
-                    dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
+                    dialog_text = "Muy bien hecho! Has demostrado tener una buen\ncalidad de estudio."
                 elif score >= 2: 
-                    dialog_text = "Buen trabajo. Tienes un buen nivel, sigue \npracticando."
+                    dialog_text = "Buen trabajo. Tienes un buen nivel, sigue\npracticando."
                 else:
                     dialog_text = "Puedes mejorar, sigue estudiando."
 
                 self.post_quiz_dialogs = [
-                    f"Has respondido correctamente {score} de {total} preguntas.",
+                    f"Has respondido correctamente {score} de {total}\npreguntas.",
                     dialog_text,
-                    "Ahora te abro el paso. Buena suerte en tu camino!"
+                    "Ahora te abro el paso. Buena suerte en tu\ncamino!"
                 ]
                 self.current_dialog_index = 0
                 self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
@@ -1226,7 +1250,7 @@ class Level1:
             text_restart = "Presiona 'R' para Reiniciar"
             text_menu = "Presiona 'ESC' para volver al Menu"
             font_to_use = self.font_title
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-0), border_size=3)
+            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
             self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
         # Dibuja efecto fundido (si está activo)

@@ -136,15 +136,25 @@ class RelationButton:
                 full_path = os.path.join("Materials", "Pictures", "Assets", image_path)
                 if os.path.exists(full_path):
                     self.image = pygame.image.load(full_path).convert_alpha()
-                    # Escalar imagen manteniendo proporciones
+                    # Escalar imagen manteniendo proporciones - AUMENTAR EL TAMAÑO
                     img_ratio = self.image.get_width() / self.image.get_height()
+                    
+                    # AUMENTAR EL TAMAÑO DE LAS IMÁGENES - usar más espacio del botón
                     if img_ratio > 1:
-                        # Imagen horizontal
-                        new_width = width - 20
+                        # Imagen horizontal - usar 90% del ancho del botón
+                        new_width = width * 0.9
                         new_height = new_width / img_ratio
                     else:
-                        # Imagen vertical
-                        new_height = height - 20
+                        # Imagen vertical - usar 90% del alto del botón
+                        new_height = height * 0.9
+                        new_width = new_height * img_ratio
+                    
+                    # Asegurarse de que no sea más grande que el botón
+                    if new_width > width * 0.95:
+                        new_width = width * 0.95
+                        new_height = new_width / img_ratio
+                    if new_height > height * 0.95:
+                        new_height = height * 0.95
                         new_width = new_height * img_ratio
                     
                     self.image = pygame.transform.scale(self.image, (int(new_width), int(new_height)))
@@ -164,7 +174,7 @@ class RelationButton:
             surface.blit(self.image, img_rect)
         else:
             # Dibujar texto centrado
-            font_size = max(20, self.rect.height // 3)
+            font_size = max(30, self.rect.height // 3)
             text_font = pygame.font.Font(None, font_size)
             text_surf = text_font.render(self.text, True, BLACK)
             text_rect = text_surf.get_rect(center=self.rect.center)
@@ -231,74 +241,56 @@ def run_quiz_with_timer(screen, fondo_path):
     small_font = pygame.font.Font(None, SCREEN_HEIGHT // 30)
     timer_font = pygame.font.Font(None, SCREEN_HEIGHT // 18)
     message_font = pygame.font.Font(None, SCREEN_HEIGHT // 30)
+    large_font = pygame.font.Font(None, SCREEN_HEIGHT // 8)  # Fuente para el contador
     
-    # Crear mensaje flotante inicial
-    floating_message = FloatingMessage("Presiona ENTER o ESPACIO para interactuar con el profesor", message_font, 5)
-    
-    # --- DATOS DE LAS PREGUNTAS (8 PREGUNTAS EN TOTAL) ---
+    # --- DATOS DE LAS PREGUNTAS (6 PREGUNTAS EN TOTAL) ---
     questions_data = [
         {
-            "question": "Tengo 9 naranjas y las reparto entre 3 compañeros\n¿Cuántas naranjas recibe cada uno?",
-            "numbers": ["2", "3", "4", "5"],
+            "question": "Si tienes 5 manzanas y comes 2\n¿cuántas te quedan?",
+            "numbers": ["2", "3", "4", "6"],
             "images": ["3naranjas.png", "6 naranjas.png", "2naranjas.png", "4naranjas.png"],
             "correct_answer": "3",
             "correct_image": "3naranjas.png"
         },
         {
-            "question": "Carlos tenía 3 canicas. Su amigo le regala 5 más\n¿Cuántas canicas tiene ahora?",
-            "numbers": ["2", "8", "4", "7"],
-            "images": ["4canicas.png", "8canicas.png", "2canicas.png", "7canicas.png"],
-            "correct_answer": "8",
-            "correct_image": "8canicas.png"
-        },
-        {
-            "question": "Tengo 14 caramelos y los reparto entre 10 amigos\n¿cuántos caramelos me quedan?",
-            "numbers": ["3", "4", "5", "7"],
-            "images": ["4caramelos.png", "3caramelos.png", "7caramelos.png", "5carmelos.png"],
+            "question": "¿Cuántas ruedas tiene un coche normal?",
+            "numbers": ["1", "3", "4", "6"],
+            "images": ["4llantas.png", "1llantas.png", "3llantas.png", "6llantas.png"],
             "correct_answer": "4",
-            "correct_image": "4caramelos.png"
+            "correct_image": "4llantas.png"
         },
         {
-            "question": "En una fiesta hay 8 niños y cada uno recibe 1 globo\n¿Cuántos globos dimos?",
-            "numbers": ["8", "1", "7", "3"],
-            "images": ["8GLOBOS.png", "7GLOBOS.png", "1GLOBO.png", "3GLOBOS.png"],
-            "correct_answer": "8",
-            "correct_image": "8GLOBOS.png"
-        },
-        # NUEVAS PREGUNTAS AÑADIDAS
-        {
-            "question": "María tiene 5 manzanas y compra 3 más\n¿Cuántas manzanas tiene en total?",
-            "numbers": ["5", "8", "7", "6"],
-            "images": ["7GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png"],
-            "correct_answer": "8",
-            "correct_image": "7GLOBOS.png"
+            "question": "Si tienes 6 caramelos y das 1 a tu amigo\n¿cuántos te quedan?",
+            "numbers": ["4", "5", "6", "7"],
+            "images": ["4caramelos.png", "3caramelos.png", "7caramelos.png", "5carmelos.png"],
+            "correct_answer": "5",
+            "correct_image": "5carmelos.png"
         },
         {
-            "question": "Si tengo 12 lápices y regalo 4\n¿Cuántos lápices me quedan?",
-            "numbers": ["6", "8", "7", "9"],
-            "images": ["8GLOBOS.png", "8GLOBOS.png", "7GLOBOS.png", "8GLOBOS.png"],
-            "correct_answer": "8",
-            "correct_image": "7GLOBOS.png"
+            "question": "¿Cuántos son 2 mangos + 2 mangos + 2 mangos?",
+            "numbers": ["3", "6", "2", "5"],  
+            "images": ["3mangos.png", "6mangos.png", "2mangos.png", "5mangos.png"],
+            "correct_answer": "6",
+            "correct_image": "6mangos.png"
         },
         {
-            "question": "En una caja hay 6 galletas y meto 2 más\n¿Cuántas galletas hay ahora?",
-            "numbers": ["7", "8", "9", "6"],
-            "images": ["8GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png", "7GLOBOS.png"],
-            "correct_answer": "8",
-            "correct_image": "7GLOBOS.png"
+            "question": "¿Cuántas patitas tienen 1 gatito?\n",
+                "numbers": ["1", "4", "2", "5"],
+                "images": ["4patitas.png", "1patitas.png", "5patitas.png", "2patitas.png"],
+                "correct_number": "12",
+                "correct_image": "12patitas.png"
         },
         {
-            "question": "Pedro tiene 10 pesos y gasta 2\n¿Cuánto dinero le queda?",
-            "numbers": ["7", "8", "9", "6"],
-            "images": ["8GLOBOS.png", "7GLOBOS.png", "8GLOBOS.png", "8GLOBOS.png"],
-            "correct_answer": "8",
-            "correct_image": "7GLOBOS.png"
+             "question": "María tiene 5 manzanas y compra 3 más\n¿cuántas tiene ahora?",
+                "numbers": ["5", "8", "7", "6"],
+                "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
+                "correct_number": "8",
+                "correct_image": "8manzanas.png"
         }
     ]
     
     # Inicializar timer (35 segundos por pregunta)
     quiz_timer = Timer(35)
-    quiz_timer.start()
     
     score = 0
     question_index = 0
@@ -307,6 +299,11 @@ def run_quiz_with_timer(screen, fondo_path):
     
     # Variables para mostrar resultados de cada pregunta
     answer_results = []
+    
+    # Variables para controlar la aparición de elementos
+    show_mechanic_after_delay = False
+    mechanic_delay_start =0
+    mechanic_delay_duration =2 
     
     while running and question_index < total_questions:
         current_question = questions_data[question_index]
@@ -329,13 +326,15 @@ def run_quiz_with_timer(screen, fondo_path):
             SCREEN_HEIGHT * 0.6
         )
         
+        # AUMENTAR EL TAMAÑO DE LOS BOTONES PARA MEJOR VISIBILIDAD
+        button_width = main_rect.width // 5  # Botones más anchos
+        button_height = main_rect.height // 3  # Botones más altos
+        
         # Crear botones para números (fila horizontal)
         number_buttons = []
-        button_width = main_rect.width // 6
-        button_height = main_rect.height // 4
         number_start_x = main_rect.left + (main_rect.width - (len(current_question["numbers"]) * button_width + 
                             (len(current_question["numbers"]) - 1) * 20)) // 2
-        number_start_y = main_rect.top + main_rect.height // 3
+        number_start_y = main_rect.top + main_rect.height // 4  # Subir un poco para dar más espacio a las imágenes
         
         for i, number in enumerate(current_question["numbers"]):
             x = number_start_x + i * (button_width + 20)
@@ -343,11 +342,11 @@ def run_quiz_with_timer(screen, fondo_path):
             btn = RelationButton(x, y, button_width, button_height, number, False)
             number_buttons.append(btn)
         
-        # Crear botones para imágenes (misma cantidad que números)
+        # Crear botones para imágenes (misma cantidad que números) - MÁS GRANDES
         image_buttons = []
         image_start_x = main_rect.left + (main_rect.width - (len(current_question["images"]) * button_width + 
                             (len(current_question["images"]) - 1) * 20)) // 2
-        image_start_y = number_start_y + button_height + 40
+        image_start_y = number_start_y + button_height + 30  # Menor separación para aprovechar espacio
         
         for i, image_name in enumerate(current_question["images"]):
             x = image_start_x + i * (button_width + 20)
@@ -363,17 +362,25 @@ def run_quiz_with_timer(screen, fondo_path):
         question_finished = False
         answer_given = False
         
-        # Reiniciar timer para nueva pregunta (35 segundos)
-        quiz_timer = Timer(35)
-        quiz_timer.start()
+        # Reiniciar variables de control para nueva pregunta
+        show_mechanic_after_delay = False
+        mechanic_delay_start = time.time()  # Iniciar contador inmediatamente
         
         # Bucle principal de la pregunta actual
         while not question_finished and running:
-            # Actualizar timer
-            quiz_timer.update()
+            # Verificar si ya pasaron los 5 segundos para mostrar la mecánica automáticamente
+            if not show_mechanic_after_delay and time.time() - mechanic_delay_start >= mechanic_delay_duration:
+                show_mechanic_after_delay = True
+                # Iniciar timer cuando aparece la mecánica
+                quiz_timer = Timer(35)
+                quiz_timer.start()
+            
+            # Actualizar timer solo si la mecánica está visible
+            if show_mechanic_after_delay:
+                quiz_timer.update()
             
             # Verificar si se acabó el tiempo
-            if quiz_timer.finished and not answer_given:
+            if quiz_timer.finished and not answer_given and show_mechanic_after_delay:
                 answer_results.append("incorrect")
                 flash_color(screen, RED, SCREEN_WIDTH, SCREEN_HEIGHT)
                 question_finished = True
@@ -397,43 +404,56 @@ def run_quiz_with_timer(screen, fondo_path):
                 text_rect = question_text.get_rect(center=(question_rect.centerx, start_y + i * line_height))
                 screen.blit(question_text, text_rect)
             
-            # --- DIBUJAR ÁREA PRINCIPAL (verde obscuro con marco café) ---
-            pygame.draw.rect(screen, DARK_GREEN, main_rect, border_radius=15)
-            pygame.draw.rect(screen, BROWN, main_rect, 4, border_radius=15)
+            # --- CONTADOR O MECÁNICA SEGÚN EL TIEMPO ---
+            if not show_mechanic_after_delay:
+                # Mostrar solo el número del contador regresivo centrado
+                remaining_time = max(0, mechanic_delay_duration - (time.time() - mechanic_delay_start))
+                countdown_text = f"{int(remaining_time)}"  # Solo el número
+                
+                # Mostrar solo el número del contador, sin texto adicional
+                countdown_surf = large_font.render(countdown_text, True, WHITE)  # Fuente más grande para el número
+                countdown_rect = countdown_surf.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                screen.blit(countdown_surf, countdown_rect)
             
-            # Dibujar etiquetas
-            numbers_label = medium_font.render("SELECCIONA EL NÚMERO CORRECTO:", True, WHITE)
-            images_label = medium_font.render("SELECCIONA LA IMAGEN CORRECTA:", True, WHITE)
-            
-            screen.blit(numbers_label, (number_start_x, number_start_y - 40))
-            screen.blit(images_label, (image_start_x, image_start_y - 40))
-            
-            # Dibujar todos los botones (fondo blanco con marco café)
-            for btn in number_buttons + image_buttons:
-                btn.draw(screen)
-            
-            # Dibujar línea de conexión si hay un par formado
-            if current_pair is not None:
-                num_idx, img_idx = current_pair
-                if num_idx < len(number_buttons) and img_idx < len(image_buttons):
-                    start_pos = number_buttons[num_idx].rect.midbottom
-                    end_pos = image_buttons[img_idx].rect.midtop
-                    pygame.draw.line(screen, GREEN, start_pos, end_pos, 6)
-            
-            # Dibujar timer en esquina superior derecha (no estorba)
-            quiz_timer.draw(screen, timer_font, (SCREEN_WIDTH - 120, 20))
-            
-            # Dibujar botón de enviar
-            submit_rect = pygame.Rect(
-                SCREEN_WIDTH // 2 - 80,
-                main_rect.bottom + 30,
-                160, 50
-            )
-            pygame.draw.rect(screen, GREEN, submit_rect, border_radius=10)
-            pygame.draw.rect(screen, BLACK, submit_rect, 2, border_radius=10)
-            submit_text = medium_font.render("ENVIAR", True, WHITE)
-            submit_text_rect = submit_text.get_rect(center=submit_rect.center)
-            screen.blit(submit_text, submit_text_rect)
+            # --- MECÁNICA (aparece después de 5 segundos) ---
+            else:
+                # --- DIBUJAR ÁREA PRINCIPAL (verde obscuro con marco café) ---
+                pygame.draw.rect(screen, DARK_GREEN, main_rect, border_radius=15)
+                pygame.draw.rect(screen, BROWN, main_rect, 4, border_radius=15)
+                
+                # Dibujar etiquetas
+                numbers_label = medium_font.render("SELECCIONA EL NÚMERO CORRECTO:", True, WHITE)
+                images_label = medium_font.render("SELECCIONA LA IMAGEN CORRECTA:", True, WHITE)
+                
+                screen.blit(numbers_label, (number_start_x, number_start_y - 40))
+                screen.blit(images_label, (image_start_x, image_start_y - 40))
+                
+                # Dibujar todos los botones (fondo blanco con marco café)
+                for btn in number_buttons + image_buttons:
+                    btn.draw(screen)
+                
+                # Dibujar línea de conexión si hay un par formado
+                if current_pair is not None:
+                    num_idx, img_idx = current_pair
+                    if num_idx < len(number_buttons) and img_idx < len(image_buttons):
+                        start_pos = number_buttons[num_idx].rect.midbottom
+                        end_pos = image_buttons[img_idx].rect.midtop
+                        pygame.draw.line(screen, GREEN, start_pos, end_pos, 6)
+                
+                # Dibujar timer en esquina superior derecha (no estorba)
+                quiz_timer.draw(screen, timer_font, (SCREEN_WIDTH - 120, 20))
+                
+                # Dibujar botón de enviar
+                submit_rect = pygame.Rect(
+                    SCREEN_WIDTH // 2 - 80,
+                    main_rect.bottom + 80,
+                    160, 50
+                )
+                pygame.draw.rect(screen, GREEN, submit_rect, border_radius=10)
+                pygame.draw.rect(screen, BLACK, submit_rect, 2, border_radius=10)
+                submit_text = medium_font.render("ENVIAR", True, WHITE)
+                submit_text_rect = submit_text.get_rect(center=submit_rect.center)
+                screen.blit(submit_text, submit_text_rect)
             
             # Manejar eventos
             for event in pygame.event.get():
@@ -444,8 +464,8 @@ def run_quiz_with_timer(screen, fondo_path):
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = event.pos
                     
-                    # Verificar clic en botón de enviar
-                    if submit_rect.collidepoint(mouse_pos) and not answer_given:
+                    # Verificar clic en botón de enviar (solo si la mecánica está visible)
+                    if show_mechanic_after_delay and 'submit_rect' in locals() and submit_rect.collidepoint(mouse_pos) and not answer_given:
                         # Verificar si la relación es correcta
                         if current_pair is not None:
                             num_idx, img_idx = current_pair
@@ -473,41 +493,42 @@ def run_quiz_with_timer(screen, fondo_path):
                             question_finished = True
                             question_index += 1
                     
-                    # Verificar clic en botones de números
-                    for i, btn in enumerate(number_buttons):
-                        if btn.contains_point(mouse_pos) and not answer_given:
-                            if selected_number == i:
-                                selected_number = None  # Deseleccionar
-                                current_pair = None
-                            else:
-                                selected_number = i
-                                # Si ya hay una imagen seleccionada, formar par inmediatamente
-                                if selected_image is not None:
-                                    current_pair = (selected_number, selected_image)
-                                    selected_number = None
-                                    selected_image = None
-                            break
-                    
-                    # Verificar clic en botones de imágenes
-                    for i, btn in enumerate(image_buttons):
-                        if btn.contains_point(mouse_pos) and not answer_given:
-                            if selected_image == i:
-                                selected_image = None  # Deseleccionar
-                                current_pair = None
-                            else:
-                                selected_image = i
-                                # Si ya hay un número seleccionado, formar par inmediatamente
-                                if selected_number is not None:
-                                    current_pair = (selected_number, selected_image)
-                                    selected_number = None
-                                    selected_image = None
-                            break
+                    # Verificar clic en botones de números (solo si la mecánica está visible)
+                    if show_mechanic_after_delay:
+                        for i, btn in enumerate(number_buttons):
+                            if btn.contains_point(mouse_pos) and not answer_given:
+                                if selected_number == i:
+                                    selected_number = None  # Deseleccionar
+                                    current_pair = None
+                                else:
+                                    selected_number = i
+                                    # Si ya hay una imagen seleccionada, formar par inmediatamente
+                                    if selected_image is not None:
+                                        current_pair = (selected_number, selected_image)
+                                        selected_number = None
+                                        selected_image = None
+                                break
+                        
+                        # Verificar clic en botones de imágenes (solo si la mecánica está visible)
+                        for i, btn in enumerate(image_buttons):
+                            if btn.contains_point(mouse_pos) and not answer_given:
+                                if selected_image == i:
+                                    selected_image = None  # Deseleccionar
+                                    current_pair = None
+                                else:
+                                    selected_image = i
+                                    # Si ya hay un número seleccionado, formar par inmediatamente
+                                    if selected_number is not None:
+                                        current_pair = (selected_number, selected_image)
+                                        selected_number = None
+                                        selected_image = None
+                                break
             
             pygame.display.flip()
             pygame.time.Clock().tick(60)
     
-    # Determinar si ganó o perdió (6 de 8 aciertos para pasar)
-    passed = score >= 6
+    # Determinar si ganó o perdió (4 de 6 aciertos para pasar)
+    passed = score >= 4
     show_final_screen(screen, background, score, total_questions, passed, SCREEN_WIDTH, SCREEN_HEIGHT)
     
     return passed
@@ -563,7 +584,7 @@ def show_final_screen(screen, background, score, total, passed, screen_width, sc
         score_rect = score_text.get_rect(center=(screen_width // 2, screen_height // 2 + 20))
         screen.blit(score_text, score_rect)
         
-        message_text = medium_font.render("Necesitas al menos 6 aciertos para pasar", True, BLUE)
+        message_text = medium_font.render("Necesitas al menos 4 aciertos para pasar", True, BLUE)
         message_rect = message_text.get_rect(center=(screen_width // 2, screen_height // 2 + 70))
         screen.blit(message_text, message_rect)
     

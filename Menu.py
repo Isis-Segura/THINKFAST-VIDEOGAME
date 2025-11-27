@@ -42,6 +42,7 @@ except pygame.error:
     print("Advertencia: No se encontraron fuentes personalizadas. Usando fuente por defecto.")
     font_medium = pygame.font.Font(None, 40)
     font_small = pygame.font.Font(None, 30)
+    font_large = pygame.font.Font(None, 50) # Añadir fallback para large
 
 # -------------------- EJECUCIÓN DEL VIDEO DE INTRODUCCIÓN --------------------
 run_intro_video(screen, size)
@@ -125,6 +126,42 @@ back_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_back1.png")
 back_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_back3.png").convert_alpha()
 back_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_back2.png").convert_alpha()
 
+# --- BOTONES NUEVOS DE PAUSA (Continuar, Menú Principal) ---
+# Si no tienes estas imágenes, puedes usar las de 'play'/'quit' o crear rectángulos con texto.
+try:
+    btn_continue1 = pygame.image.load("Materials/Pictures/Assets/btn_continue1.png").convert_alpha()
+    btn_continue3 = pygame.image.load("Materials/Pictures/Assets/btn_continue3.png").convert_alpha()
+    btn_continue2 = pygame.image.load("Materials/Pictures/Assets/btn_continue2.png").convert_alpha()
+    btn_menu1 = pygame.image.load("Materials/Pictures/Assets/btn_menu1.png").convert_alpha()
+    btn_menu3 = pygame.image.load("Materials/Pictures/Assets/btn_menu3.png").convert_alpha()
+    btn_menu2 = pygame.image.load("Materials/Pictures/Assets/btn_menu2.png").convert_alpha()
+    btn_reset1 = pygame.image.load("Materials/Pictures/Assets/btn_reset1.png").convert_alpha()
+    btn_reset3 = pygame.image.load("Materials/Pictures/Assets/btn_reset3.png").convert_alpha()
+    btn_reset2 = pygame.image.load("Materials/Pictures/Assets/btn_reset2.png").convert_alpha()
+except pygame.error:
+    # Usar las imágenes del menú principal si fallan
+    print("ADVERTENCIA: No se encontraron imágenes de botones de pausa. Usando Play/Quit.")
+    btn_continue1, btn_continue3, btn_continue2 = play_button_img, play_button_hover_img, play_button_click_img
+    btn_menu1, btn_menu3, btn_menu2 = quit_button_img, quit_button_hover_img, quit_button_click_img,btn_reset1, btn_reset3, btn_reset2 = config_button_img, config_button_hover_img, config_button_click_img
+
+
+# --- BOTÓN DE PAUSA (Esquina superior izquierda) ---
+try:
+    pause_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_pause1.png").convert_alpha()
+    pause_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_pause3.png").convert_alpha()
+    pause_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_pause2.png").convert_alpha()
+except pygame.error:
+    print("ADVERTENCIA: No se encontraron imágenes de botón de pausa. Usando Conf/Conf/Conf.")
+    pause_button_img_1, pause_button_img_3, pause_button_img_2 = config_button_img, config_button_hover_img, config_button_click_img
+
+PAUSE_BUTTON_SIZE = (60, 60)
+PAUSE_PADDING = 10
+pause_button_img_1 = pygame.transform.scale(pause_button_img_1, PAUSE_BUTTON_SIZE)
+pause_button_img_3 = pygame.transform.scale(pause_button_img_3, PAUSE_BUTTON_SIZE)
+pause_button_img_2 = pygame.transform.scale(pause_button_img_2, PAUSE_BUTTON_SIZE)
+pause_button_rect = pygame.Rect(PAUSE_PADDING, PAUSE_PADDING, PAUSE_BUTTON_SIZE[0], PAUSE_BUTTON_SIZE[1])
+# --- FIN DE BOTONES ---
+
 clock = pygame.time.Clock()
 
 # Música
@@ -140,6 +177,8 @@ SELECT_LEVEL = 3
 SELECT_ADVANCED_LEVEL = 8  
 GAME_LEVEL_1 = 4 
 CONFIG_MENU = 5 # <--- Usado para la animación de configuración
+# --- NUEVO ESTADO DE PAUSA ---
+# PAUSE_MENU = 7 # Ya no es necesario si usamos solo la bandera 'is_paused'
 
 # Variables de Animación de Configuración
 SLIDE_SPEED = 30 # Velocidad de la animación en pixeles por frame
@@ -156,6 +195,7 @@ level_instance = None
 language = "es" 
 volume_level = 0.7 
 pygame.mixer.music.set_volume(volume_level) 
+is_paused = False # <--- NUEVA BANDERA DE PAUSA
 
 # --- INICIALIZAR MENÚ DE CONFIGURACIÓN ---
 settings_panel = SettingsPanel(screen, size) 
@@ -169,12 +209,10 @@ texts = {
         "spanish": "Español", "english": "Inglés", "title_config": "Menú de Configuración",
         "select_difficulty": "Selecciona la dificultad", "beginner": "Normal", "advanced": "Avanzado",
         "select_character": "Selecciona tu personaje", "boy": "Niño", "girl": "Niña",
-        
         "select_level": "Selecciona el desafío", 
-        "level1_name": "Entrada",  
-        "level2_name": "Pasillo",  
-        "level3_name": "Salón",  
-        "coming_soon": "¡Proximamente!"
+        "level1_name": "Entrada", "level2_name": "Pasillo", "level3_name": "Salón",  
+        "coming_soon": "¡Proximamente!",
+        "pause": "PAUSA", "continue": "Continuar", "main_menu": "Menú Principal","reset_level": "Reset Level", # <--- TEXTOS DE PAUSA
     },
     "en": {
         "play": "Play", "quit": "Quit", "config": "Settings",
@@ -182,12 +220,10 @@ texts = {
         "spanish": "Spanish", "english": "English", "title_config": "Settings Menu",
         "select_difficulty": "Select difficulty", "beginner": "Beginner", "advanced": "Advanced",
         "select_character": "Select your character", "boy": "Boy", "girl": "Girl",
-        
         "select_level": "Select the challenge", 
-        "level1_name": "Learn to Add", 
-        "level2_name": "Multiply Fast", 
-        "level3_name": "Equations", 
-        "coming_soon": "Coming soon!"
+        "level1_name": "Learn to Add", "level2_name": "Multiply Fast", "level3_name": "Equations", 
+        "coming_soon": "Coming soon!",
+        "pause": "PAUSA", "continue": "Continue", "main_menu": "Main Menu","reset_level": "Reset Level", # <--- TEXTOS DE PAUSA
     }
 }
 
@@ -314,9 +350,24 @@ def create_advanced_level_buttons():
     
     return level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect
 
-# -------------------- FUNCIONES DE DIBUJO DE PANTALLAS (REDUCIDAS) --------------------
-# *** NOTA: Se eliminó el dibujo de fondos y escuela de estas funciones. ***
+def create_pause_menu_buttons(): # <--- NUEVA FUNCIÓN PARA RECTÁNGULOS DE PAUSA
+    btn_w, btn_h = 100, 100 
+    # Botón Reset Level
+    reset_button_rect_pause = pygame.Rect(0, 0, btn_w, btn_h)
+    reset_button_rect_pause.center = (screen.get_width() // 2 + 130, screen.get_height() // 2)
+    # Botón Continuar
+    continue_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    continue_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
+    
+    # Botón Menú Principal
+    menu_button_rect_pause = pygame.Rect(0, 0, btn_w, btn_h)
+    menu_button_rect_pause.center = (screen.get_width() // 2 - 130, screen.get_height() // 2)
+    
+    return continue_button_rect, menu_button_rect_pause, reset_button_rect_pause
 
+# -------------------- FUNCIONES DE DIBUJO DE PANTALLAS (REDUCIDAS) --------------------
+# (Las funciones draw_menu, draw_difficulty_selection, etc. se mantienen igual)
+# ... (código anterior de draw_menu, draw_difficulty_selection, etc.) ...
 def draw_menu(play_button_rect, quit_button_rect, config_button_rect, mouse_pos, button_pressed):
     
     # 4. DIBUJAR LOS BOTONES (Lógica de 3 estados)
@@ -422,6 +473,7 @@ beginner_button_rect, advanced_button_rect, back_button_rect_difficulty = create
 char1_button_rect, char2_button_rect, back_button_rect_character = create_character_buttons()
 level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect_level = create_level_buttons()
 level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect_advanced = create_advanced_level_buttons()
+continue_button_rect, menu_button_rect_pause, reset_button_rect_pause = create_pause_menu_buttons() # <--- NUEVOS RECTÁNGULOS DE PAUSA
 
 # -------------------- BUCLE PRINCIPAL --------------------
 running = True
@@ -432,7 +484,7 @@ while running:
 
     # 1. ACTUALIZACIÓN DEL MOVIMIENTO DINÁMICO Y ANIMACIÓN DEL PANEL
     # Actualiza la posición de las nubes y el globo en todos los estados del menú
-    if game_state in [MENU, SELECT_DIFFICULTY, SELECT_CHARACTER, SELECT_CHARACTER2, SELECT_LEVEL, SELECT_ADVANCED_LEVEL, CONFIG_MENU]:
+    if game_state in [MENU, SELECT_DIFFICULTY, SELECT_CHARACTER, SELECT_CHARACTER2, SELECT_LEVEL, SELECT_ADVANCED_LEVEL, CONFIG_MENU, GAME_LEVEL_1]:
         for cloud in clouds:
             cloud.move()
         balloon.move()
@@ -459,14 +511,57 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        # =========================================================================
+        # === 1. Lógica de PAUSA y MENU de PAUSA (CORREGIDA) ===
+        # =========================================================================
         if game_state == GAME_LEVEL_1 and level_instance:
+            
+            # Bandera de control para saber si el nivel NO está en la pantalla de introducción
+            # Esto debe ser verdad para permitir hacer clic en el botón de pausa.
+            is_level_not_in_intro = hasattr(level_instance, 'state') and level_instance.state != "controls_screen"
+            
+            # 1. Manejar eventos del menú de PAUSA (prioritario si ya está pausado)
+            if is_paused:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if continue_button_rect.collidepoint(event.pos): button_pressed = "continue"
+                    elif menu_button_rect_pause.collidepoint(event.pos): button_pressed = "main_menu"
+                    elif reset_button_rect_pause.collidepoint(event.pos): button_pressed = "reset_level"
+                elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    if button_pressed == "continue" and continue_button_rect.collidepoint(event.pos):
+                        is_paused = False # Salir de pausa
+                        button_pressed = None
+                    elif button_pressed == "main_menu" and menu_button_rect_pause.collidepoint(event.pos):
+                        is_paused = False
+                        game_state = MENU
+                        level_instance = None
+                        pygame.mixer.music.load('Materials/Music/Menu.wav')
+                        pygame.mixer.music.play(-1)
+                        button_pressed = None
+                    elif button_pressed == "reset_level" and reset_button_rect_pause.collidepoint(event.pos):
+                        is_paused = False
+                        # Recargar el nivel según su clase (asumiendo que todos los niveles son Level1F, Level2F, etc.)
+                        # Esto es clave: identificamos qué nivel estaba activo y lo recreamos.
+                        current_level_class = type(level_instance) 
+                        level_instance = current_level_class(screen, size, font_small, selected_character)
+                        button_pressed = None
+                
+                # Si está en pausa, NO procesamos los eventos del nivel o el botón de pausa
+                continue
+            
+            # 2. Chequeo para ENTRAR en pausa (Solo si NO está en controles)
+            if is_level_not_in_intro:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and pause_button_rect.collidepoint(event.pos) and not is_paused:
+                    is_paused = True # Entrar en el estado de pausa
+                    button_pressed = "pause"
+
+            # 3. El nivel maneja los eventos del juego (solo si NO está en pausa)
             returned_state = level_instance.handle_events(event)
             if returned_state == "menu":
                 game_state = MENU
                 level_instance = None
                 pygame.mixer.music.load('Materials/Music/Menu.wav')
                 pygame.mixer.music.play(-1)
-            continue 
+            continue
             
         # Lógica de CONFIG_MENU (prioritaria para manejar clics dentro del panel)
         if game_state == CONFIG_MENU and not config_closing and config_panel_x == config_target_x:
@@ -522,6 +617,7 @@ while running:
             # Lógica de REGRESAR
             if button_pressed and "back_" in button_pressed and eval(button_pressed.replace('back_', 'back_button_rect_')).collidepoint(event.pos):
                 if len(state_history) > 1: state_history.pop(); game_state = state_history[-1]; show_coming_soon = False
+                button_pressed = None # Importante: resetear button_pressed después de usarlo
 
             # Lógica de MENU
             elif button_pressed == "play" and play_button_rect.collidepoint(event.pos):
@@ -552,37 +648,55 @@ while running:
                 elif game_state == SELECT_CHARACTER2:
                     game_state = SELECT_ADVANCED_LEVEL; state_history.append(game_state)
                 
-            # Lógica de NIVELES NORMALES/AVANZADOS
+            # Lógica de NIVELES NORMALES/AVANZADOS (Inicia el nivel)
             elif button_pressed == "lvl1" and level1_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level1F.Level1(screen, size, font_small, selected_character)
                 show_coming_soon = False
+                
             elif button_pressed == "lvl2" and level2_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level2F.Level2(screen, size, font_small, selected_character)
                 show_coming_soon = False
+                 
+               
             elif button_pressed == "lvl3" and level3_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level3F.Level3(screen, size, font_small, selected_character) 
                 show_coming_soon = False
+                
+                
             elif button_pressed == "lvl4" and level4_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level4F.Level4(screen, size, font_small, selected_character)
                 show_coming_soon = False
+                 
+               
             elif button_pressed == "lvl5" and level5_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level5F.Level5(screen, size, font_small, selected_character)
+                # Asegúrate que Level5F.Level5 reciba los argumentos correctos
+                level_instance = Level5F.Level5(screen, size, font_small, selected_character, language) 
                 show_coming_soon = False
+                
+                
             elif button_pressed == "lvl6" and level6_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
                 level_instance = Level6F.Level6(screen, size, font_small, selected_character) 
                 show_coming_soon = False
+                
+                
 
             button_pressed = None 
 
-    # -------------------- DIBUJAR --------------------
+# -------------------- DIBUJAR --------------------
     if game_state == GAME_LEVEL_1 and level_instance:
-        level_state = level_instance.update()
+        # Pasa la bandera de pausa al método update del nivel
+        level_state = level_instance.update(is_paused) 
+        
+        # 💡 DEPURATION: Imprime el estado actual del nivel en la consola
+        if hasattr(level_instance, 'state'):
+            print(f"Level State: {level_instance.state}") 
+        
         if level_state == "quit":
             running = False
         elif level_state == "menu":
@@ -590,8 +704,47 @@ while running:
             level_instance = None
             pygame.mixer.music.load('Materials/Music/Menu.wav')
             pygame.mixer.music.play(-1)
+            is_paused = False # Asegurar que la pausa se desactive
         else:
             level_instance.draw()
+            
+            # Comprobación de que el nivel tiene la propiedad 'state' y que NO es 'controls_screen'
+            # 💡 CORRECCIÓN: El botón de pausa SÓLO se dibuja si el nivel NO está en estado "controls_screen".
+            is_level_not_in_intro = hasattr(level_instance, 'state') and level_instance.state != "controls_screen"
+
+            # DIBUJAR EL BOTÓN DE PAUSA SOBRE EL NIVEL (solo si NO está en pausa y el juego NO está en intro)
+            if not is_paused and is_level_not_in_intro:
+                current_pause_img = pause_button_img_2 if button_pressed == "pause" and pause_button_rect.collidepoint(mouse_pos) else \
+                                    pause_button_img_3 if pause_button_rect.collidepoint(mouse_pos) else \
+                                    pause_button_img_1
+                screen.blit(current_pause_img, pause_button_rect)
+
+            # Si está en pausa, dibujar el menú de pausa
+            if is_paused:
+                # Semi-transparente de fondo
+                s = pygame.Surface(size, pygame.SRCALPHA)
+                s.fill((0, 0, 0, 150)) # Negro con 150 de transparencia (de 255)
+                screen.blit(s, (0, 0))
+                
+                # Título "PAUSA"
+                pause_text = render_text_with_outline(texts[language]["pause"], font_large, white, black)
+                screen.blit(pause_text, pause_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 - 150)))
+                
+                # Botón Continuar
+                draw_button_with_text_3_state(
+                    continue_button_rect, "", font_medium, mouse_pos, button_pressed, 
+                    "continue", btn_continue1, btn_continue3, btn_continue2, 
+                    text_adjust_x=-40, text_adjust_y=-4)
+                draw_button_with_text_3_state(
+                    reset_button_rect_pause, "", font_medium, mouse_pos, button_pressed, 
+                    "reset_level", btn_reset1, btn_reset3, btn_reset2, 
+                    text_adjust_x=-40, text_adjust_y=-4)
+                # Botón Menú Principal
+                draw_button_with_text_3_state(
+                    menu_button_rect_pause,"", font_medium, mouse_pos, button_pressed, 
+                    "main_menu", btn_menu1, btn_menu3, btn_menu2, 
+                    text_adjust_x=-40, text_adjust_y=-4)
+            
     else:
         # 1. DIBUJAR FONDO Y ELEMENTOS DINÁMICOS (Siempre visibles)
         screen.blit(sky_background, [0, 0])

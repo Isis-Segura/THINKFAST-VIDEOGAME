@@ -537,8 +537,11 @@ class Level4:
     # ============================================================
     # Actualiza la lógica del juego según el estado actual
     # ============================================================
-    def update(self):
+    def update(self,is_paused):
         keys = pygame.key.get_pressed()
+        if is_paused:
+                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
+                    return "running"
 
         # Transiciones de fundido (fade in/out)
         if self.is_fading:

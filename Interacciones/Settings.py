@@ -41,6 +41,77 @@ class SettingsPanel:
                 "volume": "Volume"
             }
         }
+        
+        # --- NUEVO: TEXTOS COMUNES DE JUEGO (GAMEPLAY TEXTS) ---
+        self.gameplay_texts = {
+            "es": {
+                "correct": "¡CORRECTO!",
+                "incorrect": "INCORRECTO",
+                "restart": "Presiona 'R' para Reiniciar",
+                "menu": "Presiona 'ESC' para volver al Menú",
+                "lvl_win": "¡NIVEL COMPLETADO!",
+                "lvl_over": "FIN DEL JUEGO",
+            },
+            "en": {
+                "correct": "CORRECT!",
+                "incorrect": "INCORRECT",
+                "restart": "Press 'R' to Restart",
+                "menu": "Press 'ESC' for Menu",
+                "lvl_win": "LEVEL COMPLETED!",
+                "lvl_over": "GAME OVER",
+            }
+        }
+        
+        # --- NUEVO: TEXTOS ESPECÍFICOS DE NIVELES (LEVEL/TUTORIAL TEXTS) ---
+        self.level_texts = {
+            "es": {
+                "lvl1_title": "NIVEL 1: ENTRADA",
+                "lvl1_controls_title": "CONTROLES BÁSICOS",
+                "lvl1_control_move": "Muévete con WASD o Flechas",
+                
+                "lvl2_title": "NIVEL 2: PATIO",
+                "lvl2_controls_title": "RECOLECCIÓN DE LLAVES",
+                
+                "lvl3_title": "NIVEL 3: SALÓN",
+                "lvl3_relation_info": "Elige la Opción Correcta",
+                "lvl3_controls_title": "TUTORIAL DE RELACIÓN",
+                
+                "lvl4_title": "NIVEL 4: LABORATORIO",
+                "lvl4_controls_title": "CADENA ALIMENTICIA",
+                
+                "lvl5_title": "NIVEL 5: BIBLIOTECA",
+                "lvl5_controls_title": "CULTURAS Y GEOGRAFÍA",
+
+                "lvl6_title": "NIVEL 6: FINAL",
+                "lvl6_controls_title": "OPERACIONES MATEMÁTICAS",
+            },
+            "en": {
+                "lvl1_title": "LEVEL 1: ENTRANCE",
+                "lvl1_controls_title": "BASIC CONTROLS",
+                "lvl1_control_move": "Move with WASD or Arrows",
+                
+                "lvl2_title": "LEVEL 2: PLAYGROUND",
+                "lvl2_controls_title": "KEY COLLECTION",
+                
+                "lvl3_title": "LEVEL 3: CLASSROOM",
+                "lvl3_relation_info": "Choose the Correct Option",
+                "lvl3_controls_title": "RELATIONSHIP TUTORIAL",
+                
+                "lvl4_title": "LEVEL 4: LABORATORY",
+                "lvl4_controls_title": "FOOD CHAIN",
+                
+                "lvl5_title": "LEVEL 5: LIBRARY",
+                "lvl5_controls_title": "CULTURES AND GEOGRAPHY",
+
+                "lvl6_title": "LEVEL 6: FINAL",
+                "lvl6_controls_title": "MATH OPERATIONS",
+            }
+        }
+        # --- IMÁGENES Y OBJETOS DEL PANEL (EXISTENTE) ---
+        self.is_open = False
+        self.is_closing = False
+        self.panel_y = -PANEL_HEIGHT
+        self.animation_speed = 40
 
         # --- CARGA de IMÁGENES ---
         try:

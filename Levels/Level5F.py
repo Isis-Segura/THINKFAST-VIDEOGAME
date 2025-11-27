@@ -127,7 +127,7 @@ class ArrowSprite:
 
 
 class Level5:
-    def __init__(self, screen, size, font, character_choice):
+    def __init__(self, screen, size, font, character_choice, language):
         global MIXER_INITIALIZED
         self.flash_color = None
         self.flash_alpha = 0
@@ -361,50 +361,96 @@ class Level5:
         # -------------------------------------------------------------------------
 
         # -------------------- ESTRUCTURA DE PREGUNTAS --------------------
-        self.questions = [
-            { "question": "¿Cómo se llama el planeta donde vivimos?", "choices": [
-                { "text": "Marte", "image": "Materials/Pictures/Assets/marte.jpg" }, 
-                { "text": "Tierra", "image": "Materials/Pictures/Assets/tierra.jpg" }, 
-                { "text": "Saturno", "image": "Materials/Pictures/Assets/saturno.jpg" }, 
-                { "text": "Venus", "image": "Materials/Pictures/Assets/venus.jpg" }
-            ], "correct_answer": 1 },
-            { "question": "¿Qué usamos para ver dónde están los países y mares?", "choices": [
-                { "text": "Un mapa", "image": "Materials/Pictures/Assets/mapa.jpg" }, 
-                { "text": "Un reloj", "image": "Materials/Pictures/Assets/reloj.jpg" }, 
-                { "text": "Una lupa", "image": "Materials/Pictures/Assets/lupa.jpg" }, 
-                { "text": "Un termómetro", "image": "Materials/Pictures/Assets/termometro.jpg" }
-            ], "correct_answer": 0 },
-            { "question": "¿Cuál de estos no es un país de latinoamerica?", "choices": [
-                { "text": "Japon", "image": "Materials/Pictures/Assets/japon.jpg" }, 
-                { "text": "Venezuela", "image": "Materials/Pictures/Assets/venezuela.jpg" }, 
-                { "text": "Peru", "image": "Materials/Pictures/Assets/peru.jpg" }, 
-                { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }
-            ], "correct_answer": 0 },
-            { "question": "¿Cómo se llama al lugar donde hay mucha arena y casi no llueve?", "choices": [
-                { "text": "Montañas", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
-                { "text": "Ciudad", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
-                { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Selva", "image": "Materials/Pictures/Assets/selva.jpg" }
-            ], "correct_answer": 2 },
-            { "question": "¿Qué línea imaginaria divide la Tierra en norte y sur?", "choices": [
-                { "text": "Polo norte", "image": "Materials/Pictures/Assets/polo.jpg" }, 
-                { "text": "Oceano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
-                { "text": "Meridiano", "image": "Materials/Pictures/Assets/meridiano.jpg" }, 
-                { "text": "Ecuador", "image": "Materials/Pictures/Assets/ecuador.jpg" }
-            ], "correct_answer": 3 },
-            { "question": "¿Cómo se llama el país más grande del mundo?", "choices": [
-                { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }, 
-                { "text": "Rusia", "image": "Materials/Pictures/Assets/rusia.jpg" }, 
-                { "text": "China", "image": "Materials/Pictures/Assets/china.jpg" }, 
-                { "text": "Canadá", "image": "Materials/Pictures/Assets/canada.jpg" }
-            ], "correct_answer": 1 },
-            { "question": "¿Cómo se llama el cuerpo de agua más pequeño que un mar?", "choices": [
-                { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Océano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
-                { "text": "Lago", "image": "Materials/Pictures/Assets/lago.jpg" }, 
-                { "text": "Glaciar", "image": "Materials/Pictures/Assets/glaciar.jpg" }
-            ], "correct_answer": 2 }
-        ]
+        if language == "es":
+            self.questions = [
+                { "question": "¿Cómo se llama el planeta donde vivimos?", "choices": [
+                    { "text": "Marte", "image": "Materials/Pictures/Assets/marte.jpg" }, 
+                    { "text": "Tierra", "image": "Materials/Pictures/Assets/tierra.jpg" }, 
+                    { "text": "Saturno", "image": "Materials/Pictures/Assets/saturno.jpg" }, 
+                    { "text": "Venus", "image": "Materials/Pictures/Assets/venus.jpg" }
+                ], "correct_answer": 1 },
+                { "question": "¿Qué usamos para ver dónde están los países y mares?", "choices": [
+                    { "text": "Un mapa", "image": "Materials/Pictures/Assets/mapa.jpg" }, 
+                    { "text": "Un reloj", "image": "Materials/Pictures/Assets/reloj.jpg" }, 
+                    { "text": "Una lupa", "image": "Materials/Pictures/Assets/lupa.jpg" }, 
+                    { "text": "Un termómetro", "image": "Materials/Pictures/Assets/termometro.jpg" }
+                ], "correct_answer": 0 },
+                { "question": "¿Cuál de estos no es un país del continente americano?", "choices": [
+                    { "text": "Japón", "image": "Materials/Pictures/Assets/japon.jpg" }, 
+                    { "text": "Venezuela", "image": "Materials/Pictures/Assets/venezuela.jpg" }, 
+                    { "text": "Peru", "image": "Materials/Pictures/Assets/peru.jpg" }, 
+                    { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }
+                ], "correct_answer": 0 },
+                { "question": "¿Cómo se llama al lugar donde hay mucha arena y casi no llueve?", "choices": [
+                    { "text": "Montañas", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
+                    { "text": "Ciudad", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
+                    { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                    { "text": "Selva", "image": "Materials/Pictures/Assets/selva.jpg" }
+                ], "correct_answer": 2 },
+                { "question": "¿Qué línea imaginaria divide la Tierra en norte y sur?", "choices": [
+                    { "text": "Polo norte", "image": "Materials/Pictures/Assets/polo.jpg" }, 
+                    { "text": "Oceano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
+                    { "text": "Meridiano", "image": "Materials/Pictures/Assets/meridiano.jpg" }, 
+                    { "text": "Ecuador", "image": "Materials/Pictures/Assets/ecuador.jpg" }
+                ], "correct_answer": 3 },
+                { "question": "¿Cómo se llama el país más grande del mundo?", "choices": [
+                    { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }, 
+                    { "text": "Rusia", "image": "Materials/Pictures/Assets/rusia.jpg" }, 
+                    { "text": "China", "image": "Materials/Pictures/Assets/china.jpg" }, 
+                    { "text": "Canadá", "image": "Materials/Pictures/Assets/canada.jpg" }
+                ], "correct_answer": 1 },
+                { "question": "¿Cómo se llama a la masa de agua más pequeña y estancada?", "choices": [
+                    { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                    { "text": "Océano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
+                    { "text": "Lago", "image": "Materials/Pictures/Assets/lago.jpg" }, 
+                    { "text": "Glaciar", "image": "Materials/Pictures/Assets/glaciar.jpg" }
+                ], "correct_answer": 2 }
+            ]
+        else:
+            self.questions = [
+                { "question": "What is the name of the planet we live on?", "choices": [
+                    { "text": "Mars", "image": "Materials/Pictures/Assets/marte.jpg" }, 
+                    { "text": "Earth", "image": "Materials/Pictures/Assets/tierra.jpg" }, 
+                    { "text": "Saturn", "image": "Materials/Pictures/Assets/saturno.jpg" }, 
+                    { "text": "Venus", "image": "Materials/Pictures/Assets/venus.jpg" }
+                ], "correct_answer": 1 },
+                { "question": "What do we use to see where countries and seas are located?", "choices": [
+                    { "text": "A map", "image": "Materials/Pictures/Assets/mapa.jpg" }, 
+                    { "text": "A clock", "image": "Materials/Pictures/Assets/reloj.jpg" }, 
+                    { "text": "A magnifying glass", "image": "Materials/Pictures/Assets/lupa.jpg" }, 
+                    { "text": "A thermometer", "image": "Materials/Pictures/Assets/termometro.jpg" }
+                ], "correct_answer": 0 },
+                { "question": "Which of these is not a country on the American continent?", "choices": [
+                    { "text": "Japan", "image": "Materials/Pictures/Assets/japon.jpg" }, 
+                    { "text": "Venezuela", "image": "Materials/Pictures/Assets/venezuela.jpg" }, 
+                    { "text": "Peru", "image": "Materials/Pictures/Assets/peru.jpg" }, 
+                    { "text": "Mexico", "image": "Materials/Pictures/Assets/mexico.jpg" }
+                ], "correct_answer": 0 },
+                { "question": "What is the name of the place where there is a lot of sand and it hardly ever rains?", "choices": [
+                    { "text": "Mountains", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
+                    { "text": "City", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
+                    { "text": "Desert", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                    { "text": "Jungle", "image": "Materials/Pictures/Assets/selva.jpg" }
+                ], "correct_answer": 2 },
+                { "question": "What is the name of the imaginary line that divides the Earth into North and South?", "choices": [
+                    { "text": "North Pole", "image": "Materials/Pictures/Assets/polo.jpg" }, 
+                    { "text": "Ocean", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
+                    { "text": "Meridian", "image": "Materials/Pictures/Assets/meridiano.jpg" }, 
+                    { "text": "Equator", "image": "Materials/Pictures/Assets/ecuador.jpg" }
+                ], "correct_answer": 3 },
+                { "question": "What is the name of the largest country in the world?", "choices": [
+                    { "text": "Mexico", "image": "Materials/Pictures/Assets/mexico.jpg" }, 
+                    { "text": "Russia", "image": "Materials/Pictures/Assets/rusia.jpg" }, 
+                    { "text": "China", "image": "Materials/Pictures/Assets/china.jpg" }, 
+                    { "text": "Canada", "image": "Materials/Pictures/Assets/canada.jpg" }
+                ], "correct_answer": 1 },
+                { "question": "What is the name for the smallest and stagnant body of water?", "choices": [
+                    { "text": "Desert", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
+                    { "text": "Ocean", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
+                    { "text": "Lake", "image": "Materials/Pictures/Assets/lago.jpg" }, 
+                    { "text": "Glacier", "image": "Materials/Pictures/Assets/glaciar.jpg" }
+                ], "correct_answer": 2 }
+            ]
         # ----------------------------------------------------------------------------------------------------------------------
 
         self.win_zone = pygame.Rect(420, 280, 65, 65)
@@ -549,8 +595,11 @@ class Level5:
         
         return None
 
-    def update(self):
+    def update(self,is_paused):
         keys = pygame.key.get_pressed()
+        if is_paused:
+                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
+                    return "running"
 
         if self.is_fading:
             if self.state == "controls_screen":

@@ -180,39 +180,39 @@ class Level6:
 
         # --- DIÁLOGOS ---
         self.dialog_rect = pygame.Rect((size[0]-800)//2, size[1]-130, 800, 100)
-        self.dialog_text = "Bienvenidos. Resuelve los problemas\nmatematicos para pasar."
+        self.dialog_text = "responde las preguntas correctamente para poder\ntomar la clase, animo supera este nivel!!"
         self.typewriter = None
         self.dialog_active = False
 
         # --- PREGUNTAS (8 EN TOTAL) ---
         self.questions = [
             {
-                "question": "Tengo 9 naranjas y las reparto entre 3 companeros\nCuantas naranjas recibe cada uno?",
+                "question": "Tengo 9 limones y las reparto entre 3 companeros\nCuantos limones recibe cada uno?",
                 "numbers": ["2", "3", "4", "5"],
-                "images": ["3naranjas.png", "6 naranjas.png", "2naranjas.png", "4naranjas.png"],
+                "images": ["3limones.png", "5limones.png", "2limones.png", "4limones.png"],
                 "correct_number": "3",
-                "correct_image": "3naranjas.png"
+                "correct_image": "3limones.png"
             },
             {
-                "question": "Carlos tenia 3 canicas. Su amigo le regala 5 mas\nCuantas canicas tiene ahora?",
+                "question": "Carlos tenia 3 pelotas, Su amigo le regala 5 mas\nCuantas pelotas tiene ahora?",
                 "numbers": ["2", "8", "4", "7"],
-                "images": ["4canicas.png", "8canicas.png", "2canicas.png", "7canicas.png"],
+                "images": ["4pe.png", "8pe.png", "2pe.png", "6pe.png"],
                 "correct_number": "8",
-                "correct_image": "8canicas.png"
+                "correct_image": "8pe.png"
             },
             {
-                "question": "Tengo 14 caramelos y los reparto entre 10 amigos\ncuantos caramelos me quedan?",
-                "numbers": ["3", "4", "5", "7"],
-                "images": ["4caramelos.png", "3caramelos.png", "7caramelos.png", "5carmelos.png"],
+                "question": "Tengo 14 borradores y los reparto entre 10 amigos\ncuantos borradores me quedan?",
+                "numbers": ["2", "4", "1", "6"],
+                "images": ["2borra.png", "4borra.png", "6borra.png", "1borra.png"],
                 "correct_number": "4",
-                "correct_image": "4caramelos.png"
+                "correct_image": "4borra.png"
             },
             {
-                "question": "En una fiesta hay 8 ninos y cada uno recibe 1 globo\nCuantos globos dimos?",
-                "numbers": ["8", "1", "7", "3"],
-                "images": ["8GLOBOS.png", "7GLOBOS.png", "1GLOBO.png", "3GLOBOS.png"],
+                "question": "En una fiesta hay 8 niños y cada niño recibe 1 globo\nCuantos globos dimos?",
+                "numbers": ["8", "1", "4", "3"],
+                "images": ["8glob.png", "4glob.png", "1glob.png", "3glob.png"],
                 "correct_number": "8",
-                "correct_image": "8GLOBOS.png"
+                "correct_image": "8glob.png"
             },
             # NUEVAS PREGUNTAS AÑADIDAS
             {
@@ -223,25 +223,25 @@ class Level6:
                 "correct_image": "8manzanas.png"
             },
             {
-                "question": "Si tengo 12 lapices y regalo 4\nCuantos lapices me quedan?",
-                "numbers": ["6", "8", "7", "9"],
-                "images": ["6lapices.png", "8lapices.png", "7lapices.png", "9lapices.png"],
-                "correct_number": "8",
-                "correct_image": "8lapices.png"
+                "question": "Si tengo 12 lapices y regalo 8\nCuantos lapices me quedan?",
+                "numbers": ["6", "3", "4", "10"],
+                "images": ["6lapices.png", "3lapices.png", "4lapices.png", "10lapices.png"],
+                "correct_number": "4",
+                "correct_image": "4lapices.png"
             },
             {
-                "question": "En una caja hay 6 galletas y meto 2 mas\nCuantas galletas hay ahora?",
-                "numbers": ["7", "8", "9", "6"],
-                "images": ["7galletas.png", "8galletas.png", "9galletas.png", "6galletas.png"],
-                "correct_number": "8",
-                "correct_image": "8galletas.png"
+                "question": "En una caja hay 6 galletas y meto 5 mas\nCuantas galletas hay ahora?",
+                "numbers": ["7", "8", "11", "6"],
+                "images": ["7galletas.png", "8galletas.png", "11galletas.png", "6galletas.png"],
+                "correct_number": "11",
+                "correct_image": "11galletas.png"
             },
             {
-                "question": "Pedro tiene 10 pesos y gasta 2\nCuanto dinero le queda?",
-                "numbers": ["7", "8", "9", "6"],
-                "images": ["7pesos.png", "8pesos.png", "9pesos.png", "6pesos.png"],
+                "question": "Pedro tiene 10 lapiceras y pierde 5\nCuantas le quedan?",
+                "numbers": ["7", "8", "10", "5"],
+                "images": ["7lapi.png", "8lapi.png", "10lapi.png", "5lapi.png"],
                 "correct_number": "8",
-                "correct_image": "8pesos.png"
+                "correct_image": "8lapi.png"
             }
         ]
         self.q_idx = 0
@@ -262,7 +262,7 @@ class Level6:
         self.results = []
 
         # --- TIMERS Y FUENTES ---
-        self.timer = Timer(150)
+        self.timer = Timer(60)
         
         fp = "Materials/Fonts/PressStart2P-Regular.ttf" if os.path.exists("Materials/Fonts/PressStart2P-Regular.ttf") else None
         self.f_base = pygame.font.Font(fp, 18)
@@ -493,8 +493,11 @@ class Level6:
                     if self.tuto_image_3 and not self.tuto_3_has_appeared:
                         self.current_tuto_index = 3; self.tuto_fade_in_started = True; self.tuto_visible_timer.reset()
 
-    def update(self):
+    def update(self,is_paused):
         keys = pygame.key.get_pressed()
+        if is_paused:
+                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
+                    return "running"
 
         if self.is_fading:
             if self.state == "controls_screen":

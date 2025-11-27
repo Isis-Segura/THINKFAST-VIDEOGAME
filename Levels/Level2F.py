@@ -276,7 +276,7 @@ class Level2:
         self.quiz_timer = Timer(100000)
 
         self.answer_results = []
-        self.max_questions = 7
+        self.max_questions = 5
 
         try:
             self.marco_img = pygame.image.load("Materials/Pictures/Assets/marco.png").convert_alpha()
@@ -361,50 +361,40 @@ class Level2:
         # -------------------------------------------------------------------------
 
         # -------------------- ESTRUCTURA DE PREGUNTAS --------------------
+
         self.questions = [
-            { "question": "¿Cómo se llama el planeta donde vivimos?", "choices": [
-                { "text": "Marte", "image": "Materials/Pictures/Assets/marte.jpg" }, 
-                { "text": "Tierra", "image": "Materials/Pictures/Assets/tierra.jpg" }, 
-                { "text": "Saturno", "image": "Materials/Pictures/Assets/saturno.jpg" }, 
-                { "text": "Venus", "image": "Materials/Pictures/Assets/venus.jpg" }
-            ], "correct_answer": 1 },
-            { "question": "¿Qué usamos para ver dónde están los países y mares?", "choices": [
-                { "text": "Un mapa", "image": "Materials/Pictures/Assets/mapa.jpg" }, 
-                { "text": "Un reloj", "image": "Materials/Pictures/Assets/reloj.jpg" }, 
-                { "text": "Una lupa", "image": "Materials/Pictures/Assets/lupa.jpg" }, 
-                { "text": "Un termómetro", "image": "Materials/Pictures/Assets/termometro.jpg" }
-            ], "correct_answer": 0 },
-            { "question": "¿Cuál de estos no es un país de latinoamerica?", "choices": [
-                { "text": "Japon", "image": "Materials/Pictures/Assets/japon.jpg" }, 
-                { "text": "Venezuela", "image": "Materials/Pictures/Assets/venezuela.jpg" }, 
-                { "text": "Peru", "image": "Materials/Pictures/Assets/peru.jpg" }, 
-                { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }
-            ], "correct_answer": 0 },
-            { "question": "¿Cómo se llama al lugar donde hay mucha arena y casi no llueve?", "choices": [
-                { "text": "Montañas", "image": "Materials/Pictures/Assets/montaña.jpg" }, 
-                { "text": "Ciudad", "image": "Materials/Pictures/Assets/ciudad.jpg" }, 
-                { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Selva", "image": "Materials/Pictures/Assets/selva.jpg" }
-            ], "correct_answer": 2 },
-            { "question": "¿Qué línea imaginaria divide la Tierra en norte y sur?", "choices": [
-                { "text": "Polo norte", "image": "Materials/Pictures/Assets/polo.jpg" }, 
-                { "text": "Oceano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
-                { "text": "Meridiano", "image": "Materials/Pictures/Assets/meridiano.jpg" }, 
-                { "text": "Ecuador", "image": "Materials/Pictures/Assets/ecuador.jpg" }
-            ], "correct_answer": 3 },
-            { "question": "¿Cómo se llama el país más grande del mundo?", "choices": [
-                { "text": "México", "image": "Materials/Pictures/Assets/mexico.jpg" }, 
-                { "text": "Rusia", "image": "Materials/Pictures/Assets/rusia.jpg" }, 
-                { "text": "China", "image": "Materials/Pictures/Assets/china.jpg" }, 
-                { "text": "Canadá", "image": "Materials/Pictures/Assets/canada.jpg" }
-            ], "correct_answer": 1 },
-            { "question": "¿Cómo se llama el cuerpo de agua más pequeño que un mar?", "choices": [
-                { "text": "Desierto", "image": "Materials/Pictures/Assets/desierto.jpg" }, 
-                { "text": "Océano", "image": "Materials/Pictures/Assets/oceano.jpg" }, 
-                { "text": "Lago", "image": "Materials/Pictures/Assets/lago.jpg" }, 
-                { "text": "Glaciar", "image": "Materials/Pictures/Assets/glaciar.jpg" }
-            ], "correct_answer": 2 }
-        ]
+              { "question": "¿En dónde están las pirámides egipcias?", "choices": [
+                  { "text": "China", "image": "Materials/Pictures/Assets/chin.jpg" }, 
+                  { "text": "Japón", "image": "Materials/Pictures/Assets/jap.jpg" }, 
+                  { "text": "Egipto", "image": "Materials/Pictures/Assets/egip.jpg" }, 
+                  { "text": "Argentina", "image": "Materials/Pictures/Assets/argentina.jpg" }
+              ], "correct_answer": 2 },
+              { "question": "¿Qué país tiene un agila y un nopal en su bandera?", "choices": [
+                  { "text": "México", "image": "Materials/Pictures/Assets/mex.jpg" }, 
+                  { "text": "Perú", "image": "Materials/Pictures/Assets/per.jpg" }, 
+                  { "text": "Canadá", "image": "Materials/Pictures/Assets/can.jpg" }, 
+                  { "text": "Estados Unidos", "image": "Materials/Pictures/Assets/eu.jpg" }
+              ], "correct_answer": 0 },
+              { "question": "¿En dónde viven los pingüinos?", "choices": [
+                  { "text": "Polo Sur", "image": "Materials/Pictures/Assets/po.jpg" }, 
+                  { "text": "Montañas", "image": "Materials/Pictures/Assets/monta.jpg" }, 
+                  { "text": "Desierto", "image": "Materials/Pictures/Assets/des.jpg" }, 
+              { "text": "Playa", "image": "Materials/Pictures/Assets/playa.jpg" }
+], "correct_answer": 0 },
+              { "question": "¿En qué continente viven los canguros?", "choices": [
+                  { "text": "África", "image": "Materials/Pictures/Assets/afri.jpg" }, 
+                  { "text": "América", "image": "Materials/Pictures/Assets/ame.jpg" }, 
+                  { "text": "Australia", "image": "Materials/Pictures/Assets/australia.jpg" }, 
+                  { "text": "Asia", "image": "Materials/Pictures/Assets/asia.jpg" }
+              ], "correct_answer": 2 },
+              { "question": "¿Cómo se llama una gran montaña de hielo?", "choices": [
+                  { "text": "Isla", "image": "Materials/Pictures/Assets/isla.jpg" }, 
+                  { "text": "Glaciar", "image": "Materials/Pictures/Assets/gla.jpg" }, 
+                  { "text": "Lago", "image": "Materials/Pictures/Assets/lago.jpg" }, 
+                  { "text": "Río", "image": "Materials/Pictures/Assets/ri.jpg" }
+              ],  "correct_answer": 1 }
+           ]
+       
         # ----------------------------------------------------------------------------------------------------------------------
 
         self.win_zone = pygame.Rect(420, 280, 65, 65)
@@ -549,9 +539,11 @@ class Level2:
         
         return None
 
-    def update(self):
+    def update(self,is_paused):
         keys = pygame.key.get_pressed()
-
+        if is_paused:
+                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
+                    return "running"
         if self.is_fading:
             if self.state == "controls_screen":
                 if self.target_state is None:
@@ -790,19 +782,17 @@ class Level2:
                 self.dialogo_active = True
                 score = self.answer_results.count("correct")
                 total = len(self.questions)
-
                 if score == total:
                     dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
                 elif score >= 4: # <-- CONDICIÓN DE VICTORIA
-                    dialog_text = "Buen trabajo. Te has esforzado bastante, sigue \npracticando."
+                        dialog_text = "Buen trabajo. Te has esforzado bastante, sigue \npracticando."
                 else:
-                    dialog_text = "Puedes mejorar, nunca dejes de estudiar."
-
+                        dialog_text = "Puedes mejorar, nunca dejes de estudiar."
                 self.post_quiz_dialogs = [
-                    f"Has respondido correctamente {score} de {total} preguntas.",
-                    dialog_text,
-                    "Ahora te abro el paso. Buena suerte en tu camino!"
-                ]
+                        f"Has respondido correctamente {score} de {total} preguntas.",
+                        dialog_text,
+                        "Ahora te abro el paso. Buena suerte en tu camino!"
+                    ]
                 self.current_dialog_index = 0
                 self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (0, 0, 0), speed=25)
                 self.quiz_game = None
@@ -990,9 +980,7 @@ class Level2:
             
             total_width = self.max_questions * marco_w + (self.max_questions - 1) * spacing
             
-            # === Desplazar 50 píxeles a la izquierda ===
-            OFFSET_LEFT = 50 
-            x_start = ((self.size[0] - total_width) // 2) - OFFSET_LEFT 
+            x_start = (self.size[0] - total_width) // 2
             # =================================================================
             
             y = 18

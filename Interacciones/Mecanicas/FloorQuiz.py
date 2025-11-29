@@ -3,6 +3,7 @@ import random
 import os
 from Interacciones.Controldeobjetos.timer import Timer
 
+
 # Definiciones de colores
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -27,10 +28,27 @@ def _draw_text_outline(surface, text, font, color, outline_color, x, y, outline_
 
 
 class FloorQuiz: 
-    def __init__(self, size, questions, font): 
+    # --- DICCIONARIO DE TEXTOS PARA FEEDBACK ---
+    texts = {
+        "es": {
+            "correct": "¡Correcto!",
+            "incorrect": "¡Mal! La correcta era: ",
+            "press_space": "Presiona ESPACIO para contestar."
+        },
+        "en": {
+            "correct": "Correct!",
+            "incorrect": "Wrong! The correct answer was: ",
+            "press_space": "Press SPACE to answer."
+        }
+    }
+    # ----------------------------------------------------
+    
+    # MODIFICACIÓN 1: Aceptar y guardar el idioma
+    def __init__(self, size, questions, font, language): 
         self.size = size 
         self.questions = questions 
         self.font = font 
+        self.language = language # <--- ¡Añadido para traducción!
         self.current_question_index = 0 
         self.correct_answers = 0 
         self.finished = False 
@@ -48,7 +66,7 @@ class FloorQuiz:
         self.fade_in_finished = False      
 
         # --- Dimensiones y Posiciones --- 
-        self.choice_corner_radius = 20 # <--- Mantenemos el valor para redondeado
+        self.choice_corner_radius = 20
         self.choice_border_thickness = 0 
 
         self.PIXEL_RADIUS = 10  
@@ -191,22 +209,18 @@ class FloorQuiz:
             self.options_reveal_timer.update()
         
         # --- Lógica de Fade-in ---
-        # Solo ejecuta el fade-in si el retraso terminó, el quiz NO ha sido respondido, 
-        # y la animación aún no ha terminado.
         if self.options_reveal_timer.finished and not self.is_answered and not self.fade_in_finished:
             self.choice_alpha += self.fade_in_speed
             if self.choice_alpha >= 255:
                 self.choice_alpha = 255
                 self.fade_in_finished = True 
         
-        # Solo reseteamos la opacidad si el retraso NO ha terminado, es decir, antes de que aparezcan por primera vez.
         if not self.options_reveal_timer.finished:
             self.choice_alpha = 0
             self.fade_in_finished = False
 
 
     def check_player_collision(self, player_rect): 
-        # Solo permite la colisión si las opciones ya fueron reveladas Y el fade-in terminó
         if self.is_answered or not self.fade_in_finished:
             return 
 
@@ -221,7 +235,6 @@ class FloorQuiz:
 
 
     def handle_event(self, event): 
-        # Solo permite responder si las opciones ya fueron reveladas Y el fade-in terminó
         if self.finished or self.is_answered or not self.fade_in_finished:
             return None 
 
@@ -235,7 +248,6 @@ class FloorQuiz:
         current_q = self.questions[self.current_question_index] 
         correct_index = current_q["correct_answer"] 
         
-        # Al contestar, forzamos la opacidad al máximo (255) para asegurar el feedback
         self.choice_alpha = 255 
         
         if self.selected_choice_index == correct_index: 
@@ -262,44 +274,28 @@ class FloorQuiz:
         pygame.draw.rect(screen, self.QUESTION_BOX_BORDER, question_box_rect, 5, border_radius=self.QUESTION_BOX_RADIUS) 
 
         # -----------------------------------------------------------------------
-        # CÓDIGO CORREGIDO PARA MANEJAR SALTOS DE LÍNEA EN LA PREGUNTA
+        # CÓDIGO PARA MANEJAR SALTOS DE LÍNEA EN LA PREGUNTA
         # -----------------------------------------------------------------------
         question_text_raw = current_q["question"] 
-        lines = question_text_raw.split('\n') # Divide el texto en líneas por el '\n'
+        lines = question_text_raw.split('\n')
 
         if lines:
             try:
-                # 1. Calcular altura total del texto
                 line_height = self.font.get_height()
                 total_text_height = len(lines) * line_height
-                
-                # 2. Calcular la posición inicial vertical (centrada)
-                # Esto asegura que el bloque de texto completo esté centrado verticalmente
                 start_y = question_box_rect.centery - (total_text_height // 2)
 
-                # 3. Renderizar y dibujar cada línea
                 for i, line in enumerate(lines):
-                    # Pygame 2.0+ soporta font.render para líneas vacías, pero es mejor prevenir
                     if not line.strip() and not line == "": 
                          continue
 
-                    # Renderizar línea
                     text_surface = self.font.render(line, True, BLACK) 
-                    
-                    # Calcular posición central X
                     center_x = question_box_rect.centerx
-                    
-                    # Calcular posición Y para el centro de la línea actual
                     line_center_y = start_y + i * line_height + line_height // 2
-                    
-                    # Rectángulo de destino centrado
                     text_rect = text_surface.get_rect(center=(center_x, line_center_y)) 
-                    
                     screen.blit(text_surface, text_rect) 
-            except Exception: # Mantener el manejo de errores
+            except Exception:
                 pass
-        # -----------------------------------------------------------------------
-        # FIN DEL CÓDIGO CORREGIDO
         # -----------------------------------------------------------------------
 
 
@@ -308,11 +304,8 @@ class FloorQuiz:
             
             for i, rect in enumerate(self.choice_rects): 
                 choice_dict = choices[i] 
-                # Se mantiene .replace('\n', ' ') aquí porque el texto de la opción debe ser de una sola línea
                 choice_text = choice_dict["text"].replace('\n', ' ') 
 
-                # Inicialización: Fondo BLANCO, Borde NEGRO sutil
-                # fill_color se usará como el color de relleno del rectángulo (blanco)
                 fill_color = WHITE               
                 border_color = BLACK             
                 border_thickness = 1             
@@ -335,15 +328,10 @@ class FloorQuiz:
                         border_color = BLACK 
                         border_thickness = 1 
                         
-                # Crea una superficie temporal para la opción y aplica la opacidad
                 option_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
                 
-                # PASO 1: Dibujar el relleno blanco redondeado (grosor 0). 
-                # Esto asegura que todo el área de la opción sea blanca y se recorte correctamente.
                 pygame.draw.rect(option_surface, WHITE, (0, 0, rect.width, rect.height), 0, border_radius=self.choice_corner_radius) 
                 
-                # PASO 2: Dibujar el borde redondeado encima del relleno. 
-                # Pygame respeta el área definida por el radio de la esquina.
                 if border_thickness > 0:
                      pygame.draw.rect(option_surface, border_color, (0, 0, rect.width, rect.height), border_thickness, border_radius=self.choice_corner_radius) 
                 
@@ -360,10 +348,8 @@ class FloorQuiz:
                 except:
                     pass
                 
-                # Aplica la opacidad
                 option_surface.set_alpha(self.choice_alpha)
                 
-                # Dibuja la superficie temporal en la pantalla
                 screen.blit(option_surface, rect.topleft) 
             
         # --- 3. Mensajes de estado (inferior derecho) --- 
@@ -386,14 +372,15 @@ class FloorQuiz:
         
         if self.is_answered: 
             if self.answer_result == "correct": 
-                status_msg = "¡Correcto!" 
+                # MODIFICACIÓN 2A: Usa el idioma guardado para obtener el mensaje de "Correcto"
+                status_msg = self.texts[self.language]["correct"] 
                 status_color = self.correct_color_highlight 
                 outline_color = DARK_GREEN 
             else: 
                 correct_choice_text = choices[correct_index]["text"] if isinstance(choices[correct_index], dict) else choices[correct_index]
-                # Se mantiene .replace('\n', ' ') aquí porque el mensaje de estado debe ser de una sola línea
                 correct_choice = correct_choice_text.replace('\n', ' ') 
-                status_msg = f"¡Mal! La correcta era: {correct_choice}" 
+                # MODIFICACIÓN 2B: Usa el idioma guardado para obtener el mensaje de "Incorrecto" y añade la respuesta correcta.
+                status_msg = f"{self.texts[self.language]['incorrect']}{correct_choice}" 
                 status_color = self.NEON_RED_ERROR 
                 outline_color = WHITE
         
@@ -413,7 +400,8 @@ class FloorQuiz:
                 )
         
         elif self.selected_choice_index != -1 and self.fade_in_finished: 
-            msg = "Presiona ESPACIO para contestar." 
+            # MODIFICACIÓN 3: Usa el idioma guardado para obtener el mensaje de "Presiona ESPACIO"
+            msg = self.texts[self.language]["press_space"] 
             msg_surface = self.font.render(msg, True, WHITE)
             msg_rect = msg_surface.get_rect(bottomright=(question_box_rect.right - 10, question_box_rect.bottom - 10))
             screen.blit(msg_surface, msg_rect)

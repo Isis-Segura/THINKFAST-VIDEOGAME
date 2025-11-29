@@ -126,7 +126,7 @@ class ArrowSprite:
 
 
 class Level4:
-    def __init__(self, screen, size, font, character_choice):
+    def __init__(self, screen, size, font, character_choice, language):
         self.flash_color = None
         self.flash_alpha = 0
         self.flash_timer = 0
@@ -161,7 +161,7 @@ class Level4:
         # Posición X inicial/final de salida (fuera de la pantalla a la izquierda)
         self.tuto_exit_x = -250 
         self.tuto_current_x = self.tuto_exit_x # Inicializa fuera de pantalla
-        self.tuto_y = 20 # Posición Y fija cerca de la parte superior
+        self.tuto_y = 80 # Posición Y fija cerca de la parte superior
 
         try:
             # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
@@ -330,7 +330,10 @@ class Level4:
                 self.incorrect_sound = None
 
         # Texto inicial del guardia
-        self.dialogo_text = "Si quieres pasar, tendras que responder estas\n preguntas!!"
+        if language == 'es':
+            self.dialogo_text = "Si quieres pasar, tendras que responder estas\npreguntas!!"
+        else:
+             self.dialogo_text = "If you want to pass, you will have to answer\nthese questions.!!"
         self.typewriter = None
         self.dialogo_active = False
 
@@ -350,52 +353,101 @@ class Level4:
         # =======================================================
         # PREGUNTAS DEL MINIJUEGO (AHORA CON IMÁGENES POR OPCIÓN)
         # =======================================================
-        self.questions = [
+        if language == 'es':
+            self.questions = [
+                {
+                    "image": "Materials/Pictures/Assets/imagen1.jpg",  # Imagen principal de la pregunta
+                    "question": "¿Qué órgano bombea sangre por el cuerpo?",
+                    "choices": [
+                        {"text": "Cerebro", "image": "Materials/Pictures/Assets/cerebro.jpg"},
+                        {"text": "Corazón", "image": "Materials/Pictures/Assets/cora.jpg"},
+                        {"text": "Riñones", "image": "Materials/Pictures/Assets/rinones.jpg"},
+                        {"text": "Pulmones", "image": "Materials/Pictures/Assets/pulmones.jpg"}
+                    ],
+                    "correct_answer": 1 # Índice 1 es 'Corazón'
+                },
+                {
+                    "image": "Materials/Pictures/Assets/imagen2.jpg",  # Imagen principal de la pregunta
+                    "question": "¿Qué animales comen solo plantas?",
+                    "choices": [
+                        {"text": "Carnívoros", "image": "Materials/Pictures/Assets/carnivoros.jpg"},
+                        {"text": "Herbívoros", "image": "Materials/Pictures/Assets/herbivoros.jpg"},
+                        {"text": "Omnívoros", "image": "Materials/Pictures/Assets/omnivoros.jpg"},
+                        {"text": "Detritívoros", "image": "Materials/Pictures/Assets/detritivoros.jpg"}
+                    ],
+                    "correct_answer": 1 # Índice 1 es 'Herbívoros'
+                },
+                {
+                    "image": "Materials/Pictures/Assets/imagen3.jpg",
+                    "question": "¿Cuál es el animal más grande del mundo?",
+                    "choices": [
+                        {"text": "Ballena azul", "image": "Materials/Pictures/Assets/ballena_azul.jpg"},
+                        {"text": "Elefante", "image": "Materials/Pictures/Assets/elefante.jpg"},
+                        {"text": "Tiburón", "image": "Materials/Pictures/Assets/tiburon.jpg"},
+                        {"text": "Jirafa", "image": "Materials/Pictures/Assets/jirafa.jpg"}
+                    ],
+                    "correct_answer": 0 # Índice 0 es 'Ballena azul'
+                },
+                {
+                    "image": "Materials/Pictures/Assets/imagen4.jpg",
+                    "question": "¿Qué animales nacen de huevos?",
+                    "choices": [
+                        {"text": "Perros", "image": "Materials/Pictures/Assets/perros.jpg"},
+                        {"text": "Gatos", "image": "Materials/Pictures/Assets/gatos.jpg"},
+                        {"text": "Iguanas", "image": "Materials/Pictures/Assets/iguanas.jpg"},
+                        {"text": "Vacas", "image": "Materials/Pictures/Assets/vacas.jpg"}
+                    ],
+                    "correct_answer": 2 # Índice 2 es 'Iguanas'
+                }
+            ]
+        else:
+            self.questions = [
             {
-                "image": "Materials/Pictures/Assets/imagen1.jpg",  # Imagen principal de la pregunta
-                "question": "¿Qué órgano bombea sangre por el cuerpo?",
+                "image": "Materials/Pictures/Assets/imagen1.jpg", # "Main image for the question"
+                "question": "¿Which organ pumps blood through the body?",
                 "choices": [
-                    {"text": "Cerebro", "image": "Materials/Pictures/Assets/cerebro.jpg"},
-                    {"text": "Corazón", "image": "Materials/Pictures/Assets/cora.jpg"},
-                    {"text": "Riñones", "image": "Materials/Pictures/Assets/rinones.jpg"},
-                    {"text": "Pulmones", "image": "Materials/Pictures/Assets/pulmones.jpg"}
+                    {"text": "Brain", "image": "Materials/Pictures/Assets/cerebro.jpg"},
+                    {"text": "Heart", "image": "Materials/Pictures/Assets/cora.jpg"},
+                    {"text": "Kidneys", "image": "Materials/Pictures/Assets/rinones.jpg"},
+                    {"text": "Lungs", "image": "Materials/Pictures/Assets/pulmones.jpg"}
                 ],
-                "correct_answer": 1 # Índice 1 es 'Corazón'
+                "correct_answer": 1 # "Index 1 is 'Heart'"
             },
             {
-                "image": "Materials/Pictures/Assets/imagen2.jpg",  # Imagen principal de la pregunta
-                "question": "¿Qué animales comen solo plantas?",
+                "image": "Materials/Pictures/Assets/imagen2.jpg", # "Main image for the question"
+                "question": "¿Which animals only eat plants?",
                 "choices": [
-                    {"text": "Carnívoros", "image": "Materials/Pictures/Assets/carnivoros.jpg"},
-                    {"text": "Herbívoros", "image": "Materials/Pictures/Assets/herbivoros.jpg"},
-                    {"text": "Omnívoros", "image": "Materials/Pictures/Assets/omnivoros.jpg"},
-                    {"text": "Detritívoros", "image": "Materials/Pictures/Assets/detritivoros.jpg"}
+                    {"text": "Carnivores", "image": "Materials/Pictures/Assets/carnivoros.jpg"},
+                    {"text": "Herbivores", "image": "Materials/Pictures/Assets/herbivoros.jpg"},
+                    {"text": "Omnivores", "image": "Materials/Pictures/Assets/omnivoros.jpg"},
+                    {"text": "Detritivores", "image": "Materials/Pictures/Assets/detritivoros.jpg"}
                 ],
-                "correct_answer": 1 # Índice 1 es 'Herbívoros'
+                "correct_answer": 1 # "Index 1 is 'Herbivores'"
             },
             {
                 "image": "Materials/Pictures/Assets/imagen3.jpg",
-                "question": "¿Cuál es el animal más grande del mundo?",
+                "question": "¿What is the biggest animal in the world?",
                 "choices": [
-                    {"text": "Ballena azul", "image": "Materials/Pictures/Assets/ballena_azul.jpg"},
-                    {"text": "Elefante", "image": "Materials/Pictures/Assets/elefante.jpg"},
-                    {"text": "Tiburón", "image": "Materials/Pictures/Assets/tiburon.jpg"},
-                    {"text": "Jirafa", "image": "Materials/Pictures/Assets/jirafa.jpg"}
+                    {"text": "Blue whale", "image": "Materials/Pictures/Assets/ballena_azul.jpg"},
+                    {"text": "Elephant", "image": "Materials/Pictures/Assets/elefante.jpg"},
+                    {"text": "Shark", "image": "Materials/Pictures/Assets/tiburon.jpg"},
+                    {"text": "Giraffe", "image": "Materials/Pictures/Assets/jirafa.jpg"}
                 ],
-                "correct_answer": 0 # Índice 0 es 'Ballena azul'
+                "correct_answer": 0 # "Index 0 is 'Blue whale'"
             },
             {
                 "image": "Materials/Pictures/Assets/imagen4.jpg",
-                "question": "¿Qué animales nacen de huevos?",
+                "question": "¿Which animals are born from eggs?",
                 "choices": [
-                    {"text": "Perros", "image": "Materials/Pictures/Assets/perros.jpg"},
-                    {"text": "Gatos", "image": "Materials/Pictures/Assets/gatos.jpg"},
+                    {"text": "Dogs", "image": "Materials/Pictures/Assets/perros.jpg"},
+                    {"text": "Cats", "image": "Materials/Pictures/Assets/gatos.jpg"},
                     {"text": "Iguanas", "image": "Materials/Pictures/Assets/iguanas.jpg"},
-                    {"text": "Vacas", "image": "Materials/Pictures/Assets/vacas.jpg"}
+                    {"text": "Cows", "image": "Materials/Pictures/Assets/vacas.jpg"}
                 ],
-                "correct_answer": 2 # Índice 2 es 'Iguanas'
+                "correct_answer": 2 # "Index 2 is 'Iguanas'"
             }
         ]
+
         # =======================================================
         
         # Zona de victoria (puerta)
@@ -413,7 +465,7 @@ class Level4:
         
         self.font_base = pygame.font.Font(font_path, 18)
         self.font_dialog = pygame.font.Font(font_path, 17)
-        self.font_question = pygame.font.Font(font_path, 13)
+        self.font_question = pygame.font.Font(font_path, 15)
         self.font_title = pygame.font.Font(font_path, 15)
         self.font_timer = pygame.font.Font(font_path, 24)
         self.font_control_title = pygame.font.Font(font_path, 36)
@@ -430,7 +482,7 @@ class Level4:
     # ============================================================
     # Maneja los eventos del teclado y las interacciones del jugador
     # ============================================================
-    def handle_events(self, event):
+    def handle_events(self, event,language):
         # Reinicio o salida desde pantalla final
         if self.state in ["game_over", "loss_sound_state", "win_state"]:
             if event.type == pygame.KEYDOWN:
@@ -469,7 +521,7 @@ class Level4:
                     self.state = "quiz_floor"
                     self.dialogo_active = False
                     self.typewriter = None
-                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question) 
+                    self.quiz_game = FloorQuiz(self.size, self.questions, self.font_question,language) 
                     
                     # *** INICIO DE TUTO 3 (PRIMERA APARICIÓN) TERMINA SU SLIDE-OUT AQUÍ ***
                     # Lo forzamos a salir ya que el quiz cubre la pantalla.
@@ -537,7 +589,7 @@ class Level4:
     # ============================================================
     # Actualiza la lógica del juego según el estado actual
     # ============================================================
-    def update(self,is_paused):
+    def update(self,is_paused,language):
         keys = pygame.key.get_pressed()
         if is_paused:
                     # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
@@ -909,50 +961,93 @@ class Level4:
             if self.quiz_game:
                 self.quiz_game.update()
 
-            # Si termina el quiz, muestra diálogo final
-            if self.quiz_game and self.quiz_game.finished: 
-                self.state = "quiz_complete_dialog"
-                self.dialogo_active = True
-                score = self.answer_results.count("correct") 
-                total = len(self.questions)
+            if language == 'es':
+                if self.quiz_game and self.quiz_game.finished: 
+                    self.state = "quiz_complete_dialog"
+                    self.dialogo_active = True
+                    score = self.answer_results.count("correct") 
+                    total = len(self.questions)
 
-                if score == total:
-                    dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
-                elif score >= 2: 
-                    dialog_text = "Buen trabajo. Tienes un buen nivel, sigue \npracticando."
-                else:
-                    dialog_text = "Puedes mejorar, sigue estudiando."
-
-                self.post_quiz_dialogs = [
-                    f"Has respondido correctamente {score} de {total} preguntas.",
-                    dialog_text,
-                    "Ahora te abro el paso. Buena suerte en tu camino!"
-                ]
-                self.current_dialog_index = 0
-                self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
-                                                 (0, 0, 0), speed=25)
-                self.quiz_game = None
-                self.timer.pause()
-                self.quiz_timer.reset()
-                self.answer_pause_timer.reset() # AÑADIDO
-                
-                # --- MODIFICACIÓN: Inicia Confeti y Tuto 3 (SEGUNDA APARICIÓN) aquí ---
-                if score >= 2:
-                    self.confetti.start()
-                    
-                    # ACTIVA TUTO 3 PARA QUE APAREZCA CON EL CONFETI (AUNQUE HAYA APARECIDO ANTES)
-                    if self.tuto_image_3:
-                        self.current_tuto_index = 3 
-                        self.tuto_fade_in_started = True
-                        self.tuto_fade_out_started = False
-                        self.tuto_visible_timer.reset()
-                        self.tuto_alpha = 0 
-                        self.tuto_current_x = self.tuto_exit_x
+                    if score == total:
+                        dialog_text = "Muy bien hecho! Has demostrado tener una buen\ncalidad de estudio."
+                    elif score >= 2: 
+                        dialog_text = "Buen trabajo. Tienes un buen nivel, sigue\npracticando."
                     else:
-                        self.current_tuto_index = 0
-                        self.tuto_finished = True
-                # --- FIN MODIFICACIÓN ---
-        
+                        dialog_text = "Puedes mejorar, sigue estudiando."
+
+                    self.post_quiz_dialogs = [
+                        f"Has respondido correctamente {score} de {total}\npreguntas.",
+                        dialog_text,
+                        "Ahora te abro el paso. Buena suerte en tu\ncamino!"
+                    ]
+                    self.current_dialog_index = 0
+                    self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
+                                                    (0, 0, 0), speed=25)
+                    self.quiz_game = None
+                    self.timer.pause()
+                    self.quiz_timer.reset()
+                    self.answer_pause_timer.reset() # AÑADIDO
+                    
+                    # --- MODIFICACIÓN: Inicia Confeti y Tuto 3 (SEGUNDA APARICIÓN) aquí ---
+                    if score >= 2:
+                        self.confetti.start()
+                        
+                        # ACTIVA TUTO 3 PARA QUE APAREZCA CON EL CONFETI (AUNQUE HAYA APARECIDO ANTES)
+                        if self.tuto_image_3:
+                            self.current_tuto_index = 3 
+                            self.tuto_fade_in_started = True
+                            self.tuto_fade_out_started = False
+                            self.tuto_visible_timer.reset()
+                            self.tuto_alpha = 0 
+                            self.tuto_current_x = self.tuto_exit_x
+                        else:
+                            self.current_tuto_index = 0
+                            self.tuto_finished = True
+                    # --- FIN MODIFICACIÓN ---
+            else:
+                if self.quiz_game and self.quiz_game.finished: 
+                    self.state = "quiz_complete_dialog"
+                    self.dialogo_active = True
+                    score = self.answer_results.count("correct") 
+                    total = len(self.questions)
+
+                    if score == total:
+                        dialog_text = "Very well done! You have demonstrated\ngood studio quality."
+                    elif score >= 2: 
+                        dialog_text = "Good job. You're at a good level, keep\npracticing."
+                    else:
+                        dialog_text = "You can improve, keep studying."
+
+                    self.post_quiz_dialogs = [
+                        f"You answered {score} out of {total}\nquestions correctly.",
+                        dialog_text,
+                        "I'll clear the way for you now.\nGood luck on your journey!"
+                    ]
+                    self.current_dialog_index = 0
+                    self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, 
+                                                    (0, 0, 0), speed=25)
+                    self.quiz_game = None
+                    self.timer.pause()
+                    self.quiz_timer.reset()
+                    self.answer_pause_timer.reset() # AÑADIDO
+                    
+                    # --- MODIFICACIÓN: Inicia Confeti y Tuto 3 (SEGUNDA APARICIÓN) aquí ---
+                    if score >= 2:
+                        self.confetti.start()
+                        
+                        # ACTIVA TUTO 3 PARA QUE APAREZCA CON EL CONFETI (AUNQUE HAYA APARECIDO ANTES)
+                        if self.tuto_image_3:
+                            self.current_tuto_index = 3 
+                            self.tuto_fade_in_started = True
+                            self.tuto_fade_out_started = False
+                            self.tuto_visible_timer.reset()
+                            self.tuto_alpha = 0 
+                            self.tuto_current_x = self.tuto_exit_x
+                        else:
+                            self.current_tuto_index = 0
+                            self.tuto_finished = True
+                    # --- FIN MODIFICACIÓN ---
+
         # Diálogo final tras el quiz
         elif self.state == "quiz_complete_dialog":
             if not self.dialogo_active and self.current_dialog_index >= len(self.post_quiz_dialogs):
@@ -1018,7 +1113,7 @@ class Level4:
     # ============================================================
     # Dibuja todos los elementos en pantalla según el estado
     # ============================================================
-    def draw(self):
+    def draw(self,language):
         # Pantalla de controles
         if self.state == "controls_screen":
             # ... (código de draw para controls_screen)
@@ -1040,43 +1135,88 @@ class Level4:
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
                 # TITULO DE CONTROLES
-                font_to_use_title = self.font_control_title
-                text_to_render_title = "CONTROLES"
-                center_x_title = self.size[0] // 2
-                center_y_title = 40 
-                # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
-                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
-                
-                # --- LÓGICA DE MENSAJE DE INICIO CON TEMPORIZADOR Y ESTILO UNIFICADO ---
-                font_to_use = self.font_control_text
-                center_x = self.size[0] // 2
-                center_y = self.size[1] - 30 
-
-                BORDER_SIZE = 3
-                # Colores base unificados para el texto de abajo: Negro con Borde Naranja
-                COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
-                COLOR_TEXT = (0, 0, 0) # Negro (Texto)
-
-                if self.can_skip_controls:
-                    # ✅ TEXTO LISTO PARA EMPEZAR
-                    text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1" 
-                elif self.control_timer_started:
-                    # 🕒 TEXTO DEL TEMPORIZADOR
-                    remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
-                    remaining_time = max(0, int(remaining_time_ms // 1000))
+                if language == 'es':
+                    font_to_use_title = self.font_control_title
+                    text_to_render_title = "CONTROLES"
+                    center_x_title = self.size[0] // 2
+                    center_y_title = 40 
+                    # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
+                    self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                     
-                    if remaining_time == 0 and self.control_timer.is_running():
-                        text_to_render = "Espera un momento..."
-                    else:
-                        text_to_render = f"Esperando {remaining_time} segundos..."
-                else:
-                    # ⏳ TEXTO DE CARGA
-                    text_to_render = "Cargando..."
+                    # --- LÓGICA DE MENSAJE DE INICIO CON TEMPORIZADOR Y ESTILO UNIFICADO ---
+                    font_to_use = self.font_control_text
+                    center_x = self.size[0] // 2
+                    center_y = self.size[1] - 30 
+
+                    BORDER_SIZE = 3
+                    # Colores base unificados para el texto de abajo: Negro con Borde Naranja
+                    COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                    COLOR_TEXT = (0, 0, 0) # Negro (Texto)
                 
-                # Dibuja el texto con borde (utilizando los colores unificados)
-                self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
-                                            COLOR_TEXT, COLOR_BORDER, 
-                                            (center_x, center_y), border_size=BORDER_SIZE)
+                    if self.can_skip_controls:
+                        # ✅ TEXTO LISTO PARA EMPEZAR
+                        text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 1"
+
+                    elif self.control_timer_started:
+                        # 🕒 TEXTO DEL TEMPORIZADOR
+                        remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                        remaining_time = max(0, int(remaining_time_ms // 1000))
+                    
+                        
+                        if remaining_time == 0 and self.control_timer.is_running():
+                            text_to_render = "Espera un momento..."
+                        else:
+                            text_to_render = f"Esperando {remaining_time} segundos..."
+                            
+                    else:
+                        # ⏳ TEXTO DE CARGA
+                        text_to_render = "Cargando..."
+                    
+                    # Dibuja el texto con borde (utilizando los colores unificados)
+                    self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                                COLOR_TEXT, COLOR_BORDER, 
+                                                (center_x, center_y), border_size=BORDER_SIZE)
+                else:
+                    font_to_use_title = self.font_control_title
+                    text_to_render_title = "CONTROLS"
+                    center_x_title = self.size[0] // 2
+                    center_y_title = 40 
+                    # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
+                    self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
+                    
+                    # --- LÓGICA DE MENSAJE DE INICIO CON TEMPORIZADOR Y ESTILO UNIFICADO ---
+                    font_to_use = self.font_control_text
+                    center_x = self.size[0] // 2
+                    center_y = self.size[1] - 30 
+
+                    BORDER_SIZE = 3
+                    # Colores base unificados para el texto de abajo: Negro con Borde Naranja
+                    COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                    COLOR_TEXT = (0, 0, 0) # Negro (Texto)
+                    if self.can_skip_controls:
+                        # ✅ TEXTO LISTO PARA EMPEZAR
+                        text_to_render = "Press SPACE or ENTER to begin Level 1"
+
+                    elif self.control_timer_started:
+                        # 🕒 TEXTO DEL TEMPORIZADOR
+                        remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                        remaining_time = max(0, int(remaining_time_ms // 1000))
+                    
+                        
+                        if remaining_time == 0 and self.control_timer.is_running():
+                            text_to_render = "Hang on a minute..."
+                        else:
+                            text_to_render = f"Esperando {remaining_time} segundos..."
+                            
+                    else:
+                        # ⏳ TEXTO DE CARGA
+                        text_to_render = "Charging..."
+                    
+                    # Dibuja el texto con borde (utilizando los colores unificados)
+                    self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                                COLOR_TEXT, COLOR_BORDER, 
+                                                (center_x, center_y), border_size=BORDER_SIZE)
+                    
 
             else:
                 self.screen.fill((0, 0, 0))
@@ -1205,30 +1345,55 @@ class Level4:
 
 
         # Pantalla de derrota
-        if self.state == "game_over":
-            # ... (código de draw para game_over)
-            self.screen.fill((0, 0, 0))
-            if self.game_over_image:
-                self.screen.blit(self.game_over_image, (0, 0))
-            font_to_use = self.font_title
-            text_restart = "Presiona 'R' para Reiniciar"
-            text_menu = "Presiona 'ESC' para volver al Menu"
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
-            self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+        if language == 'es':
+            if self.state == "game_over":
+                # ... (código de draw para game_over)
+                self.screen.fill((0, 0, 0))
+                if self.game_over_image:
+                    self.screen.blit(self.game_over_image, (0, 0))
+                font_to_use = self.font_title
+                text_restart = "Presiona 'R' para Reiniciar"
+                text_menu = "Presiona 'ESC' para volver al Menu"
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
-        # Pantalla de victoria
-        elif self.state == "win_state":
-            # ... (código de draw para win_state)
-            self.screen.fill((0, 0, 0))
-            if self.win_image:
-                self.screen.blit(self.win_image, (0, 0))
-            self.confetti.draw(self.screen)
-            text_restart = "Presiona 'R' para Reiniciar"
-            text_menu = "Presiona 'ESC' para volver al Menu"
-            font_to_use = self.font_title
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-0), border_size=3)
-            self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+            # Pantalla de victoria
+            elif self.state == "win_state":
+                # ... (código de draw para win_state)
+                self.screen.fill((0, 0, 0))
+                if self.win_image:
+                    self.screen.blit(self.win_image, (0, 0))
+                self.confetti.draw(self.screen)
+                text_restart = "Presiona 'R' para Reiniciar"
+                text_menu = "Presiona 'ESC' para volver al Menu"
+                font_to_use = self.font_title
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+        else:
+            if self.state == "game_over":
+                # ... (código de draw para game_over)
+                self.screen.fill((0, 0, 0))
+                if self.game_over_image:
+                    self.screen.blit(self.game_over_image, (0, 0))
+                font_to_use = self.font_title
+                text_restart = "Press 'R' to Restart"
+                text_menu = "Press 'ESC' to return to the Menu"
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
+            # Pantalla de victoria
+            elif self.state == "win_state":
+                # ... (código de draw para win_state)
+                self.screen.fill((0, 0, 0))
+                if self.win_image:
+                    self.screen.blit(self.win_image, (0, 0))
+                self.confetti.draw(self.screen)
+                text_restart = "Press 'R' to Restart"
+                text_menu = "Press 'ESC' to return to the Menu"
+                font_to_use = self.font_title
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+                
         # Dibuja efecto fundido (si está activo)
         if self.is_fading or self.fade_alpha > 0:
             fade_surface = pygame.Surface(self.size).convert_alpha()

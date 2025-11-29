@@ -273,7 +273,7 @@ class FloorQuiz_KeyAndCarry:
         surface.blit(text_surface, text_rect)
 
 
-    def draw(self, surface, player_rect):
+    def draw(self, surface, player_rect,language):
         
         # 1. DIBUJAR CAJA DE LA PREGUNTA
         question_text = self.questions[self.current_question_index]["question"]
@@ -350,19 +350,34 @@ class FloorQuiz_KeyAndCarry:
                 temp_surface.blit(text_surface, text_rect)
                 
                 # DIBUJAR MENSAJE DE RECOGER (Solo si las respuestas están completamente visibles)
-                if self._answers_visible and i == self.highlighted_choice_index and not self.is_answered:
-                    prompt_text = "Presiona ESPACIO/ENTER para RECOGER."
-                    prompt_center_pos = (rect.centerx, rect.top - 40) 
-                    
-                    self._draw_text_with_border(
-                        temp_surface, 
-                        prompt_text, 
-                        self.font_question, 
-                        (255, 255, 255),  
-                        (0, 0, 0),        
-                        prompt_center_pos,
-                        border_offset=1
-                    )
+                if language == "es":
+                    if self._answers_visible and i == self.highlighted_choice_index and not self.is_answered:
+                        prompt_text = "Presiona ESPACIO/ENTER para RECOGER."
+                        prompt_center_pos = (rect.centerx, rect.top - 40) 
+                        
+                        self._draw_text_with_border(
+                            temp_surface, 
+                            prompt_text, 
+                            self.font_question, 
+                            (255, 255, 255),  
+                            (0, 0, 0),        
+                            prompt_center_pos,
+                            border_offset=1
+                        )
+                else: # language == "en"
+                    if self._answers_visible and i == self.highlighted_choice_index and not self.is_answered:
+                        prompt_text = "Press SPACE/ENTER to PICK UP."
+                        prompt_center_pos = (rect.centerx, rect.top - 40) 
+                        
+                        self._draw_text_with_border(
+                            temp_surface, 
+                            prompt_text, 
+                            self.font_question, 
+                            (255, 255, 255),  
+                            (0, 0, 0),        
+                            prompt_center_pos,
+                            border_offset=1
+                        )
             
             # --- DIBUJAR LA SUPERFICIE TEMPORAL EN LA PANTALLA ---
             surface.blit(temp_surface, (0, 0))
@@ -370,26 +385,48 @@ class FloorQuiz_KeyAndCarry:
 
 
         # 3. DIBUJAR RESULTADO TEMPORAL CON BORDE 
-        if self.is_answered:
-            # Ahora el mensaje de "CORRECTO/INCORRECTO" es uniforme para todas las preguntas
-            if self.answer_result == "correct": 
-                message = "¡CORRECTO!"
-                msg_color = self.CORRECT_COLOR 
-            else: # incorrect
-                message = "INCORRECTO."
-                msg_color = self.INCORRECT_COLOR
+        if language == "es":
+            if self.is_answered:
+                # Ahora el mensaje de "CORRECTO/INCORRECTO" es uniforme para todas las preguntas
+                if self.answer_result == "correct": 
+                    message = "¡CORRECTO!"
+                    msg_color = self.CORRECT_COLOR 
+                else: # incorrect
+                    message = "INCORRECTO."
+                    msg_color = self.INCORRECT_COLOR
 
-            msg_center_pos = (self.size[0] // 2, self.size[1] - 150)
-            
-            self._draw_text_with_border(
-                surface, 
-                message, 
-                self.font_question, 
-                msg_color,        
-                (0, 0, 0),        
-                msg_center_pos,
-                border_offset=1
-            )
+                msg_center_pos = (self.size[0] // 2, self.size[1] - 150)
+                
+                self._draw_text_with_border(
+                    surface, 
+                    message, 
+                    self.font_question, 
+                    msg_color,        
+                    (0, 0, 0),        
+                    msg_center_pos,
+                    border_offset=1
+                )
+        else: # language == "en"
+            if self.is_answered:
+                # Ahora el mensaje de "CORRECTO/INCORRECTO" es uniforme para todas las preguntas
+                if self.answer_result == "correct": 
+                    message = "CORRECT!"
+                    msg_color = self.CORRECT_COLOR 
+                else: # incorrect
+                    message = "INCORRECT."
+                    msg_color = self.INCORRECT_COLOR
+
+                msg_center_pos = (self.size[0] // 2, self.size[1] - 150)
+                
+                self._draw_text_with_border(
+                    surface, 
+                    message, 
+                    self.font_question, 
+                    msg_color,        
+                    (0, 0, 0),        
+                    msg_center_pos,
+                    border_offset=1
+                )
 
 
         # 4. DIBUJAR OPCIÓN CARGADA

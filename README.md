@@ -1,4 +1,4 @@
-# 📚✨ **TINKFAST!** 
+# 📚✨ **THINKFAST!** 
 
 <div align="center">
 

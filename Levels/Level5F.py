@@ -339,8 +339,10 @@ class Level5:
             self.controls_music.play(-1) # El -1 indica reproducción en bucle
             print("DEBUG PLAY: Música de control (controls.wav) iniciada en bucle.")
         # ---------------------------------------------------------------------------------------------
-
-        self.dialogo_text = "Si quieres pasar, tendras que responder estas\n preguntas!!"
+        if language == 'es':
+            self.dialogo_text = "Si quieres pasar, tendras que responder estas\npreguntas!!"
+        else:
+            self.dialogo_text = "If you want to pass, you will have to answer\nthese questions!!"
         self.typewriter = None
         self.dialogo_active = False
 
@@ -505,7 +507,7 @@ class Level5:
         return self.state
 
 
-    def handle_events(self, event):
+    def handle_events(self, event,language):
         if self.state in ["game_over", "loss_sound_state", "win_state"]:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
@@ -595,7 +597,7 @@ class Level5:
         
         return None
 
-    def update(self,is_paused):
+    def update(self,is_paused,language):
         keys = pygame.key.get_pressed()
         if is_paused:
                     # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
@@ -839,19 +841,32 @@ class Level5:
                 self.dialogo_active = True
                 score = self.answer_results.count("correct")
                 total = len(self.questions)
+                if language == "es":
+                    if score == total:
+                        dialog_text = "Muy bien hecho! Has demostrado tener una buena\ncalidad de estudio."
+                    elif score >= 4: # <-- CONDICIÓN DE VICTORIA
+                        dialog_text = "Buen trabajo. Te has esforzado bastante, sigue\npracticando."
+                    else:
+                        dialog_text = "Puedes mejorar, nunca dejes de estudiar."
 
-                if score == total:
-                    dialog_text = "Muy bien hecho! Has demostrado tener una buena\n calidad de estudio."
-                elif score >= 4: # <-- CONDICIÓN DE VICTORIA
-                    dialog_text = "Buen trabajo. Te has esforzado bastante, sigue \npracticando."
+                    self.post_quiz_dialogs = [
+                        f"Has respondido correctamente {score} de {total} preguntas.",
+                        dialog_text,
+                        "Ahora te abro el paso. Buena suerte en tu camino!"
+                    ]
                 else:
-                    dialog_text = "Puedes mejorar, nunca dejes de estudiar."
+                    if score == total:
+                        dialog_text = "Well done! You have shown good\nstudy skills."
+                    elif score >= 4: # <-- VICTORY CONDITION
+                        dialog_text = "Good job. You have worked hard, keep\npracticing."
+                    else:
+                        dialog_text = "You can improve, never stop studying."
 
-                self.post_quiz_dialogs = [
-                    f"Has respondido correctamente {score} de {total} preguntas.",
-                    dialog_text,
-                    "Ahora te abro el paso. Buena suerte en tu camino!"
-                ]
+                    self.post_quiz_dialogs = [
+                        f"You answered {score} out of {total} questions correctly.",
+                        dialog_text,
+                        "Now I will open the way for you. Good luck on\nyour journey!"
+                    ]
                 self.current_dialog_index = 0
                 self.typewriter = TypewriterText(self.post_quiz_dialogs[self.current_dialog_index], self.font_dialog, (0, 0, 0), speed=25)
                 self.quiz_game = None
@@ -936,7 +951,7 @@ class Level5:
         surface.blit(text_surface, text_rect)
 
 
-    def draw(self):
+    def draw(self, language):
         if self.state == "controls_screen":
             if self.control_image:
                 screen_width, screen_height = self.size
@@ -956,42 +971,80 @@ class Level5:
                 self.screen.blit(scaled_image, target_rect.topleft)
                 
                 # TITULO DE CONTROLES
-                font_to_use_title = self.font_control_title
-                text_to_render_title = "CONTROLES"
-                center_x_title = self.size[0] // 2
-                center_y_title = 40 
-                # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
-                self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
-                
-                # --- Lógica para mostrar el temporizador con estilo unificado ---
-                BORDER_SIZE = 3
-                COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
-                COLOR_TEXT = (0, 0, 0) # Negro (Texto)
-                
-                font_to_use = self.font_control_text
-                center_x = self.size[0] // 2
-                center_y = self.size[1] - 35
-                
-                if self.can_skip_controls:
-                    # ✅ TEXTO LISTO PARA EMPEZAR
-                    text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 2"
-                elif self.control_timer_started:
-                    # 🕒 TEXTO DEL TEMPORIZADOR
-                    remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
-                    remaining_time = max(0, int(remaining_time_ms // 1000))
+                if language == "es":
+                    font_to_use_title = self.font_control_title
+                    text_to_render_title = "CONTROLES"
+                    center_x_title = self.size[0] // 2
+                    center_y_title = 40 
+                    # ESTILO UNIFICADO: Texto negro (0, 0, 0), Borde naranja (255, 128, 0)
+                    self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
                     
-                    if remaining_time == 0 and self.control_timer.is_running():
-                        text_to_render = "Espera un momento..."
+                    # --- Lógica para mostrar el temporizador con estilo unificado ---
+                    BORDER_SIZE = 3
+                    COLOR_BORDER = (255, 128, 0) # Naranja (Borde)
+                    COLOR_TEXT = (0, 0, 0) # Negro (Texto)
+                    
+                    font_to_use = self.font_control_text
+                    center_x = self.size[0] // 2
+                    center_y = self.size[1] - 35
+                    
+                    if self.can_skip_controls:
+                        # ✅ TEXTO LISTO PARA EMPEZAR
+                        text_to_render = "Presiona ESPACIO o ENTER para comenzar el Nivel 2"
+                    elif self.control_timer_started:
+                        # 🕒 TEXTO DEL TEMPORIZADOR
+                        remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                        remaining_time = max(0, int(remaining_time_ms // 1000))
+                        
+                        if remaining_time == 0 and self.control_timer.is_running():
+                            text_to_render = "Espera un momento..."
+                        else:
+                            text_to_render = f"Esperando {remaining_time} segundos..."
                     else:
-                        text_to_render = f"Esperando {remaining_time} segundos..."
+                        # ⏳ TEXTO DE CARGA
+                        text_to_render = "Cargando..."
+                    
+                    # Dibuja el texto con borde
+                    self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                                COLOR_TEXT, COLOR_BORDER, 
+                                                (center_x, center_y), border_size=BORDER_SIZE)
                 else:
-                    # ⏳ TEXTO DE CARGA
-                    text_to_render = "Cargando..."
-                
-                # Dibuja el texto con borde
-                self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
-                                            COLOR_TEXT, COLOR_BORDER, 
-                                            (center_x, center_y), border_size=BORDER_SIZE)
+                    font_to_use_title = self.font_control_title
+                    text_to_render_title = "CONTROLS"
+                    center_x_title = self.size[0] // 2
+                    center_y_title = 40 
+                    # UNIFIED STYLE: Black text (0, 0, 0), Orange border (255, 128, 0)
+                    self._draw_text_with_border(self.screen, text_to_render_title, font_to_use_title, (0, 0, 0), (255, 128, 0), (center_x_title, center_y_title), border_size=4 )
+                    
+                    # --- Logic to display the timer with unified style ---
+                    BORDER_SIZE = 3
+                    COLOR_BORDER = (255, 128, 0) # Orange (Border)
+                    COLOR_TEXT = (0, 0, 0) # Black (Text)
+                    
+                    font_to_use = self.font_control_text
+                    center_x = self.size[0] // 2
+                    center_y = self.size[1] - 35
+                    
+                    if self.can_skip_controls:
+                        # ✅ READY TO START TEXT
+                        text_to_render = "Press SPACE or ENTER to start Level 2"
+                    elif self.control_timer_started:
+                        # 🕒 TIMER TEXT
+                        remaining_time_ms = getattr(self.control_timer, 'time_remaining', 0)
+                        remaining_time = max(0, int(remaining_time_ms // 1000))
+                        
+                        if remaining_time == 0 and self.control_timer.is_running():
+                            text_to_render = "Please wait..."
+                        else:
+                            text_to_render = f"Waiting {remaining_time} seconds..."
+                    else:
+                        # ⏳ LOADING TEXT
+                        text_to_render = "Loading..."
+                    
+                    # Draw the text with border
+                    self._draw_text_with_border(self.screen, text_to_render, font_to_use, 
+                                                COLOR_TEXT, COLOR_BORDER, 
+                                                (center_x, center_y), border_size=BORDER_SIZE)
                 # -----------------------------------------------------------------------------
             else:
                 self.screen.fill((255, 255, 255))
@@ -1093,20 +1146,33 @@ class Level5:
                 self.timer.draw(self.screen, self.font_timer, position=(680, 10))
 
             if self.state == "quiz_floor" and self.quiz_game:
-                self.quiz_game.draw(self.screen, self.player.rect)
-                
-                if self.quiz_game.carried_choice_index != -1:
-                    drop_text = "Presiona ESPACIO/ENTER para ENTREGAR a la Prefecta."
-                    center_pos = (self.size[0] // 2, self.Guardia.rect.top - 40)
-                    self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
-                # =========================================================================================
-                # MODIFICACIÓN SOLICITADA:
-                # 1. Se añade la condición 'self.quiz_game._answers_visible' para que solo aparezca cuando el fade-in haya terminado.
-                # 2. Se cambia el texto a la frase que indicó el usuario: "¡Muevete hacia la respuesta!"
-                elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1 and self.quiz_game._answers_visible:
-                    drop_text = "¡MUEVETE CERCA DE UNA RESPUESTA PARA RESPONDERLA!"
-                    center_pos = (self.size[0] // 2, self.size[1] - 150)
-                    self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
+                self.quiz_game.draw(self.screen, self.player.rect, language)
+                if language == "es":
+                    if self.quiz_game.carried_choice_index != -1:
+                        drop_text = "Presiona ESPACIO/ENTER para ENTREGAR a la Prefecta."
+                        center_pos = (self.size[0] // 2, self.Guardia.rect.top - 40)
+                        self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
+                    # =========================================================================================
+                    # MODIFICACIÓN SOLICITADA:
+                    # 1. Se añade la condición 'self.quiz_game._answers_visible' para que solo aparezca cuando el fade-in haya terminado.
+                    # 2. Se cambia el texto a la frase que indicó el usuario: "¡Muevete hacia la respuesta!"
+                    elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1 and self.quiz_game._answers_visible:
+                        drop_text = "¡MUEVETE CERCA DE UNA RESPUESTA PARA RESPONDERLA!"
+                        center_pos = (self.size[0] // 2, self.size[1] - 150)
+                        self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
+                else:
+                    if self.quiz_game.carried_choice_index != -1:
+                        drop_text = "Press SPACE/ENTER to DELIVER to the Prefect."
+                        center_pos = (self.size[0] // 2, self.Guardia.rect.top - 40)
+                        self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
+                    # =========================================================================================
+                    # REQUESTED MODIFICATION:
+                    # 1. The condition 'self.quiz_game._answers_visible' is added so that it only appears when the fade-in has finished.
+                    # 2. The text is changed to the phrase indicated by the user: "Move towards the answer!"
+                    elif not self.quiz_game.is_answered and self.quiz_game.highlighted_choice_index == -1 and self.quiz_game._answers_visible:
+                        drop_text = "MOVE CLOSE TO AN ANSWER TO RESPOND!"
+                        center_pos = (self.size[0] // 2, self.size[1] - 150)
+                        self._draw_text_with_border(self.screen, drop_text, self.font_question, (255, 255, 255), (0, 0, 0), center_pos, border_size=2)
                 # =========================================================================================
 
 
@@ -1120,24 +1186,45 @@ class Level5:
                     pygame.draw.rect(self.screen, (255, 255, 255), box_rect, border_radius=10)
                     pygame.draw.rect(self.screen, (139, 69, 19), box_rect, 5, border_radius=10)
                     self.typewriter.draw(self.screen, (box_rect.x + 20, box_rect.y + 35))
+        if language == "es":
+            if self.state == "game_over":
+                self.screen.fill((0, 0, 0))
+                if self.game_over_image:
+                    self.screen.blit(self.game_over_image, (0, 0))
+                font_to_use = self.font_title
+                text_restart = "Presiona 'R' para Reiniciar"
+                text_menu = "Presiona 'ESC' para volver al Menu"
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
-        if self.state == "game_over":
-            self.screen.fill((0, 0, 0))
-            if self.game_over_image:
-                self.screen.blit(self.game_over_image, (0, 0))
-            font_to_use = self.font_title
-            text_restart = "Presiona 'R' para Reiniciar"
-            text_menu = "Presiona 'ESC' para volver al Menu"
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
-            self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+            elif self.state == "win_state":
+                self.screen.fill((0, 0, 0))
+                if self.win_image:
+                    self.screen.blit(self.win_image, (0, 0))
+                self.confetti.draw(self.screen)
+                text_restart = "Presiona 'R' para Reiniciar"
+                text_menu = "Presiona 'ESC' para volver al Menu"
+                font_to_use = self.font_title
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+        else:
+            if self.state == "game_over":
+                self.screen.fill((0, 0, 0))
+                if self.game_over_image:
+                    self.screen.blit(self.game_over_image, (0, 0))
+                font_to_use = self.font_title
+                text_restart = "Press 'R' to Restart"
+                text_menu = "Press 'ESC' to return to Menu"
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
 
-        elif self.state == "win_state":
-            self.screen.fill((0, 0, 0))
-            if self.win_image:
-                self.screen.blit(self.win_image, (0, 0))
-            self.confetti.draw(self.screen)
-            text_restart = "Presiona 'R' para Reiniciar"
-            text_menu = "Presiona 'ESC' para volver al Menu"
-            font_to_use = self.font_title
-            self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
-            self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)
+            elif self.state == "win_state":
+                self.screen.fill((0, 0, 0))
+                if self.win_image:
+                    self.screen.blit(self.win_image, (0, 0))
+                self.confetti.draw(self.screen)
+                text_restart = "Press 'R' to Restart"
+                text_menu = "Press 'ESC' to return to Menu"
+                font_to_use = self.font_title
+                self._draw_text_with_border(self.screen, text_restart, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-80), border_size=3)
+                self._draw_text_with_border(self.screen, text_menu, font_to_use, (255,255,255), (0,0,0), (self.size[0]//2, self.size[1]-30), border_size=3)

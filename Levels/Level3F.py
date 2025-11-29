@@ -7,6 +7,8 @@ from Personajes.girl import Characterg
 from Personajes.Prefect import Characternpcp 
 from Interacciones.Controldeobjetos.velotex import TypewriterText
 from Interacciones.Controldeobjetos.timer2 import Timer
+from Interacciones.Menu_Dynamics import Cloud, HotAirBalloon 
+from Interacciones.Out_Video import run_out_video 
 
 # --- COLORES Y CONFIGURACIÓN ---
 WHITE = (255, 255, 255)
@@ -23,7 +25,8 @@ try:
     MIXER_INITIALIZED = True
 except pygame.error:
     pass
-
+size = (900, 700)
+screen = pygame.display.set_mode(size)
 # ============================================================
 # CLASE RELATION BUTTON
 # ============================================================
@@ -140,22 +143,28 @@ class ArrowSprite:
 # CLASE LEVEL3
 # ============================================================
 class Level3:
-    def __init__(self, screen, size, font, character_choice):
+    def __init__(self, screen, size, font, character_choice, language):
         self.screen = screen
         self.size = size
         self.font = font
         self.character_choice = character_choice
+        self.language = language
+
+        # --- TEMPORIZADOR DE RETARDO DE VICTORIA ---
+        # Este temporizador bloqueará la entrada del teclado y ahora forzará la salida al video después de 5 segundos.
+        self.win_delay_timer = Timer(5) # Cambiado a 5 segundos
+        self.win_time_start = 0
 
         # --- TUTORIALES ---
         self.tuto_image = None; self.tuto_image_2 = None; self.tuto_image_3 = None; self.tuto_image_4 = None
         self.tuto_4_active = False
         self.tuto_alpha = 0; self.tuto_max_alpha = 255
         self.tuto_fade_speed = 8; self.tuto_slide_speed = 10
-        self.tuto_visible_timer = Timer(5)
+        self.tuto_visible_timer = Timer(1)
         self.tuto_fade_in_started = False; self.tuto_fade_out_started = False
         self.tuto_finished = False; self.tuto_3_has_appeared = False
         self.current_tuto_index = 1
-        self.tuto_target_x = 20; self.tuto_exit_x = -250; self.tuto_current_x = -250; self.tuto_y = 20
+        self.tuto_target_x = 20; self.tuto_exit_x = -250; self.tuto_current_x = -250; self.tuto_y = 80
 
         try:
             self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto8.jpg').convert_alpha(), (250, 180))
@@ -196,55 +205,105 @@ class Level3:
 
         # --- DIÁLOGOS ---
         self.dialog_rect = pygame.Rect((size[0]-800)//2, size[1]-130, 800, 100)
-        self.dialog_text = "responde las preguntas correctamente para poder\ntomar la clase, animo supera este nivel!!"
+        if language == 'es':
+            self.dialog_text = "Responde las preguntas correctamente para poder\ntomar la clase, animo supera este nivel!!"
+        else:
+            self.dialog_text = "Answer the questions correctly to be able\nto take the class, come on, pass this level!!"
         self.typewriter = None
         self.dialog_active = False
 
         # --- PREGUNTAS (6 PREGUNTAS EN TOTAL) ---
-        self.questions = [
+        if language == 'es':
+            self.questions = [
+                {
+                    "question": "Si tienes 5 naranjas y comes 2\n¿cuántas te quedan?",
+                    "numbers": ["2", "3", "4", "7"],
+                    "images": ["3naranjas.png", "6 naranjas.png", "2naranjas.png", "4naranjas.png"],
+                    "correct_number": "3",
+                    "correct_image": "3naranjas.png"
+                },
+                {
+                    "question": "¿Cuántas ruedas tiene un coche normal?",
+                    "numbers": ["1", "3", "4", "6"],
+                    "images": ["4llantas.png", "1llantas.png", "3llantas.png", "6llantas.png"],
+                    "correct_number": "4",
+                    "correct_image": "4llantas.png"
+                },
+                {
+                    "question": "Si tienes 6 caramelos y das 1 a tu amigo\n¿cuántos te quedan?",
+                    "numbers": ["1", "5", "6", "7"],
+                    "images": ["1dulces.png", "7dulces.png", "6dulces.png", "5dulces.png"],
+                    "correct_number": "5",
+                    "correct_image": "5dulces.png"
+                },
+                {
+                    "question": "¿Cuántos son \n2 mangos + 2 mangos + 2 mangos?",
+                    "numbers": ["3", "6", "2", "5"],
+                    "images": ["3mangos.png", "6mangos.png", "2mangos.png", "5mangos.png"],
+                    "correct_number": "6",
+                    "correct_image": "6mangos.png"
+                },
+                {
+                    "question": "¿Cuántas patitas tienen 1 gatito?\n",
+                    "numbers": ["1", "4", "2", "5"],
+                    "images": ["4patitas.png", "1patitas.png", "5patitas.png", "2patitas.png"],
+                    "correct_number": "4",
+                    "correct_image": "4patitas.png"
+                },
+                {
+                    "question": "María tiene 10 manzanas y se come 5\n¿cuántas tiene ahora?",
+                    "numbers": ["5", "8", "7", "6"],
+                    "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
+                    "correct_number": "5",
+                    "correct_image": "5manzanas.png"
+                }
+            ]
+        else:
+            self.questions = [
             {
-                "question": "Si tienes 5 naranjas y comes 2\n¿cuántas te quedan?",
+                "question": "If you have 5 oranges and eat 2\nhow many do you have left?",
                 "numbers": ["2", "3", "4", "7"],
                 "images": ["3naranjas.png", "6 naranjas.png", "2naranjas.png", "4naranjas.png"],
                 "correct_number": "3",
                 "correct_image": "3naranjas.png"
             },
             {
-                "question": "¿Cuántas ruedas tiene un coche normal?",
+                "question": "¿How many wheels does a normal car have?",
                 "numbers": ["1", "3", "4", "6"],
                 "images": ["4llantas.png", "1llantas.png", "3llantas.png", "6llantas.png"],
                 "correct_number": "4",
                 "correct_image": "4llantas.png"
             },
             {
-                "question": "Si tienes 6 caramelos y das 1 a tu amigo\n¿cuántos te quedan?",
+                "question": "If you have 6 candies and give 1 to your friend\nhow many do you have left?",
                 "numbers": ["1", "5", "6", "7"],
                 "images": ["1dulces.png", "7dulces.png", "6dulces.png", "5dulces.png"],
                 "correct_number": "5",
                 "correct_image": "5dulces.png"
             },
             {
-                "question": "¿Cuántos son \n2 mangos + 2 mangos + 2 mangos?",
+                "question": "How much is \n2 mangoes + 2 mangoes + 2 mangoes?",
                 "numbers": ["3", "6", "2", "5"],
                 "images": ["3mangos.png", "6mangos.png", "2mangos.png", "5mangos.png"],
                 "correct_number": "6",
                 "correct_image": "6mangos.png"
             },
             {
-                "question": "¿Cuántas patitas tienen 1 gatito?\n",
+                "question": "How many paws do 1 kitten have?\n",
                 "numbers": ["1", "4", "2", "5"],
                 "images": ["4patitas.png", "1patitas.png", "5patitas.png", "2patitas.png"],
-                "correct_number": "12",
-                "correct_image": "12patitas.png"
+                "correct_number": "4", 
+                "correct_image": "4patitas.png"
             },
             {
-                "question": "María tiene 10 manzanas y se come 5\n¿cuántas tiene ahora?",
+                "question": "Maria has 10 apples and eats 5\nhow many does she have now?",
                 "numbers": ["5", "8", "7", "6"],
                 "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
                 "correct_number": "5",
                 "correct_image": "5manzanas.png"
             }
         ]
+
         self.q_idx = 0
         self.guard_interacted = False
         self.confetti = Confetti(size[0], size[1])
@@ -310,7 +369,7 @@ class Level3:
         
         self.win_music_played = False
         self.game_over_music_played = False
-        self.lose_sound_played = False  # Nueva bandera agregada
+        self.lose_sound_played = False  
         try:
             self.game_over_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/perdiste_3.png').convert(), size)
             self.win_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/ganaste_3.png').convert(), size)
@@ -371,8 +430,9 @@ class Level3:
         self.submit_btn = pygame.Rect(bx, by, 160, 50)
 
         # --- INICIALIZAR NUEVA MECÁNICA - AUTOMÁTICA DESPUÉS DE 5 SEGUNDOS ---
-        self.show_mechanic_after_delay = False  # Inicialmente no mostrar mecánica
-        self.mechanic_delay_start = time.time()  # Iniciar contador
+        self.show_mechanic_after_delay = False
+        self.mechanic_delay_start = time.time()
+        self.mechanic_delay_duration =2 
 
     def update_minigame(self, event):
         # Verificar si ya pasaron los 5 segundos para mostrar la mecánica automáticamente
@@ -426,7 +486,7 @@ class Level3:
 
     def check_final_score(self):
         correct_count = self.results.count("correct")
-        # CAMBIO: Ahora se requieren 4 aciertos de 6 preguntas
+        # Se requieren 4 aciertos de 6 preguntas para pasar
         if correct_count >= 4:
             self.maestro.rect.x -= 130
             self.maestro_col.x = self.maestro.rect.x + int(self.maestro.rect.width*0.1)
@@ -445,7 +505,7 @@ class Level3:
                 self.s_lose.play()
                 self.lose_sound_played = True
 
-    def draw_minigame(self):
+    def draw_minigame(self,language):
         # Dibuja la capa semi-transparente para oscurecer el fondo
         s = pygame.Surface(self.size, pygame.SRCALPHA)
         s.fill((0,0,0,150))
@@ -465,26 +525,25 @@ class Level3:
             t_rect = t_surf.get_rect(center=(self.rect_q.centerx, self.rect_q.centery - 10 + i*30))
             self.screen.blit(t_surf, t_rect)
             
-        # --- DIBUJAR CONTADOR O MECÁNICA SEGÚN EL TIEMPO ---
-        if not self.show_mechanic_after_delay:
-            # NO MOSTRAR NADA DURANTE LOS 5 SEGUNDOS - SOLO LA PREGUNTA
-            pass
-        
-        # --- DIBUJAR MECÁNICA (después de 5 segundos) ---
-        else:
+        # --- DIBUJAR MECÁNICA (después del delay) ---
+        if self.show_mechanic_after_delay:
             pygame.draw.rect(self.screen, WHITE, self.rect_main, border_radius=15)
             pygame.draw.rect(self.screen, BROWN, self.rect_main, 4, border_radius=15)
             
             # Dibujar etiquetas centradas
-            numbers_label = self.f_quest.render("SELECCIONA EL NÚMERO CORRECTO:", True, BLACK)
-            images_label = self.f_quest.render("SELECCIONA LA IMAGEN CORRECTA:", True, BLACK)
+            if language == 'es':
+                numbers_label = self.f_quest.render("SELECCIONA EL NÚMERO CORRECTO:", True, BLACK)
+                images_label = self.f_quest.render("SELECCIONA LA IMAGEN CORRECTA:", True, BLACK)
+            else:
+                numbers_label = self.f_quest.render("SELECT THE CORRECT NUMBER:", True, BLACK)
+                images_label = self.f_quest.render("SELECT THE CORRECT IMAGE:", True, BLACK)
             
             # Calcular posiciones centradas para las etiquetas
             start_x_nums = self.rect_main.left + (self.rect_main.width - (len(self.number_buttons) * (self.rect_main.width // 5) + (len(self.number_buttons)-1)*20)) // 2
             start_y_nums = self.rect_main.top + self.rect_main.height // 3
             
-            label_y_nums = start_y_nums - 50  # Más espacio para la etiqueta
-            label_y_imgs = start_y_nums + self.rect_main.height // 4 + 20  # Más espacio para la etiqueta
+            label_y_nums = start_y_nums - 50
+            label_y_imgs = start_y_nums + self.rect_main.height // 4 + 20
             
             # Centrar las etiquetas horizontalmente
             numbers_label_rect = numbers_label.get_rect(center=(self.rect_main.centerx, label_y_nums))
@@ -508,17 +567,26 @@ class Level3:
             # Dibujar botón de enviar centrado
             pygame.draw.rect(self.screen, GREEN, self.submit_btn, border_radius=10)
             pygame.draw.rect(self.screen, BLACK, self.submit_btn, 2, border_radius=10)
-            t_sub = self.f_dial.render("ENVIAR", True, WHITE)
+            if language == 'es':
+                t_sub = self.f_dial.render("ENVIAR", True, WHITE)
+            else:
+                t_sub = self.f_dial.render("SUBMIT", True, WHITE)
             self.screen.blit(t_sub, t_sub.get_rect(center=self.submit_btn.center))
 
     # ============================================================
     # UPDATE
     # ============================================================
-    def handle_events(self, event):
-        if self.state in ["game_over", "win_state"]:  # Eliminado "loss_sound_state"
+    def handle_events(self, event,language):
+        if self.state in ["game_over", "win_state"]:
             if event.type == pygame.KEYDOWN:
+                
+                # CORRECCIÓN: Si estamos en win_state, ignoramos la entrada. La salida es automática (video).
+                if self.state == "win_state":
+                    return None
+                
+                # Lógica de Game Over (permite reiniciar/menú manual)
                 if event.key == pygame.K_r: 
-                    pygame.mixer.stop(); self.__init__(self.screen, self.size, self.font, self.character_choice); return "restart"
+                    pygame.mixer.stop(); return "restart"
                 if event.key == pygame.K_ESCAPE: pygame.mixer.stop(); return "menu"
             return None
 
@@ -544,11 +612,10 @@ class Level3:
                     if self.tuto_image_3 and not self.tuto_3_has_appeared:
                         self.current_tuto_index = 3; self.tuto_fade_in_started = True; self.tuto_visible_timer.reset()
 
-    def update(self,is_paused):
+    def update(self,is_paused,language):
         keys = pygame.key.get_pressed()
         if is_paused:
-                    # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
-                    return "running"
+            return "running"
 
         if self.is_fading:
             if self.state == "controls_screen":
@@ -587,33 +654,54 @@ class Level3:
                 
                 if self.guard_interacted and self.player.rect.colliderect(self.win_zone):
                     self.state = "win_state"; pygame.mixer.music.stop(); self.confetti.reset()
+                    
+                    # INICIAR TEMPORIZADOR DE BLOQUEO DE VICTORIA (5 segundos)
+                    self.win_delay_timer.start()
+                    
                     if self.tuto_4_active: self.tuto_fade_out_started = True
+                    # REPRODUCIR MÚSICA DE VICTORIA EN BUCLE
                     if hasattr(self, 's_win') and not self.win_music_played: 
-                        self.s_win.play(); self.win_music_played = True
+                        self.s_win.play(-1); # Reproducir en loop
+                        self.win_music_played = True
             
             # TIMER ACTUALIZADO SIEMPRE (Si ya se inició)
             if self.timer.is_running(): self.timer.update()
             
-            # CORRECCIÓN PRINCIPAL: Manejo simplificado del game over
+            # Manejo del game over por tiempo
             if self.timer.finished and not self.guard_interacted: 
                 self.state = "game_over"
                 pygame.mixer.music.stop()
-                # Reproducir sonido de game over solo una vez
+                # Reproducir sonido de derrota inmediatamente
                 if hasattr(self, 's_lose') and not self.lose_sound_played:
                     self.s_lose.play()
                     self.lose_sound_played = True
                 return self.state
 
-        # CORRECCIÓN: Eliminado completamente el bloque "loss_sound_state" y reemplazado con:
         elif self.state == "game_over":
             # Asegurarse de que la música de game over se reproduzca solo una vez
             if self.game_over_music and not self.game_over_music_played: 
                 self.game_over_music.play(-1)
                 self.game_over_music_played = True
+        
+        elif self.state == "win_state":
+            # ACTUALIZAR EL TEMPORIZADOR DE RETARDO
+            if self.win_delay_timer.is_running():
+                self.win_delay_timer.update()
+            
+            # CORRECCIÓN: Iniciar video y luego regresar al menú
+            if self.win_delay_timer.finished:
+                pygame.mixer.stop()
+                
+                # LLAMADA AL VIDEO DE CRÉDITOS/SALIDA
+                run_out_video(self.screen, self.size, self.language) 
+                
+                # Después de que el video termine, el juego regresa al menú principal.
+                return "menu"
+
 
         if self.dialog_active and self.typewriter: self.typewriter.update()
         
-        # CORRECCIÓN: Inicializar is_near fuera del bloque condicional
+        # Inicializar is_near
         is_near = False
         if not self.guard_interacted:
             is_near = self.player.rect.colliderect(self.maestro_col.inflate(100,100))
@@ -627,7 +715,6 @@ class Level3:
             if self.tuto_visible_timer.is_running():
                 self.tuto_visible_timer.update()
                 if self.tuto_visible_timer.finished: self.tuto_fade_out_started = True
-                # CORRECCIÓN: is_near ya está definida
                 if self.current_tuto_index == 1 and is_near: self.tuto_fade_out_started = True
             if self.tuto_fade_out_started:
                 self.tuto_alpha = max(0, self.tuto_alpha - self.tuto_fade_speed)
@@ -655,7 +742,7 @@ class Level3:
                     surface.blit(border_surface, border_rect)
         surface.blit(text_surface, text_rect)
 
-    def draw(self):
+    def draw(self,language):
         if self.state == "controls_screen":
             if self.control_image:
                 self.screen.fill((255,255,255))
@@ -664,14 +751,23 @@ class Level3:
                 nw, nh = int(iw*scale), int(ih*scale)
                 img = pygame.transform.scale(self.control_image, (nw, nh))
                 self.screen.blit(img, img.get_rect(center=(self.size[0]//2, self.size[1]//2)))
-                
-                cx, cy = self.size[0]//2, 40
-                self._draw_text_with_border(self.screen, "CONTROLES", self.f_ctrl_t, (0,0,0), (255,128,0), (cx, cy), 4)
-                cy = self.size[1]-30
-                if self.can_skip_controls: msg = "Presiona ESPACIO para comenzar"
-                elif self.control_timer_started: msg = f"Esperando un momento..."
-                else: msg = "Cargando..."
-                self._draw_text_with_border(self.screen, msg, self.f_ctrl_s, (0,0,0), (255,128,0), (cx, cy), 3)
+                if language == 'es':
+                    cx, cy = self.size[0]//2, 40
+                    self._draw_text_with_border(self.screen, "CONTROLES", self.f_ctrl_t, (0,0,0), (255,128,0), (cx, cy), 4)
+                    cy = self.size[1]-30
+                    if self.can_skip_controls: msg = "Presiona ESPACIO para comenzar"
+                    elif self.control_timer_started: msg = f"Esperando un momento..."
+                    else: msg = "Cargando..."
+                    self._draw_text_with_border(self.screen, msg, self.f_ctrl_s, (0,0,0), (255,128,0), (cx, cy), 3)
+                else:
+                    cx, cy = self.size[0]//2, 40
+                    self._draw_text_with_border(self.screen, "CONTROLS", self.f_ctrl_t, (0,0,0), (255,128,0), (cx, cy), 4)
+                    cy = self.size[1]-30
+                    if self.can_skip_controls: msg = "Press SPACE to start"
+                    elif self.control_timer_started: msg = f"Please wait..."
+                    else: msg = "Loading..."
+                    self._draw_text_with_border(self.screen, msg, self.f_ctrl_s, (0,0,0), (255,128,0), (cx, cy), 3)
+                    
             if self.is_fading:
                 s = pygame.Surface(self.size); s.fill((0,0,0)); s.set_alpha(self.fade_alpha)
                 self.screen.blit(s, (0,0))
@@ -695,15 +791,15 @@ class Level3:
             self.typewriter.draw(self.screen, (self.dialog_rect.x+20, self.dialog_rect.y+20))
 
         # 3. Dibujar la interfaz de Minigame (Esto incluye la capa oscura que oculta el fondo)
-        if self.minigame_active: self.draw_minigame()
+        if self.minigame_active: self.draw_minigame(language)
 
-        # 4. Dibujar elementos de UI Superiores (Se dibujan DESPUÉS de la capa oscura para que sean visibles)
+        # 4. Dibujar elementos de UI Superiores 
         
         # Dibujar Marcos de Resultados (AHORA PARA 6 PREGUNTAS)
         if self.img_frm:
             # Mostrar marcos para las 6 preguntas
             for i in range(6):
-                x = (self.size[0] - (6*50))//2 + i*50  # Ajustado para 6 elementos
+                x = (self.size[0] - (6*50))//2 + i*50
                 self.screen.blit(self.img_frm, (x, 10))
                 if i < len(self.results):
                     ic = self.img_ok if self.results[i] == "correct" else self.img_bad
@@ -711,8 +807,7 @@ class Level3:
                     self.screen.blit(ic, (x+8, 18))
 
         # Dibujar Timer (A 720, 20 que es 20px a la derecha de 700)
-        #if self.minigame_active:
-            #self.timer.draw(self.screen, self.f_timer, (720, 20))
+        
 
         # 5. Otros elementos de superposición (Flecha, Confetti, Tutoriales)
         self.arrow.draw(self.screen)
@@ -729,9 +824,19 @@ class Level3:
             self.screen.fill((0,0,0))
             img = self.game_over_image if self.state == "game_over" else self.win_image
             if img: self.screen.blit(img, (0,0))
-            t = self.f_base.render("PRESIONA R PARA REINICIAR/ESC PARA IR AL MENU", True, (255,255,255))
-            self.screen.blit(t, t.get_rect(center=(self.size[0]//2, self.size[1]-50)))
-            if self.state == "win_state": self.confetti.draw(self.screen)
+            
+            # El texto de botones SOLO se dibuja en Game Over.
+            if self.state == "game_over":
+                if language == 'es':
+                    msg = "PRESIONA R PARA REINICIAR/ESC PARA IR AL MENU"
+                else:
+                    msg = "PRESS R TO RESTART/ESC TO GO TO MENU"
+                t = self.f_base.render(msg, True, (255,255,255))
+                self.screen.blit(t, t.get_rect(center=(self.size[0]//2, self.size[1]-50)))
+                
+            if self.state == "win_state": 
+                self.confetti.draw(self.screen)
+                # El texto de botones NO se dibuja aquí
 
         # 7. Pantalla de Transición (Fade)
         if self.is_fading:

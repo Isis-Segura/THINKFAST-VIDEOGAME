@@ -221,7 +221,7 @@ texts = {
         "select_difficulty": "Select difficulty", "beginner": "Beginner", "advanced": "Advanced",
         "select_character": "Select your character", "boy": "Boy", "girl": "Girl",
         "select_level": "Select the challenge", 
-        "level1_name": "Learn to Add", "level2_name": "Multiply Fast", "level3_name": "Equations", 
+        "level1_name": "Entrance", "level2_name": "Aisle", "level3_name": "Classroom", 
         "coming_soon": "Coming soon!",
         "pause": "PAUSA", "continue": "Continue", "main_menu": "Main Menu","reset_level": "Reset Level", # <--- TEXTOS DE PAUSA
     }
@@ -299,7 +299,7 @@ def create_menu_buttons():
 
 def create_difficulty_buttons():
     btn_w, btn_h = 260, 80 
-    beginner_button_rect = pygame.Rect(0, 0, btn_w, btn_h); beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 60)
+    beginner_button_rect = pygame.Rect(0, 0, 290, btn_h); beginner_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 - 60)
     advanced_button_rect = pygame.Rect(0, 0, 290, btn_h); advanced_button_rect.center = (screen.get_width() // 2, screen.get_height() // 2 + 40)
     back_button_rect = pygame.Rect(0, 0, 160, 80); back_button_rect.center = (screen.get_width() // 2, screen.get_height() - 100)
     return beginner_button_rect, advanced_button_rect, back_button_rect
@@ -316,13 +316,13 @@ def create_level_buttons():
     
     spacing_y = btn_h + 30 
 
-    level1_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level1_button_rect = pygame.Rect(0, 0, 280, btn_h)
     level1_button_rect.center = (center_x - 100, screen.get_height() // 2 - spacing_y)
     
     level2_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
     level2_button_rect.center = (center_x, screen.get_height() // 2)
     
-    level3_button_rect = pygame.Rect(0, 0, btn_w, btn_h)
+    level3_button_rect = pygame.Rect(0, 0, 300, btn_h)
     level3_button_rect.center = (center_x + 100, screen.get_height() // 2 + spacing_y)
     
     back_button_rect = pygame.Rect(0, 0, 160, 80)
@@ -436,7 +436,7 @@ def draw_level_selection(level1_button_rect, level2_button_rect, level3_button_r
     screen.blit(level_surface, level_surface.get_rect(center=(size[0] // 2, size[1] // 2 - 200)))
     
     # Botones Nivel 
-    draw_button_with_text_3_state(level1_button_rect, texts[language]["level1_name"], font_small, mouse_pos, button_pressed, "lvl1", level1_button_img_1, level1_button_img_3, level1_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
+    draw_button_with_text_3_state(level1_button_rect, texts[language]["level1_name"], font_small, mouse_pos, button_pressed, "lvl1", level1_button_img_1, level1_button_img_3, level1_button_img_2, text_adjust_x=-45, text_adjust_y=-4)
     draw_button_with_text_3_state(level2_button_rect, texts[language]["level2_name"], font_small, mouse_pos, button_pressed, "lvl2", level2_button_img_1, level2_button_img_3, level2_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
     draw_button_with_text_3_state(level3_button_rect, texts[language]["level3_name"], font_small, mouse_pos, button_pressed, "lvl3", level3_button_img_1, level3_button_img_3, level3_button_img_2, text_adjust_x=-41, text_adjust_y=-4)
     # Botón Regresar
@@ -542,7 +542,7 @@ while running:
                         # Recargar el nivel según su clase (asumiendo que todos los niveles son Level1F, Level2F, etc.)
                         # Esto es clave: identificamos qué nivel estaba activo y lo recreamos.
                         current_level_class = type(level_instance) 
-                        level_instance = current_level_class(screen, size, font_small, selected_character)
+                        level_instance = current_level_class(screen, size, font_small, selected_character, language)
                         button_pressed = None
                 
                 # Si está en pausa, NO procesamos los eventos del nivel o el botón de pausa
@@ -555,7 +555,7 @@ while running:
                     button_pressed = "pause"
 
             # 3. El nivel maneja los eventos del juego (solo si NO está en pausa)
-            returned_state = level_instance.handle_events(event)
+            returned_state = level_instance.handle_events(event,language)
             if returned_state == "menu":
                 game_state = MENU
                 level_instance = None
@@ -651,24 +651,24 @@ while running:
             # Lógica de NIVELES NORMALES/AVANZADOS (Inicia el nivel)
             elif button_pressed == "lvl1" and level1_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level1F.Level1(screen, size, font_small, selected_character)
+                level_instance = Level1F.Level1(screen, size, font_small, selected_character, language)
                 show_coming_soon = False
                 
             elif button_pressed == "lvl2" and level2_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level2F.Level2(screen, size, font_small, selected_character)
+                level_instance = Level2F.Level2(screen, size, font_small, selected_character, language)
                 show_coming_soon = False
                  
                
             elif button_pressed == "lvl3" and level3_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level3F.Level3(screen, size, font_small, selected_character) 
+                level_instance = Level3F.Level3(screen, size, font_small, selected_character, language) 
                 show_coming_soon = False
                 
                 
             elif button_pressed == "lvl4" and level4_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level4F.Level4(screen, size, font_small, selected_character)
+                level_instance = Level4F.Level4(screen, size, font_small, selected_character, language)
                 show_coming_soon = False
                  
                
@@ -681,7 +681,7 @@ while running:
                 
             elif button_pressed == "lvl6" and level6_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level6F.Level6(screen, size, font_small, selected_character) 
+                level_instance = Level6F.Level6(screen, size, font_small, selected_character, language) 
                 show_coming_soon = False
                 
                 
@@ -690,8 +690,8 @@ while running:
 
 # -------------------- DIBUJAR --------------------
     if game_state == GAME_LEVEL_1 and level_instance:
-        # Pasa la bandera de pausa al método update del nivel
-        level_state = level_instance.update(is_paused) 
+         # Pasa la bandera de pausa al método update del nivel
+        level_state = level_instance.update(is_paused, language) 
         
         # 💡 DEPURATION: Imprime el estado actual del nivel en la consola
         if hasattr(level_instance, 'state'):
@@ -706,7 +706,7 @@ while running:
             pygame.mixer.music.play(-1)
             is_paused = False # Asegurar que la pausa se desactive
         else:
-            level_instance.draw()
+            level_instance.draw(language)
             
             # Comprobación de que el nivel tiene la propiedad 'state' y que NO es 'controls_screen'
             # 💡 CORRECCIÓN: El botón de pausa SÓLO se dibuja si el nivel NO está en estado "controls_screen".

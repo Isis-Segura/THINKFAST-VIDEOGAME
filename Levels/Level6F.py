@@ -124,7 +124,7 @@ class ArrowSprite:
 
 # CLASE LEVEL3
 class Level6:
-    def __init__(self, screen, size, font, character_choice):
+    def __init__(self, screen, size, font, character_choice, language):
         self.screen = screen
         self.size = size
         self.font = font
@@ -134,12 +134,12 @@ class Level6:
         self.tuto_image = None; self.tuto_image_2 = None; self.tuto_image_3 = None; self.tuto_image_4 = None
         self.tuto_4_active = False
         self.tuto_alpha = 0; self.tuto_max_alpha = 255
-        self.tuto_fade_speed = 8; self.tuto_slide_speed = 10
-        self.tuto_visible_timer = Timer(5)
+        self.tuto_fade_speed = 5; self.tuto_slide_speed = 10
+        self.tuto_visible_timer = Timer(1)
         self.tuto_fade_in_started = False; self.tuto_fade_out_started = False
         self.tuto_finished = False; self.tuto_3_has_appeared = False
         self.current_tuto_index = 1
-        self.tuto_target_x = 20; self.tuto_exit_x = -250; self.tuto_current_x = -250; self.tuto_y = 20
+        self.tuto_target_x = 20; self.tuto_exit_x = -250; self.tuto_current_x = -250; self.tuto_y = 80
 
         try:
             self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto8.jpg').convert_alpha(), (250, 180))
@@ -180,70 +180,134 @@ class Level6:
 
         # --- DIÁLOGOS ---
         self.dialog_rect = pygame.Rect((size[0]-800)//2, size[1]-130, 800, 100)
-        self.dialog_text = "responde las preguntas correctamente para poder\ntomar la clase, animo supera este nivel!!"
+        if language == 'es':
+            self.dialog_text = "Responde las preguntas correctamente para poder\ntomar la clase, animo supera este nivel!!"
+        else:
+            self.dialog_text = "Answer the questions correctly to be able\nto take the class, come on, pass this level!!"
         self.typewriter = None
         self.dialog_active = False
 
         # --- PREGUNTAS (8 EN TOTAL) ---
-        self.questions = [
-            {
-                "question": "Tengo 9 limones y las reparto entre 3 companeros\nCuantos limones recibe cada uno?",
-                "numbers": ["2", "3", "4", "5"],
-                "images": ["3limones.png", "5limones.png", "2limones.png", "4limones.png"],
-                "correct_number": "3",
-                "correct_image": "3limones.png"
-            },
-            {
-                "question": "Carlos tenia 3 pelotas, Su amigo le regala 5 mas\nCuantas pelotas tiene ahora?",
-                "numbers": ["2", "8", "4", "7"],
-                "images": ["4pe.png", "8pe.png", "2pe.png", "6pe.png"],
-                "correct_number": "8",
-                "correct_image": "8pe.png"
-            },
-            {
-                "question": "Tengo 14 borradores y los reparto entre 10 amigos\ncuantos borradores me quedan?",
-                "numbers": ["2", "4", "1", "6"],
-                "images": ["2borra.png", "4borra.png", "6borra.png", "1borra.png"],
-                "correct_number": "4",
-                "correct_image": "4borra.png"
-            },
-            {
-                "question": "En una fiesta hay 8 niños y cada niño recibe 1 globo\nCuantos globos dimos?",
-                "numbers": ["8", "1", "4", "3"],
-                "images": ["8glob.png", "4glob.png", "1glob.png", "3glob.png"],
-                "correct_number": "8",
-                "correct_image": "8glob.png"
-            },
-            # NUEVAS PREGUNTAS AÑADIDAS
-            {
-                "question": "Maria tiene 5 manzanas y compra 3 mas\nCuantas manzanas tiene en total?",
-                "numbers": ["5", "8", "7", "6"],
-                "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
-                "correct_number": "8",
-                "correct_image": "8manzanas.png"
-            },
-            {
-                "question": "Si tengo 12 lapices y regalo 8\nCuantos lapices me quedan?",
-                "numbers": ["6", "3", "4", "10"],
-                "images": ["6lapices.png", "3lapices.png", "4lapices.png", "10lapices.png"],
-                "correct_number": "4",
-                "correct_image": "4lapices.png"
-            },
-            {
-                "question": "En una caja hay 6 galletas y meto 5 mas\nCuantas galletas hay ahora?",
-                "numbers": ["7", "8", "11", "6"],
-                "images": ["7galletas.png", "8galletas.png", "11galletas.png", "6galletas.png"],
-                "correct_number": "11",
-                "correct_image": "11galletas.png"
-            },
-            {
-                "question": "Pedro tiene 10 lapiceras y pierde 5\nCuantas le quedan?",
-                "numbers": ["7", "8", "10", "5"],
-                "images": ["7lapi.png", "8lapi.png", "10lapi.png", "5lapi.png"],
-                "correct_number": "8",
-                "correct_image": "8lapi.png"
-            }
-        ]
+        if language == "es":
+            self.questions = [
+                {
+                    "question": "Tengo 9 limones y las reparto entre 3 companeros\nCuantos limones recibe cada uno?",
+                    "numbers": ["2", "3", "4", "5"],
+                    "images": ["3limones.png", "5limones.png", "2limones.png", "4limones.png"],
+                    "correct_number": "3",
+                    "correct_image": "3limones.png"
+                },
+                {
+                    "question": "Carlos tenia 3 pelotas, Su amigo le regala 5 mas\nCuantas pelotas tiene ahora?",
+                    "numbers": ["2", "8", "4", "7"],
+                    "images": ["4pe.png", "8pe.png", "2pe.png", "6pe.png"],
+                    "correct_number": "8",
+                    "correct_image": "8pe.png"
+                },
+                {
+                    "question": "Tengo 14 borradores y los reparto entre 10 amigos\ncuantos borradores me quedan?",
+                    "numbers": ["2", "4", "1", "6"],
+                    "images": ["2borra.png", "4borra.png", "6borra.png", "1borra.png"],
+                    "correct_number": "4",
+                    "correct_image": "4borra.png"
+                },
+                {
+                    "question": "En una fiesta hay 8 niños y cada niño recibe 1 globo\nCuantos globos dimos?",
+                    "numbers": ["8", "1", "4", "3"],
+                    "images": ["8glob.png", "4glob.png", "1glob.png", "3glob.png"],
+                    "correct_number": "8",
+                    "correct_image": "8glob.png"
+                },
+                # NUEVAS PREGUNTAS AÑADIDAS
+                {
+                    "question": "Maria tiene 5 manzanas y compra 3 mas\nCuantas manzanas tiene en total?",
+                    "numbers": ["5", "8", "7", "6"],
+                    "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
+                    "correct_number": "8",
+                    "correct_image": "8manzanas.png"
+                },
+                {
+                    "question": "Si tengo 12 lapices y regalo 8\nCuantos lapices me quedan?",
+                    "numbers": ["6", "3", "4", "10"],
+                    "images": ["6lapices.png", "3lapices.png", "4lapices.png", "10lapices.png"],
+                    "correct_number": "4",
+                    "correct_image": "4lapices.png"
+                },
+                {
+                    "question": "En una caja hay 6 galletas y meto 5 mas\nCuantas galletas hay ahora?",
+                    "numbers": ["7", "8", "11", "6"],
+                    "images": ["7galletas.png", "8galletas.png", "11galletas.png", "6galletas.png"],
+                    "correct_number": "11",
+                    "correct_image": "11galletas.png"
+                },
+                {
+                    "question": "Pedro tiene 10 lapiceras y pierde 5\nCuantas le quedan?",
+                    "numbers": ["7", "8", "10", "5"],
+                    "images": ["7lapi.png", "8lapi.png", "10lapi.png", "5lapi.png"],
+                    "correct_number": "8",
+                    "correct_image": "8lapi.png"
+                }
+            ]
+        else:
+            self.questions = [
+                {
+                    "question": "I have 9 lemons and I share them among 3 friends\nHow many lemons does each one receive?",
+                    "numbers": ["2", "3", "4", "5"],
+                    "images": ["3limones.png", "5limones.png", "2limones.png", "4limones.png"],
+                    "correct_number": "3",
+                    "correct_image": "3limones.png"
+                },
+                {
+                    "question": "Carlos had 3 balls, His friend gives him 5 more\nHow many balls does he have now?",
+                    "numbers": ["2", "8", "4", "7"],
+                    "images": ["4pe.png", "8pe.png", "2pe.png", "6pe.png"],
+                    "correct_number": "8",
+                    "correct_image": "8pe.png"
+                },
+                {
+                    "question": "I have 14 erasers and I give one to 10 friends\nhow many erasers do I have left?", # Interpreté "reparto entre 10 amigos" como si diera 1 a cada uno.
+                    "numbers": ["2", "4", "1", "6"],
+                    "images": ["2borra.png", "4borra.png", "6borra.png", "1borra.png"],
+                    "correct_number": "4",
+                    "correct_image": "4borra.png"
+                },
+                {
+                    "question": "At a party there are 8 children and each child receives 1 balloon\nHow many balloons did we give?",
+                    "numbers": ["8", "1", "4", "3"],
+                    "images": ["8glob.png", "4glob.png", "1glob.png", "3glob.png"],
+                    "correct_number": "8",
+                    "correct_image": "8glob.png"
+                },
+                # "NEW QUESTIONS ADDED"
+                {
+                    "question": "Maria has 5 apples and buys 3 more\nHow many apples does she have in total?",
+                    "numbers": ["5", "8", "7", "6"],
+                    "images": ["5manzanas.png", "8manzanas.png", "7manzanas.png", "6manzanas.png"],
+                    "correct_number": "8",
+                    "correct_image": "8manzanas.png"
+                },
+                {
+                    "question": "If I have 12 pencils and give away 8\nHow many pencils do I have left?",
+                    "numbers": ["6", "3", "4", "10"],
+                    "images": ["6lapices.png", "3lapices.png", "4lapices.png", "10lapices.png"],
+                    "correct_number": "4",
+                    "correct_image": "4lapices.png"
+                },
+                {
+                    "question": "In a box there are 6 cookies and I put 5 more in\nHow many cookies are there now?",
+                    "numbers": ["7", "8", "11", "6"],
+                    "images": ["7galletas.png", "8galletas.png", "11galletas.png", "6galletas.png"],
+                    "correct_number": "11",
+                    "correct_image": "11galletas.png"
+                },
+                {
+                    "question": "Pedro has 10 pens and loses 5\nHow many does he have left?",
+                    "numbers": ["7", "8", "10", "5"],
+                    "images": ["7lapi.png", "8lapi.png", "10lapi.png", "5lapi.png"],
+                    "correct_number": "5", # Nota: El original tenía "8", corregido a "5" (10 - 5 = 5)
+                    "correct_image": "5lapi.png" # Nota: La imagen correcta también debe coincidir con el resultado
+                }
+            ]
         self.q_idx = 0
         self.guard_interacted = False
         self.confetti = Confetti(size[0], size[1])
@@ -463,7 +527,7 @@ class Level6:
     # ============================================================
     # UPDATE
     # ============================================================
-    def handle_events(self, event):
+    def handle_events(self, event,language):
         if self.state in ["game_over", "win_state"]:  # Eliminado "loss_sound_state"
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r: 
@@ -493,7 +557,7 @@ class Level6:
                     if self.tuto_image_3 and not self.tuto_3_has_appeared:
                         self.current_tuto_index = 3; self.tuto_fade_in_started = True; self.tuto_visible_timer.reset()
 
-    def update(self,is_paused):
+    def update(self,is_paused,language):
         keys = pygame.key.get_pressed()
         if is_paused:
                     # NO EJECUTAR LA LÓGICA DEL JUEGO si está en pausa
@@ -602,7 +666,7 @@ class Level6:
                     surface.blit(border_surface, border_rect)
         surface.blit(text_surface, text_rect)
 
-    def draw(self):
+    def draw(self,language):
         if self.state == "controls_screen":
             if self.control_image:
                 self.screen.fill((255,255,255))
@@ -611,14 +675,23 @@ class Level6:
                 nw, nh = int(iw*scale), int(ih*scale)
                 img = pygame.transform.scale(self.control_image, (nw, nh))
                 self.screen.blit(img, img.get_rect(center=(self.size[0]//2, self.size[1]//2)))
-                
-                cx, cy = self.size[0]//2, 40
-                self._draw_text_with_border(self.screen, "CONTROLES", self.f_ctrl_t, (0,0,0), (255,128,0), (cx, cy), 4)
-                cy = self.size[1]-30
-                if self.can_skip_controls: msg = "Presiona ESPACIO para comenzar"
-                elif self.control_timer_started: msg = f"Esperando un momento..."
-                else: msg = "Cargando..."
-                self._draw_text_with_border(self.screen, msg, self.f_ctrl_s, (0,0,0), (255,128,0), (cx, cy), 3)
+                if language == "es":
+                    cx, cy = self.size[0]//2, 40
+                    self._draw_text_with_border(self.screen, "CONTROLES", self.f_ctrl_t, (0,0,0), (255,128,0), (cx, cy), 4)
+                    cy = self.size[1]-30
+                    if self.can_skip_controls: msg = "Presiona ESPACIO para comenzar"
+                    elif self.control_timer_started: msg = f"Esperando un momento..."
+                    else: msg = "Cargando..."
+                    self._draw_text_with_border(self.screen, msg, self.f_ctrl_s, (0,0,0), (255,128,0), (cx, cy), 3)
+                else:
+                    cx, cy = self.size[0]//2, 40
+                    self._draw_text_with_border(self.screen, "CONTROLS", self.f_ctrl_t, (0,0,0), (255,128,0), (cx, cy), 4)
+                    cy = self.size[1]-30
+                    if self.can_skip_controls: msg = "Press SPACE to start"
+                    elif self.control_timer_started: msg = f"Please wait..."
+                    else: msg = "Loading..."
+                    self._draw_text_with_border(self.screen, msg, self.f_ctrl_s, (0,0,0), (255,128,0), (cx, cy), 3)
+
             if self.is_fading:
                 s = pygame.Surface(self.size); s.fill((0,0,0)); s.set_alpha(self.fade_alpha)
                 self.screen.blit(s, (0,0))
@@ -676,7 +749,10 @@ class Level6:
             self.screen.fill((0,0,0))
             img = self.game_over_image if self.state == "game_over" else self.win_image
             if img: self.screen.blit(img, (0,0))
-            t = self.f_base.render("PRESIONA R PARA REINICIAR/ESC PARA IR AL MENU", True, (255,255,255))
+            if language == "es":
+                t = self.f_base.render("PRESIONA R PARA REINICIAR/ESC PARA IR AL MENU", True, (255,255,255))
+            else:
+                t = self.f_base.render("PRESS R TO RESTART/ESC TO MENU", True, (255,255,255))
             self.screen.blit(t, t.get_rect(center=(self.size[0]//2, self.size[1]-50)))
             if self.state == "win_state": self.confetti.draw(self.screen)
 

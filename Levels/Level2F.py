@@ -305,11 +305,18 @@ class Level2:
         except pygame.error:
             self.game_over_image = None
 
-        try:
-            img = pygame.image.load('Materials/Pictures/Assets/ganaste2.png').convert()
-            self.win_image = pygame.transform.scale(img, self.size)
-        except pygame.error:
-            self.win_image = None
+        if language == 'es':
+            try:
+                img = pygame.image.load('Materials/Pictures/Assets/ganaste2.png').convert()
+                self.win_image = pygame.transform.scale(img, self.size)
+            except pygame.error:
+                self.win_image = None
+        else:
+            try:
+                img = pygame.image.load('Materials/Pictures/Assets/ganaste2i.png').convert()
+                self.win_image = pygame.transform.scale(img, self.size)
+            except pygame.error:
+                self.win_image = None
 
         self.timer = Timer(5000)
         self.quiz_timer = Timer(100000)

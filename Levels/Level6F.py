@@ -384,10 +384,17 @@ class Level6:
         self.win_music_played = False
         self.game_over_music_played = False
         self.lose_sound_played = False  # Nueva bandera agregada
-        try:
-            self.game_over_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/perdiste_3.png').convert(), size)
-            self.win_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/ganaste_3.png').convert(), size)
-        except: self.game_over_image = None; self.win_image = None
+        
+        if language == 'es':
+            try:
+                self.game_over_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/perdiste_3.png').convert(), size)
+                self.win_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/ganaste_3.png').convert(), size)
+            except: self.game_over_image = None; self.win_image = None
+        else:
+            try:
+                self.game_over_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/perdiste_3.png').convert(), size)
+                self.win_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/ganastei_3.png').convert(), size)
+            except: self.game_over_image = None; self.win_image = None
     
     def init_minigame(self):
         self.minigame_active = True

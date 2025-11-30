@@ -311,11 +311,18 @@ class Level4:
         except pygame.error:
             self.game_over_image = None
 
-        try:
-            img = pygame.image.load('Materials/Pictures/Assets/ganaste.png').convert()
-            self.win_image = pygame.transform.scale(img, self.size)
-        except pygame.error:
-            self.win_image = None
+        if language == 'es':
+            try:
+                img = pygame.image.load('Materials/Pictures/Assets/ganaste.png').convert()
+                self.win_image = pygame.transform.scale(img, self.size)
+            except pygame.error:
+                self.win_image = None
+        else:
+            try:
+                img = pygame.image.load('Materials/Pictures/Assets/ganastei.png').convert()
+                self.win_image = pygame.transform.scale(img, self.size)
+            except pygame.error:
+                self.win_image = None
 
         # Temporizadores
         self.timer = Timer(5000)      # tiempo general del nivel

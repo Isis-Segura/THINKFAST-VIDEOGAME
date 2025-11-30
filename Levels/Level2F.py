@@ -169,31 +169,58 @@ class Level2:
         self.tuto_y = 80 # Posición Y fija cerca de la parte superior (Originalmente 20)
         # ================================================================
 
-        try:
-            # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
-            img1 = pygame.image.load('Materials/Pictures/Assets/tuto5.jpg').convert_alpha()
-            self.tuto_image = pygame.transform.scale(img1, (250, 180)) 
-            self.tuto_rect = self.tuto_image.get_rect(topleft=(self.tuto_current_x, self.tuto_y)) 
-            
-            # 2. Cargar y redimensionar la imagen de tutorial 2 (Espacio/Enter)
-            img2 = pygame.image.load('Materials/Pictures/Assets/tuto6.jpg').convert_alpha()
-            self.tuto_image_2 = pygame.transform.scale(img2, (250, 180))
-            
-            # 3. Cargar y redimensionar la imagen de tutorial 3 (Diálogo/Quiz)
-            img3 = pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha()
-            self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
-            
-            # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria)
-            img4 = pygame.image.load('Materials/Pictures/Assets/tuto7.jpg').convert_alpha() 
-            self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) 
-            
-        except pygame.error as e:
-            self.tuto_image = None
-            self.tuto_image_2 = None
-            self.tuto_image_3 = None
-            self.tuto_image_4 = None
-            self.current_tuto_index = 0
-            print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
+        if language == 'es':
+            try:
+                # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
+                img1 = pygame.image.load('Materials/Pictures/Assets/tuto5.jpg').convert_alpha()
+                self.tuto_image = pygame.transform.scale(img1, (250, 180)) 
+                self.tuto_rect = self.tuto_image.get_rect(topleft=(self.tuto_current_x, self.tuto_y)) 
+                
+                # 2. Cargar y redimensionar la imagen de tutorial 2 (Espacio/Enter)
+                img2 = pygame.image.load('Materials/Pictures/Assets/tuto6.jpg').convert_alpha()
+                self.tuto_image_2 = pygame.transform.scale(img2, (250, 180))
+                
+                # 3. Cargar y redimensionar la imagen de tutorial 3 (Diálogo/Quiz)
+                img3 = pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha()
+                self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
+                
+                # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria)
+                img4 = pygame.image.load('Materials/Pictures/Assets/tuto7.jpg').convert_alpha() 
+                self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) 
+                
+            except pygame.error as e:
+                self.tuto_image = None
+                self.tuto_image_2 = None
+                self.tuto_image_3 = None
+                self.tuto_image_4 = None
+                self.current_tuto_index = 0
+                print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
+        else:
+            try:
+                # 1. Cargar y redimensionar la imagen de tutorial 1 (Movimiento)
+                img1 = pygame.image.load('Materials/Pictures/Assets/tuto5i.jpg').convert_alpha()
+                self.tuto_image = pygame.transform.scale(img1, (250, 180)) 
+                self.tuto_rect = self.tuto_image.get_rect(topleft=(self.tuto_current_x, self.tuto_y)) 
+                
+                # 2. Cargar y redimensionar la imagen de tutorial 2 (Espacio/Enter)
+                img2 = pygame.image.load('Materials/Pictures/Assets/tuto6i.jpg').convert_alpha()
+                self.tuto_image_2 = pygame.transform.scale(img2, (250, 180))
+                
+                # 3. Cargar y redimensionar la imagen de tutorial 3 (Diálogo/Quiz)
+                img3 = pygame.image.load('Materials/Pictures/Assets/tuto3i.jpg').convert_alpha()
+                self.tuto_image_3 = pygame.transform.scale(img3, (250, 180))
+                
+                # 4. Cargar y redimensionar la imagen de tutorial 4 (Puerta/Victoria)
+                img4 = pygame.image.load('Materials/Pictures/Assets/tuto7i.jpg').convert_alpha() 
+                self.tuto_image_4 = pygame.transform.scale(img4, (250, 180)) 
+                
+            except pygame.error as e:
+                self.tuto_image = None
+                self.tuto_image_2 = None
+                self.tuto_image_3 = None
+                self.tuto_image_4 = None
+                self.current_tuto_index = 0
+                print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
         try:
             self.control_image = pygame.image.load('Materials/Pictures/Assets/Control2.jpg').convert()

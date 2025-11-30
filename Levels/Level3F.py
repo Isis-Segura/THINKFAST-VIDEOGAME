@@ -166,13 +166,22 @@ class Level3:
         self.current_tuto_index = 1
         self.tuto_target_x = 20; self.tuto_exit_x = -250; self.tuto_current_x = -250; self.tuto_y = 80
 
-        try:
-            self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto8.jpg').convert_alpha(), (250, 180))
-            self.tuto_image_2 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto9.jpg').convert_alpha(), (250, 180))
-            self.tuto_image_3 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha(), (250, 180))
-            self.tuto_image_4 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha(), (250, 180))
-            self.tuto_rect = self.tuto_image.get_rect(topleft=(-250, 20))
-        except: self.current_tuto_index = 0
+        if language == 'es':
+            try:
+                self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto8.jpg').convert_alpha(), (250, 180))
+                self.tuto_image_2 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto9.jpg').convert_alpha(), (250, 180))
+                self.tuto_image_3 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto3.jpg').convert_alpha(), (250, 180))
+                self.tuto_image_4 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto4.jpg').convert_alpha(), (250, 180))
+                self.tuto_rect = self.tuto_image.get_rect(topleft=(-250, 20))
+            except: self.current_tuto_index = 0
+        else:
+            try:
+                self.tuto_image = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto8i.jpg').convert_alpha(), (250, 180))
+                self.tuto_image_2 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto9i.jpg').convert_alpha(), (250, 180))
+                self.tuto_image_3 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto3i.jpg').convert_alpha(), (250, 180))
+                self.tuto_image_4 = pygame.transform.scale(pygame.image.load('Materials/Pictures/Assets/tuto4i.jpg').convert_alpha(), (250, 180))
+                self.tuto_rect = self.tuto_image.get_rect(topleft=(-250, 20))
+            except: self.current_tuto_index = 0
 
         # --- PANTALLA CONTROLES ---
         try:

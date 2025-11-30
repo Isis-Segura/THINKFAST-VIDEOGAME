@@ -184,10 +184,17 @@ class Level3:
             except: self.current_tuto_index = 0
 
         # --- PANTALLA CONTROLES ---
-        try:
-            try: self.control_image = pygame.image.load('Materials/Pictures/Assets/Control3.jpg').convert()
-            except: self.control_image = pygame.image.load('Materials/Pictures/Assets/Control.jpg').convert()
-        except: self.control_image = None
+        if language == 'es':
+            try:
+                try: self.control_image = pygame.image.load('Materials/Pictures/Assets/Control3.jpg').convert()
+                except: self.control_image = pygame.image.load('Materials/Pictures/Assets/Control.jpg').convert()
+            except: self.control_image = None
+        else:
+            try:
+                try: self.control_image = pygame.image.load('Materials/Pictures/Assets/Control3i.jpg').convert()
+                except: self.control_image = pygame.image.load('Materials/Pictures/Assets/Controli.jpg').convert()
+            except: self.control_image = None
+
 
         self.fade_alpha = 255 if self.control_image else 0
         self.is_fading = True

@@ -222,16 +222,28 @@ class Level5:
                 self.current_tuto_index = 0
                 print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
-        try:
-            self.control_image = pygame.image.load('Materials/Pictures/Assets/Control2.jpg').convert()
-        except pygame.error:
-            self.control_image = None
+        if language == 'es':
+            try:
+                self.control_image = pygame.image.load('Materials/Pictures/Assets/Control2.jpg').convert()
+            except pygame.error:
+                self.control_image = None
 
-        self.fade_alpha = 255 if self.control_image else 0
-        self.fade_in_speed = 5
-        self.fade_out_speed = 10
-        self.is_fading = True
-        self.target_state = None
+            self.fade_alpha = 255 if self.control_image else 0
+            self.fade_in_speed = 5
+            self.fade_out_speed = 10
+            self.is_fading = True
+            self.target_state = None
+        else:
+            try:
+                self.control_image = pygame.image.load('Materials/Pictures/Assets/Control2i.jpg').convert()
+            except pygame.error:
+                self.control_image = None
+
+            self.fade_alpha = 255 if self.control_image else 0
+            self.fade_in_speed = 5
+            self.fade_out_speed = 10
+            self.is_fading = True
+            self.target_state = None
 
         if self.control_image:
             self.state = "controls_screen"

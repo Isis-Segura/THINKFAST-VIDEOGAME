@@ -217,17 +217,31 @@ class Level4:
                 print(f"Error cargando imágenes de tutorial: {e}. El tutorial no se mostrará.")
 
         # Pantalla de controles (se muestra al iniciar el nivel)
-        try:
-            self.control_image = pygame.image.load('Materials/Pictures/Assets/Control.jpg').convert()
-        except pygame.error:
-            self.control_image = None
 
-        # Controla la animación de fundido (fade in/out)
-        self.fade_alpha = 255 if self.control_image else 0
-        self.fade_in_speed = 5
-        self.fade_out_speed = 10
-        self.is_fading = True
-        self.target_state = None
+        if language == 'es':
+            try:
+                self.control_image = pygame.image.load('Materials/Pictures/Assets/Control.jpg').convert()
+            except pygame.error:
+                self.control_image = None
+
+            # Controla la animación de fundido (fade in/out)
+            self.fade_alpha = 255 if self.control_image else 0
+            self.fade_in_speed = 5
+            self.fade_out_speed = 10
+            self.is_fading = True
+            self.target_state = None
+        else:
+            try:
+                self.control_image = pygame.image.load('Materials/Pictures/Assets/Controli.jpg').convert()
+            except pygame.error:
+                self.control_image = None
+
+            # Controla la animación de fundido (fade in/out)
+            self.fade_alpha = 255 if self.control_image else 0
+            self.fade_in_speed = 5
+            self.fade_out_speed = 10
+            self.is_fading = True
+            self.target_state = None
 
         # Estado inicial del juego
         if self.control_image:

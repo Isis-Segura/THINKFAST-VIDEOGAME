@@ -431,8 +431,14 @@ class Level6:
         if self.q_idx == 0 and not self.timer.is_running():
             self.timer.start()
             
-        if self.q_idx == 0 and not self.timer_pre.is_running():
+        # MODIFICACIÓN: Reiniciar el temporizador de 60s (self.timer_pre) con cada pregunta
+        if self.timer_pre.is_running():
+            self.timer_pre.reset()
             self.timer_pre.start()
+        elif self.q_idx == 0:
+            # Solo para la primera pregunta, lo iniciamos si no está corriendo (aunque ya debería correr por la línea anterior)
+             self.timer_pre.start()
+        # FIN MODIFICACIÓN
         
         if self.q_idx >= len(self.questions):
             self.minigame_active = False
@@ -700,6 +706,7 @@ class Level6:
                         self.win_music_played = True
             
             if self.timer.is_running(): self.timer.update()
+            # El timer_pre solo corre si minigame_active está activo o si aún no se ha interactuado
             if self.timer_pre.is_running(): self.timer_pre.update()
 
             if self.timer_pre.finished and not self.guard_interacted: 
@@ -842,7 +849,8 @@ class Level6:
                     self.screen.blit(ic, (x+8, 18))
 
         # Dibujar Timer (A 720, 20 que es 20px a la derecha de 700)
-        if self.timer_pre.is_running():
+        # Solo se muestra el timer_pre si el minigame está activo
+        if self.timer_pre.is_running() and self.minigame_active:
             self.timer_pre.draw(self.screen, self.f_timer, (720, 20))
 
 

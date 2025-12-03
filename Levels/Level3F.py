@@ -635,6 +635,10 @@ class Level3:
                         self.current_tuto_index = 3; self.tuto_fade_in_started = True; self.tuto_visible_timer.reset()
 
     def update(self,is_paused,language):
+
+        self.skip_img1 = pygame.image.load("Materials/Pictures/Assets/btn_skip1.png").convert_alpha()
+        self.skip_img3 = pygame.image.load("Materials/Pictures/Assets/btn_skip3.png").convert_alpha()
+        self.skip_img2 = pygame.image.load("Materials/Pictures/Assets/btn_skip2.png").convert_alpha()
         keys = pygame.key.get_pressed()
         if is_paused:
             return "running"
@@ -713,9 +717,10 @@ class Level3:
             # CORRECCIÓN: Iniciar video y luego regresar al menú
             if self.win_delay_timer.finished:
                 pygame.mixer.stop()
-                
+
+
                 # LLAMADA AL VIDEO DE CRÉDITOS/SALIDA
-                run_out_video(self.screen, self.size, self.language) 
+                run_out_video(self.screen, self.size, self.language, self.skip_img1, self.skip_img3, self.skip_img2) 
                 
                 # Después de que el video termine, el juego regresa al menú principal.
                 return "menu"

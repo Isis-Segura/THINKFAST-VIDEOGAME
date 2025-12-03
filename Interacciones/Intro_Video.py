@@ -20,7 +20,7 @@ def run_intro_video(screen, size, skip_img1, skip_img3, skip_img2):
     
     # Variables de Control de Animación y Tiempo
     DELAY_MS = 3000          # 3 segundos de retraso antes de que empiece a aparecer
-    ANIMATION_SPEED = 20     # Velocidad de deslizamiento (píxeles por frame)
+    ANIMATION_SPEED = 4     # Velocidad de deslizamiento (píxeles por frame)
     
     # Estado del Botón
     button_clicked_state = None  # Almacena el ID del botón presionado ("skip")

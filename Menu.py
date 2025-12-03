@@ -44,9 +44,6 @@ except pygame.error:
     font_small = pygame.font.Font(None, 30)
     font_large = pygame.font.Font(None, 50) # Añadir fallback para large
 
-# -------------------- EJECUCIÓN DEL VIDEO DE INTRODUCCIÓN --------------------
-run_intro_video(screen, size)
-
 # -------------------- IMÁGENES Y BOTONES --------------------
 # Carga de Fondos
 sky_background = pygame.image.load("Materials/Pictures/Assets/sky_background.png").convert() 
@@ -144,6 +141,19 @@ except pygame.error:
     btn_continue1, btn_continue3, btn_continue2 = play_button_img, play_button_hover_img, play_button_click_img
     btn_menu1, btn_menu3, btn_menu2 = quit_button_img, quit_button_hover_img, quit_button_click_img,btn_reset1, btn_reset3, btn_reset2 = config_button_img, config_button_hover_img, config_button_click_img
 
+# --- BOTÓN DE SALTAR INTRO (Lógica de Carga) ---
+try:
+    # 1. Cargar la imagen base
+    btn_skip1 = pygame.image.load("Materials/Pictures/Assets/btn_skip1.png").convert_alpha() 
+    # 2. Asignar las mismas imágenes para hover y click si no hay versiones dedicadas
+    btn_skip3 = btn_skip1
+    btn_skip2 = btn_skip1 
+except pygame.error:
+    print("ADVERTENCIA: No se encontró 'btn_skip1.png'. Usando un botón de color sólido.")
+    # Fallback si falla la carga
+    btn_skip1 = pygame.Surface((100, 50), pygame.SRCALPHA); btn_skip1.fill((255, 0, 0, 150))
+    btn_skip3 = pygame.Surface((100, 50), pygame.SRCALPHA); btn_skip3.fill((255, 50, 50, 200)) 
+    btn_skip2 = pygame.Surface((100, 50), pygame.SRCALPHA); btn_skip2.fill((200, 0, 0, 255)) 
 
 # --- BOTÓN DE PAUSA (Esquina superior izquierda) ---
 try:
@@ -164,7 +174,12 @@ pause_button_rect = pygame.Rect(PAUSE_PADDING, PAUSE_PADDING, PAUSE_BUTTON_SIZE[
 
 clock = pygame.time.Clock()
 
-# Música
+# -------------------- EJECUCIÓN DEL VIDEO DE INTRODUCCIÓN --------------------
+# El programa se detiene aquí hasta que el video termine o se salte.
+run_intro_video(screen, size, btn_skip1, btn_skip3, btn_skip2) 
+
+# -------------------- INICIO DE MÚSICA DESPUÉS DEL VIDEO --------------------
+# La música comienza ahora, después de que el video de introducción ha terminado.
 pygame.mixer.music.load('Materials/Music/Menu.wav')
 pygame.mixer.music.play(-1)
 
@@ -176,16 +191,15 @@ SELECT_CHARACTER2 = 6
 SELECT_LEVEL = 3
 SELECT_ADVANCED_LEVEL = 8  
 GAME_LEVEL_1 = 4 
-CONFIG_MENU = 5 # <--- Usado para la animación de configuración
-# --- NUEVO ESTADO DE PAUSA ---
+CONFIG_MENU = 5 
 # PAUSE_MENU = 7 # Ya no es necesario si usamos solo la bandera 'is_paused'
 
 # Variables de Animación de Configuración
-SLIDE_SPEED = 30 # Velocidad de la animación en pixeles por frame
-PANEL_WIDTH = 700 # Ancho del panel (debe coincidir con Settings.py)
-config_target_x = (size[0] - PANEL_WIDTH) // 2 # Posición central final
-config_panel_x = -PANEL_WIDTH # Posición inicial (fuera de pantalla a la izquierda)
-config_closing = False # Bandera para controlar si se está cerrando la animación
+SLIDE_SPEED = 30 
+PANEL_WIDTH = 700 
+config_target_x = (size[0] - PANEL_WIDTH) // 2 
+config_panel_x = -PANEL_WIDTH 
+config_closing = False 
 
 game_state = MENU
 state_history = [MENU]
@@ -195,7 +209,7 @@ level_instance = None
 language = "es" 
 volume_level = 0.7 
 pygame.mixer.music.set_volume(volume_level) 
-is_paused = False # <--- NUEVA BANDERA DE PAUSA
+is_paused = False # <--- BANDERA DE PAUSA
 
 # --- INICIALIZAR MENÚ DE CONFIGURACIÓN ---
 settings_panel = SettingsPanel(screen, size) 
@@ -212,7 +226,7 @@ texts = {
         "select_level": "Selecciona el desafío", 
         "level1_name": "Entrada", "level2_name": "Pasillo", "level3_name": "Salón",  
         "coming_soon": "¡Proximamente!",
-        "pause": "PAUSA", "continue": "Continuar", "main_menu": "Menú Principal","reset_level": "Reset Level", # <--- TEXTOS DE PAUSA
+        "pause": "PAUSA", "continue": "Continuar", "main_menu": "Menú Principal","reset_level": "Reset Level", 
     },
     "en": {
         "play": "Play", "quit": "Quit", "config": "Settings",
@@ -223,7 +237,7 @@ texts = {
         "select_level": "Select the challenge", 
         "level1_name": "Entrance", "level2_name": "Aisle", "level3_name": "Classroom", 
         "coming_soon": "Coming soon!",
-        "pause": "PAUSA", "continue": "Continue", "main_menu": "Main Menu","reset_level": "Reset Level", # <--- TEXTOS DE PAUSA
+        "pause": "PAUSA", "continue": "Continue", "main_menu": "Main Menu","reset_level": "Reset Level", 
     }
 }
 
@@ -350,7 +364,7 @@ def create_advanced_level_buttons():
     
     return level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect
 
-def create_pause_menu_buttons(): # <--- NUEVA FUNCIÓN PARA RECTÁNGULOS DE PAUSA
+def create_pause_menu_buttons(): 
     btn_w, btn_h = 100, 100 
     # Botón Reset Level
     reset_button_rect_pause = pygame.Rect(0, 0, btn_w, btn_h)
@@ -366,8 +380,6 @@ def create_pause_menu_buttons(): # <--- NUEVA FUNCIÓN PARA RECTÁNGULOS DE PAUS
     return continue_button_rect, menu_button_rect_pause, reset_button_rect_pause
 
 # -------------------- FUNCIONES DE DIBUJO DE PANTALLAS (REDUCIDAS) --------------------
-# (Las funciones draw_menu, draw_difficulty_selection, etc. se mantienen igual)
-# ... (código anterior de draw_menu, draw_difficulty_selection, etc.) ...
 def draw_menu(play_button_rect, quit_button_rect, config_button_rect, mouse_pos, button_pressed):
     
     # 4. DIBUJAR LOS BOTONES (Lógica de 3 estados)
@@ -473,7 +485,7 @@ beginner_button_rect, advanced_button_rect, back_button_rect_difficulty = create
 char1_button_rect, char2_button_rect, back_button_rect_character = create_character_buttons()
 level1_button_rect, level2_button_rect, level3_button_rect, back_button_rect_level = create_level_buttons()
 level4_button_rect, level5_button_rect, level6_button_rect, back_button_rect_advanced = create_advanced_level_buttons()
-continue_button_rect, menu_button_rect_pause, reset_button_rect_pause = create_pause_menu_buttons() # <--- NUEVOS RECTÁNGULOS DE PAUSA
+continue_button_rect, menu_button_rect_pause, reset_button_rect_pause = create_pause_menu_buttons() 
 
 # -------------------- BUCLE PRINCIPAL --------------------
 running = True
@@ -517,7 +529,6 @@ while running:
         if game_state == GAME_LEVEL_1 and level_instance:
             
             # Bandera de control para saber si el nivel NO está en la pantalla de introducción
-            # Esto debe ser verdad para permitir hacer clic en el botón de pausa.
             is_level_not_in_intro = hasattr(level_instance, 'state') and level_instance.state != "controls_screen"
             
             # 1. Manejar eventos del menú de PAUSA (prioritario si ya está pausado)
@@ -534,13 +545,16 @@ while running:
                         is_paused = False
                         game_state = MENU
                         level_instance = None
+                        # **********************************************
+                        # CAMBIO CLAVE: Reiniciar la música al volver al menú principal
+                        pygame.mixer.music.stop() 
                         pygame.mixer.music.load('Materials/Music/Menu.wav')
                         pygame.mixer.music.play(-1)
+                        # **********************************************
                         button_pressed = None
                     elif button_pressed == "reset_level" and reset_button_rect_pause.collidepoint(event.pos):
                         is_paused = False
-                        # Recargar el nivel según su clase (asumiendo que todos los niveles son Level1F, Level2F, etc.)
-                        # Esto es clave: identificamos qué nivel estaba activo y lo recreamos.
+                        # Recargar el nivel según su clase 
                         current_level_class = type(level_instance) 
                         level_instance = current_level_class(screen, size, font_small, selected_character, language)
                         button_pressed = None
@@ -559,8 +573,12 @@ while running:
             if returned_state == "menu":
                 game_state = MENU
                 level_instance = None
+                # **********************************************
+                # CAMBIO CLAVE: Reiniciar la música al volver al menú principal
+                pygame.mixer.music.stop()
                 pygame.mixer.music.load('Materials/Music/Menu.wav')
                 pygame.mixer.music.play(-1)
+                # **********************************************
             continue
             
         # Lógica de CONFIG_MENU (prioritaria para manejar clics dentro del panel)
@@ -649,41 +667,32 @@ while running:
                     game_state = SELECT_ADVANCED_LEVEL; state_history.append(game_state)
                 
             # Lógica de NIVELES NORMALES/AVANZADOS (Inicia el nivel)
-            elif button_pressed == "lvl1" and level1_button_rect.collidepoint(event.pos):
-                game_state = GAME_LEVEL_1
-                level_instance = Level1F.Level1(screen, size, font_small, selected_character, language)
-                show_coming_soon = False
+            elif (button_pressed == "lvl1" and level1_button_rect.collidepoint(event.pos)) or \
+                 (button_pressed == "lvl2" and level2_button_rect.collidepoint(event.pos)) or \
+                 (button_pressed == "lvl3" and level3_button_rect.collidepoint(event.pos)) or \
+                 (button_pressed == "lvl4" and level4_button_rect.collidepoint(event.pos)) or \
+                 (button_pressed == "lvl5" and level5_button_rect.collidepoint(event.pos)) or \
+                 (button_pressed == "lvl6" and level6_button_rect.collidepoint(event.pos)):
                 
-            elif button_pressed == "lvl2" and level2_button_rect.collidepoint(event.pos):
-                game_state = GAME_LEVEL_1
-                level_instance = Level2F.Level2(screen, size, font_small, selected_character, language)
-                show_coming_soon = False
-                 
-               
-            elif button_pressed == "lvl3" and level3_button_rect.collidepoint(event.pos):
-                game_state = GAME_LEVEL_1
-                level_instance = Level3F.Level3(screen, size, font_small, selected_character, language) 
-                show_coming_soon = False
+                # Detener la música del menú al iniciar un nivel
+                pygame.mixer.music.stop() 
                 
+                # Determinar e iniciar el nivel
+                if button_pressed == "lvl1":
+                    level_instance = Level1F.Level1(screen, size, font_small, selected_character, language)
+                elif button_pressed == "lvl2":
+                    level_instance = Level2F.Level2(screen, size, font_small, selected_character, language)
+                elif button_pressed == "lvl3":
+                    level_instance = Level3F.Level3(screen, size, font_small, selected_character, language) 
+                elif button_pressed == "lvl4":
+                    level_instance = Level4F.Level4(screen, size, font_small, selected_character, language)
+                elif button_pressed == "lvl5":
+                    level_instance = Level5F.Level5(screen, size, font_small, selected_character, language) 
+                elif button_pressed == "lvl6":
+                    level_instance = Level6F.Level6(screen, size, font_small, selected_character, language) 
                 
-            elif button_pressed == "lvl4" and level4_button_rect.collidepoint(event.pos):
                 game_state = GAME_LEVEL_1
-                level_instance = Level4F.Level4(screen, size, font_small, selected_character, language)
                 show_coming_soon = False
-                 
-               
-            elif button_pressed == "lvl5" and level5_button_rect.collidepoint(event.pos):
-                game_state = GAME_LEVEL_1
-                # Asegúrate que Level5F.Level5 reciba los argumentos correctos
-                level_instance = Level5F.Level5(screen, size, font_small, selected_character, language) 
-                show_coming_soon = False
-                
-                
-            elif button_pressed == "lvl6" and level6_button_rect.collidepoint(event.pos):
-                game_state = GAME_LEVEL_1
-                level_instance = Level6F.Level6(screen, size, font_small, selected_character, language) 
-                show_coming_soon = False
-                
                 
 
             button_pressed = None 
@@ -695,21 +704,24 @@ while running:
         
         # 💡 DEPURATION: Imprime el estado actual del nivel en la consola
         if hasattr(level_instance, 'state'):
-            print(f"Level State: {level_instance.state}") 
+            pass # print(f"Level State: {level_instance.state}") 
         
         if level_state == "quit":
             running = False
         elif level_state == "menu":
             game_state = MENU
             level_instance = None
+            # **********************************************
+            # CAMBIO CLAVE: Reiniciar la música al volver al menú principal (desde el nivel)
+            pygame.mixer.music.stop()
             pygame.mixer.music.load('Materials/Music/Menu.wav')
             pygame.mixer.music.play(-1)
+            # **********************************************
             is_paused = False # Asegurar que la pausa se desactive
         else:
             level_instance.draw(language)
             
             # Comprobación de que el nivel tiene la propiedad 'state' y que NO es 'controls_screen'
-            # 💡 CORRECCIÓN: El botón de pausa SÓLO se dibuja si el nivel NO está en estado "controls_screen".
             is_level_not_in_intro = hasattr(level_instance, 'state') and level_instance.state != "controls_screen"
 
             # DIBUJAR EL BOTÓN DE PAUSA SOBRE EL NIVEL (solo si NO está en pausa y el juego NO está en intro)

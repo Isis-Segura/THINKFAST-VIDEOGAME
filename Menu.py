@@ -144,10 +144,9 @@ except pygame.error:
 # --- BOTÓN DE SALTAR INTRO (Lógica de Carga) ---
 try:
     # 1. Cargar la imagen base
-    btn_skip1 = pygame.image.load("Materials/Pictures/Assets/btn_skip1.png").convert_alpha() 
-    # 2. Asignar las mismas imágenes para hover y click si no hay versiones dedicadas
-    btn_skip3 = btn_skip1
-    btn_skip2 = btn_skip1 
+    skip_button_img_1 = pygame.image.load("Materials/Pictures/Assets/btn_skip1.png").convert_alpha()
+    skip_button_img_3 = pygame.image.load("Materials/Pictures/Assets/btn_skip3.png").convert_alpha()
+    skip_button_img_2 = pygame.image.load("Materials/Pictures/Assets/btn_skip2.png").convert_alpha()
 except pygame.error:
     print("ADVERTENCIA: No se encontró 'btn_skip1.png'. Usando un botón de color sólido.")
     # Fallback si falla la carga
@@ -176,7 +175,7 @@ clock = pygame.time.Clock()
 
 # -------------------- EJECUCIÓN DEL VIDEO DE INTRODUCCIÓN --------------------
 # El programa se detiene aquí hasta que el video termine o se salte.
-run_intro_video(screen, size, btn_skip1, btn_skip3, btn_skip2) 
+run_intro_video(screen, size, skip_button_img_1, skip_button_img_2, skip_button_img_3) 
 
 # -------------------- INICIO DE MÚSICA DESPUÉS DEL VIDEO --------------------
 # La música comienza ahora, después de que el video de introducción ha terminado.

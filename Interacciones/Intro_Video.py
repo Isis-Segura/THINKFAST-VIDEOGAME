@@ -4,7 +4,7 @@ from Interacciones.Controldeobjetos.pyvidplayer import Video
 def run_intro_video(screen, size, skip_img1, skip_img3, skip_img2):
     """
     Inicializa y reproduce el video de introducción, incluyendo un botón de saltar 
-    con retraso y animación de entrada.
+    con retraso, animación de entrada y animación de clic (3 estados).
     """
     
     # ------------------ CONFIGURACIÓN DEL BOTÓN DE SALTAR ------------------
@@ -20,11 +20,11 @@ def run_intro_video(screen, size, skip_img1, skip_img3, skip_img2):
     
     # Variables de Control de Animación y Tiempo
     DELAY_MS = 3000          # 3 segundos de retraso antes de que empiece a aparecer
-    ANIMATION_SPEED = 4     # Velocidad de deslizamiento (píxeles por frame)
+    ANIMATION_SPEED = 20     # Velocidad de deslizamiento (píxeles por frame)
     
     # Estado del Botón
-    button_pressed = None 
-    is_button_ready = False  # Bandera para saber si el tiempo de retraso terminó
+    button_clicked_state = None  # Almacena el ID del botón presionado ("skip")
+    is_button_ready = False      # Bandera para saber si el tiempo de retraso terminó
     BUTTON_CURRENT_X = INITIAL_X # Posición X actual para la animación
     
     # El rectángulo final, usado para la detección de colisión/clic.
@@ -60,7 +60,7 @@ def run_intro_video(screen, size, skip_img1, skip_img3, skip_img2):
                 BUTTON_CURRENT_X = max(FINAL_X, BUTTON_CURRENT_X - ANIMATION_SPEED)
             
             # 3. Actualizar la posición del rectángulo de clic para el frame actual
-            skip_button_rect.x = BUTTON_CURRENT_X
+            skip_button_rect.x = BUTTON_CURRENT_X # Importante para la colisión
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -68,19 +68,23 @@ def run_intro_video(screen, size, skip_img1, skip_img3, skip_img2):
                     pygame.quit()
                     sys.exit()
                 
-                # --- LÓGICA DEL BOTÓN DE SALTAR (Solo si la animación terminó o está visible) ---
-                if is_button_ready:
+                # --- LÓGICA DEL BOTÓN DE SALTAR (3 ESTADOS) ---
+                # Solo interactuable cuando la animación terminó y está listo
+                if is_button_ready and BUTTON_CURRENT_X == FINAL_X: 
+                    
                     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                        # Usamos skip_button_rect para la colisión
                         if skip_button_rect.collidepoint(event.pos):
-                            button_pressed = "skip"
+                            # 🔥 CAMBIO DE IMAGEN A PRESIONADO (btn_skip2) 🔥
+                            button_clicked_state = "skip" 
                             
                     if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                        if button_pressed == "skip" and skip_button_rect.collidepoint(event.pos):
+                        # Acción: Saltar (Sólo si soltamos el botón sobre el área de colisión)
+                        if button_clicked_state == "skip" and skip_button_rect.collidepoint(event.pos):
                             vid.close()
                             intro_running = False
                             return 
-                        button_pressed = None
+                        # Reinicia el estado visual
+                        button_clicked_state = None
                 
                 # --- LÓGICA de Tecla de Salto (ESC) ---
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -92,18 +96,21 @@ def run_intro_video(screen, size, skip_img1, skip_img3, skip_img2):
                 # 1. Dibuja el frame del video
                 vid.draw(screen, (0, 0)) 
                 
-                # 2. Dibuja el botón de saltar SÓLO si está listo o animándose
+                # 2. Dibuja el botón de saltar
                 if is_button_ready:
                     
-                    if button_pressed == "skip" and skip_button_rect.collidepoint(mouse_pos):
-                        current_skip_img = skip_img2 # Clicked
+                    # Lógica para seleccionar la imagen correcta (3 estados)
+                    if button_clicked_state == "skip" and skip_button_rect.collidepoint(mouse_pos):
+                        # 🔴 ESTADO PRESIONADO/CLIC: Usa skip_img2
+                        current_skip_img = skip_img2 
                     elif skip_button_rect.collidepoint(mouse_pos) and BUTTON_CURRENT_X == FINAL_X:
-                        # Sólo hover si la animación ya terminó
+                        # 🟡 ESTADO HOVER: Usa skip_img3 (el que se vuelve algo blanco)
                         current_skip_img = skip_img3 
                     else:
-                        current_skip_img = skip_img1 # Normal
+                        # 🟢 ESTADO NORMAL: Usa skip_img1
+                        current_skip_img = skip_img1 
                         
-                    # Dibuja el botón en su posición actual (BUTTON_CURRENT_X, FINAL_Y)
+                    # Dibuja el botón en su posición actual (X animada, Y final)
                     screen.blit(current_skip_img, (BUTTON_CURRENT_X, FINAL_Y))
                 
                 pygame.display.flip()

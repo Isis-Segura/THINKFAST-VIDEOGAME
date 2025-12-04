@@ -429,7 +429,7 @@ class Level2:
                     { "text": "Desierto", "image": "Materials/Pictures/Assets/des.jpg" }, 
                 { "text": "Playa", "image": "Materials/Pictures/Assets/playa.jpg" }
     ], "correct_answer": 0 },
-                { "question": "¿En qué continente viven los canguros?", "choices": [
+                { "question": "¿En qué lugar viven los canguros?", "choices": [
                     { "text": "África", "image": "Materials/Pictures/Assets/afri.jpg" }, 
                     { "text": "América", "image": "Materials/Pictures/Assets/ame.jpg" }, 
                     { "text": "Australia", "image": "Materials/Pictures/Assets/australia.jpg" }, 
@@ -462,7 +462,7 @@ class Level2:
             { "text": "Desert", "image": "Materials/Pictures/Assets/des.jpg" },
             { "text": "Beach", "image": "Materials/Pictures/Assets/playa.jpg" }
         ], "correct_answer": 0 },
-        { "question": "¿In which continent do kangaroos live?", "choices": [
+        { "question": "¿In which place do kangaroos live?", "choices": [
             { "text": "Africa", "image": "Materials/Pictures/Assets/afri.jpg" },
             { "text": "America", "image": "Materials/Pictures/Assets/ame.jpg" },
             { "text": "Australia", "image": "Materials/Pictures/Assets/australia.jpg" },

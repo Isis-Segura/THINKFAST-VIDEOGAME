@@ -657,6 +657,9 @@ class Level6:
     # UPDATE (Añadido - Soluciona el AttributeError)
     # ============================================================
     def update(self,is_paused,language):
+        self.skip_img1 = pygame.image.load("Materials/Pictures/Assets/btn_skip1.png").convert_alpha()
+        self.skip_img3 = pygame.image.load("Materials/Pictures/Assets/btn_skip3.png").convert_alpha()
+        self.skip_img2 = pygame.image.load("Materials/Pictures/Assets/btn_skip2.png").convert_alpha()
         keys = pygame.key.get_pressed()
         if is_paused:
             return "running"
@@ -740,7 +743,7 @@ class Level6:
                 pygame.mixer.stop()
                 
                 # LLAMADA AL VIDEO
-                run_out_video(self.screen, self.size, self.language) 
+                run_out_video(self.screen, self.size, self.language, self.skip_img1, self.skip_img3, self.skip_img2) 
                 
                 return "menu"
 
